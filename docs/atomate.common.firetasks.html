@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>atomate.common.firetasks package &#8212; atomate 0.9.6 documentation</title>
+    <title>atomate.common.firetasks package &#8212; atomate 0.9.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.common.firetasks package</a></li> 
       </ul>
     </div>  
@@ -47,7 +47,7 @@
 <li class="toctree-l1"><a class="reference internal" href="atomate.common.firetasks.tests.html">atomate.common.firetasks.tests package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.common.firetasks.tests.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.common.firetasks.tests.html#atomate-common-firetasks-tests-test-glue-tasks-module">atomate.common.firetasks.tests.test_glue_tasks module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.common.firetasks.tests.html#atomate-common-firetasks-tests-test-parse-outputs-module">atomate.common.firetasks.tests.test_parse_outputs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.common.firetasks.tests.html#module-atomate.common.firetasks.tests.test_parse_outputs">atomate.common.firetasks.tests.test_parse_outputs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.common.firetasks.tests.html#module-atomate.common.firetasks.tests">Module contents</a></li>
 </ul>
 </li>
@@ -57,14 +57,670 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="atomate-common-firetasks-glue-tasks-module">
-<h2>atomate.common.firetasks.glue_tasks module<a class="headerlink" href="#atomate-common-firetasks-glue-tasks-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.common.firetasks.glue_tasks">
+<span id="atomate-common-firetasks-glue-tasks-module"></span><h2>atomate.common.firetasks.glue_tasks module<a class="headerlink" href="#module-atomate.common.firetasks.glue_tasks" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="atomate.common.firetasks.glue_tasks.CopyFiles">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.glue_tasks.</code><code class="sig-name descname">CopyFiles</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Task to copy the given list of files from the given directory to the destination directory.
+To customize override the setup_copy and copy_files methods.</p>
+<dl>
+<dt>Optional params:</dt><dd><p>from_dir (str): path to the directory containing the files to be copied. Supports env_chk.
+to_dir (str): path to the destination directory. Supports env_chk.
+filesystem (str)
+files_to_copy (list): list of file names. Defaults to copying everything in from_dir.
+exclude_files (list): list of file names to be excluded.
+suffix (str): suffix to append to each filename when copying</p>
+<blockquote>
+<div><p>(e.g., rename ‘INCAR’ to ‘INCAR.precondition’)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>continue_on_missing(bool): Whether to continue copying when a file</dt><dd><p>in filenames is missing. Defaults to False.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="atomate.common.firetasks.glue_tasks.CopyFiles.copy_files">
+<code class="sig-name descname">copy_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles.copy_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the copy operation. Override this to customize copying.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.CopyFiles.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['from_dir', 'to_dir', 'filesystem', 'files_to_copy', 'exclude_files', 'suffix', 'continue_on_missing']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.glue_tasks.CopyFiles.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.glue_tasks.CopyFiles.setup_copy">
+<code class="sig-name descname">setup_copy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">from_dir</span></em>, <em class="sig-param"><span class="n">to_dir</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">filesystem</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">files_to_copy</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">exclude_files</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">from_path_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">suffix</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fw_spec</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">continue_on_missing</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFiles.setup_copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>setup the copy i.e setup the from directory, filesystem, destination directory etc.</p>
+<dl>
+<dt>Args:</dt><dd><p>from_dir (str)
+to_dir (str)
+filesystem (str)
+files_to_copy (list): if None all the files in the from_dir will be copied
+exclude_files (list): list of file names to be excluded.
+suffix (str): suffix to append to each filename when copying</p>
+<blockquote>
+<div><p>(e.g., rename ‘INCAR’ to ‘INCAR.precondition’)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>continue_on_missing(bool): Whether to continue copying when a file</dt><dd><p>in filenames is missing. Defaults to False.</p>
+</dd>
+<dt>from_path_dict (dict): dict specification of the path. If specified must contain atleast</dt><dd><p>the key “path” that specifies the path to the from_dir.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.glue_tasks.</code><code class="sig-name descname">CopyFilesFromCalcLoc</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Based on CopyVaspOutputs but for general file copying. Note “calc_locs”
+must be set in the fw_spec. Files are copied to the current folder.</p>
+<dl>
+<dt>Required params:</dt><dd><p>calc_loc: name of target fw to get location for within the calc_locs.</p>
+</dd>
+<dt>Optional params:</dt><dd><dl>
+<dt>filenames (list(str)): filenames to copy. Special behavior for:</dt><dd><p>None: if filenames not set, all files in calc_loc will be copied
+‘$ALL_NO_SUBDIRS’ in filenames: similar to filenames is None
+‘$ALL’ in filenames: all files and subfolders copied, name_prepend</p>
+<blockquote>
+<div><p>and name_append cannot be set in this case.</p>
+</div></blockquote>
+<p>Accepts glob patterns.</p>
+</dd>
+<dt>name_prepend (str): string to prepend filenames, e.g. can be a</dt><dd><p>directory.</p>
+</dd>
+</dl>
+<p>name_append (str): string to append to destination filenames.
+exclude_files (list): list of file names to be excluded. Accepts glob</p>
+<blockquote>
+<div><p>patterns.</p>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['filenames', 'name_prepend', 'name_append', 'exclude_files']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['calc_loc']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CopyFilesFromCalcLoc.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="atomate.common.firetasks.glue_tasks.CreateFolder">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.glue_tasks.</code><code class="sig-name descname">CreateFolder</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CreateFolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>FireTask to create new folder with the option of changing directory to the new folder.</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>folder_name (str): folder name.</p>
+</dd>
+<dt>Optional params:</dt><dd><dl class="simple">
+<dt>change_dir(bool): change working dir to new folder after creation.</dt><dd><p>Defaults to False.</p>
+</dd>
+<dt>relative_path (bool): whether folder name is relative or absolute.</dt><dd><p>Defaults to True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.CreateFolder.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['change_dir', 'relative_path']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CreateFolder.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.CreateFolder.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['folder_name']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CreateFolder.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.glue_tasks.CreateFolder.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.CreateFolder.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="atomate.common.firetasks.glue_tasks.DeleteFiles">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.glue_tasks.</code><code class="sig-name descname">DeleteFiles</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.DeleteFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Delete files
+Uses glob to search for files so any pattern it can accept can be used</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>files: list of files to remove</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.DeleteFiles.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['files']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.DeleteFiles.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.glue_tasks.DeleteFiles.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.DeleteFiles.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="atomate.common.firetasks.glue_tasks.DeleteFilesPrevFolder">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.glue_tasks.</code><code class="sig-name descname">DeleteFilesPrevFolder</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.DeleteFilesPrevFolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#atomate.common.firetasks.glue_tasks.DeleteFiles" title="atomate.common.firetasks.glue_tasks.DeleteFiles"><code class="xref py py-class docutils literal notranslate"><span class="pre">atomate.common.firetasks.glue_tasks.DeleteFiles</span></code></a></p>
+<p>Can delete files, also from a previous folder in the wf if one of the optional parameters are given
+Required params:</p>
+<blockquote>
+<div><p>files: list of files to remove</p>
+</div></blockquote>
+<dl>
+<dt>Optional params:</dt><dd><p>calc_dir: directory to delete the files from
+calc_loc (str OR bool): if True will set most recent calc_loc. If str</p>
+<blockquote>
+<div><p>search for the most recent calc_loc with the matching name</p>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.DeleteFilesPrevFolder.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['calc_dir', 'calc_loc']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.DeleteFilesPrevFolder.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.DeleteFilesPrevFolder.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['files']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.DeleteFilesPrevFolder.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.glue_tasks.DeleteFilesPrevFolder.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.DeleteFilesPrevFolder.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="atomate.common.firetasks.glue_tasks.GzipDir">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.glue_tasks.</code><code class="sig-name descname">GzipDir</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.GzipDir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Task to gzip the current directory.</p>
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.GzipDir.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = []</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.GzipDir.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.GzipDir.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = []</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.GzipDir.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.glue_tasks.GzipDir.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.GzipDir.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="atomate.common.firetasks.glue_tasks.PassCalcLocs">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.glue_tasks.</code><code class="sig-name descname">PassCalcLocs</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassCalcLocs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Passes information about where the current calculation is located
+for the next FireWork. This is achieved by passing a key to
+the fw_spec called “calc_locs” with this information.</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>name (str): descriptive name for this calculation file/dir</p>
+</dd>
+<dt>Optional params:</dt><dd><dl class="simple">
+<dt>filesystem (str or custom user format): name of filesystem. Supports env_chk.</dt><dd><p>defaults to None</p>
+</dd>
+<dt>path (str): The path to the directory containing the calculation. defaults to</dt><dd><p>current working directory.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.PassCalcLocs.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['filesystem', 'path']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassCalcLocs.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.PassCalcLocs.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['name']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassCalcLocs.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.glue_tasks.PassCalcLocs.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassCalcLocs.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="atomate.common.firetasks.glue_tasks.PassResult">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.glue_tasks.</code><code class="sig-name descname">PassResult</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Passes properties and corresponding user-specified data resulting from a run from parent
+to child fireworks.  Uses a string syntax similar to Mongo-style queries to designate
+values of output file dictionaries to retrieve.  For example, one could specify
+a task to pass the stress from the current calculation using:</p>
+<p>PassResult(pass_dict={‘stress’: “&gt;&gt;ionic_steps.-1.stress”})</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><dl class="simple">
+<dt>pass_dict (dict): dictionary designating keys and values to pass</dt><dd><p>to child fireworks.  If value is a string beginning with ‘&gt;&gt;’,
+the firework will search the parsed VASP output dictionary
+for the designated property by following the sequence of keys
+separated with periods, e. g. “&gt;&gt;ionic_steps.-1.stress” is used
+to designate the stress from the last ionic_step. If the value
+is not a string or does not begin with “&gt;&gt;”, it is passed as is.</p>
+</dd>
+<dt>parse_class (str): string representation of complete path to a class</dt><dd><p>with which to parse the output, e. g. pymatgen.io.vasp.Vasprun
+or pymatgen.io.feff.LDos.from_file, class must be MSONable</p>
+</dd>
+<dt>parse_kwargs (str): dict of kwargs for the parse class,</dt><dd><p>e. g. {“filename”: “vasprun.xml”, “parse_dos”: False,
+“parse_eigen”: False}</p>
+</dd>
+</dl>
+</dd>
+<dt>Optional params:</dt><dd><dl class="simple">
+<dt>calc_dir (str): path to dir that contains VASP output files, defaults</dt><dd><p>to ‘.’, e. g. current directory</p>
+</dd>
+<dt>mod_spec_cmd (str): command to issue for mod_spec, e. g. “_set” or “_push”,</dt><dd><p>defaults to “_set”</p>
+</dd>
+<dt>mod_spec_key (str): key to pass to mod_spec _set dictmod command, defaults</dt><dd><p>to “prev_calc_result”</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.PassResult.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['calc_dir', 'mod_spec_cmd', 'mod_spec_key']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassResult.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.glue_tasks.PassResult.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['pass_dict', 'parse_class', 'parse_kwargs']</em><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassResult.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.glue_tasks.PassResult.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.PassResult.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.common.firetasks.glue_tasks.get_calc_loc">
+<code class="sig-prename descclassname">atomate.common.firetasks.glue_tasks.</code><code class="sig-name descname">get_calc_loc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_name</span></em>, <em class="sig-param"><span class="n">calc_locs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.glue_tasks.get_calc_loc" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a helper method that helps you pick out a certain calculation
+from an array of calc_locs.</p>
+<dl>
+<dt>There are three modes:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>If you set target_name to a String, search for most recent calc_loc</dt><dd><p>with matching <a href="#id1"><span class="problematic" id="id2">nameget_</span></a></p>
+</dd>
+</dl>
+</li>
+<li><p>Otherwise, return most recent calc_loc overall</p></li>
+</ul>
+</dd>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>target_name: (bool or str) If str, will search for calc_loc with</dt><dd><p>matching name, else use most recent calc_loc</p>
+</dd>
+</dl>
+<p>calc_locs: (dict) The dictionary of all calc_locs</p>
+</dd>
+<dt>Returns:</dt><dd><p>(dict) dict with subkeys path, filesystem, and name</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
-<div class="section" id="atomate-common-firetasks-parse-outputs-module">
-<h2>atomate.common.firetasks.parse_outputs module<a class="headerlink" href="#atomate-common-firetasks-parse-outputs-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.common.firetasks.parse_outputs">
+<span id="atomate-common-firetasks-parse-outputs-module"></span><h2>atomate.common.firetasks.parse_outputs module<a class="headerlink" href="#module-atomate.common.firetasks.parse_outputs" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="atomate.common.firetasks.parse_outputs.ToDbTask">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.parse_outputs.</code><code class="sig-name descname">ToDbTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.parse_outputs.ToDbTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>General task to parse output data via a Drone and either (i) write to JSON file or
+(ii) insert into a database.</p>
+<dl>
+<dt>Required params:</dt><dd><p>drone (AbstractDrone): Drone to convert the data to dict</p>
+</dd>
+<dt>Optional params:</dt><dd><dl class="simple">
+<dt>db_file (str): path to file containing the database credentials. Supports env_chk.</dt><dd><p>Default is None, which will write data to JSON file.</p>
+</dd>
+</dl>
+<p>mmdb (MMDb) (str): If db_file, sets the type of MMDb, e.g. “atomate.vasp.database.MMVaspDb”
+calc_dir (str): path to dir (on current filesystem) that contains calculation output files.</p>
+<blockquote>
+<div><p>Default: use current working directory.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>calc_loc (str OR bool): if True will set most recent calc_loc. If str search for the most</dt><dd><p>recent calc_loc with the matching name</p>
+</dd>
+</dl>
+<p>options (dict): dict of options to pass into the Drone
+additional_fields (dict): dict of additional fields to add</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.parse_outputs.ToDbTask.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['mmdb', 'db_file', 'calc_dir', 'calc_loc', 'additional_fields', 'options']</em><a class="headerlink" href="#atomate.common.firetasks.parse_outputs.ToDbTask.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.parse_outputs.ToDbTask.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['drone']</em><a class="headerlink" href="#atomate.common.firetasks.parse_outputs.ToDbTask.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.parse_outputs.ToDbTask.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.parse_outputs.ToDbTask.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
-<div class="section" id="atomate-common-firetasks-run-calc-module">
-<h2>atomate.common.firetasks.run_calc module<a class="headerlink" href="#atomate-common-firetasks-run-calc-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.common.firetasks.run_calc">
+<span id="atomate-common-firetasks-run-calc-module"></span><h2>atomate.common.firetasks.run_calc module<a class="headerlink" href="#module-atomate.common.firetasks.run_calc" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="atomate.common.firetasks.run_calc.RunCommand">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.run_calc.</code><code class="sig-name descname">RunCommand</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.run_calc.RunCommand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Execute a command directly (no custodian).</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>cmd (str): the name of the full executable to run. Supports env_chk.</p>
+</dd>
+<dt>Optional params:</dt><dd><p>expand_vars (str): Set to true to expand variable names in the cmd.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.run_calc.RunCommand.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['expand_vars']</em><a class="headerlink" href="#atomate.common.firetasks.run_calc.RunCommand.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.run_calc.RunCommand.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['cmd']</em><a class="headerlink" href="#atomate.common.firetasks.run_calc.RunCommand.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.run_calc.RunCommand.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.run_calc.RunCommand.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="atomate.common.firetasks.run_calc.RunCustodianFromObjects">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.run_calc.</code><code class="sig-name descname">RunCustodianFromObjects</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.run_calc.RunCustodianFromObjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Run VASP using custodian in a generic manner using built-in custodian
+objects</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>jobs: ([Job]) - a list of custodian jobs to run
+handlers: ([ErrorHandler]) - a list of error handlers</p>
+</dd>
+<dt>Optional params:</dt><dd><p>validators: ([Validator]) - a list of Validators
+custodian_params ({}) - dict of all other custodian parameters</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.run_calc.RunCustodianFromObjects.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['validators', 'custodian_params']</em><a class="headerlink" href="#atomate.common.firetasks.run_calc.RunCustodianFromObjects.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.common.firetasks.run_calc.RunCustodianFromObjects.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['jobs', 'handlers']</em><a class="headerlink" href="#atomate.common.firetasks.run_calc.RunCustodianFromObjects.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.run_calc.RunCustodianFromObjects.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.run_calc.RunCustodianFromObjects.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-atomate.common.firetasks">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.common.firetasks" title="Permalink to this headline">¶</a></h2>
@@ -83,9 +739,9 @@
 <li><a class="reference internal" href="#">atomate.common.firetasks package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#atomate-common-firetasks-glue-tasks-module">atomate.common.firetasks.glue_tasks module</a></li>
-<li><a class="reference internal" href="#atomate-common-firetasks-parse-outputs-module">atomate.common.firetasks.parse_outputs module</a></li>
-<li><a class="reference internal" href="#atomate-common-firetasks-run-calc-module">atomate.common.firetasks.run_calc module</a></li>
+<li><a class="reference internal" href="#module-atomate.common.firetasks.glue_tasks">atomate.common.firetasks.glue_tasks module</a></li>
+<li><a class="reference internal" href="#module-atomate.common.firetasks.parse_outputs">atomate.common.firetasks.parse_outputs module</a></li>
+<li><a class="reference internal" href="#module-atomate.common.firetasks.run_calc">atomate.common.firetasks.run_calc module</a></li>
 <li><a class="reference internal" href="#module-atomate.common.firetasks">Module contents</a></li>
 </ul>
 </li>
@@ -121,7 +777,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.common.firetasks package</a></li> 
       </ul>
     </div>

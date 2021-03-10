@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>atomate.common.firetasks.tests package &#8212; atomate 0.9.6 documentation</title>
+    <title>atomate.common.firetasks.tests package &#8212; atomate 0.9.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.common.firetasks.tests package</a></li> 
       </ul>
     </div>  
@@ -46,8 +46,66 @@
 <div class="section" id="atomate-common-firetasks-tests-test-glue-tasks-module">
 <h2>atomate.common.firetasks.tests.test_glue_tasks module<a class="headerlink" href="#atomate-common-firetasks-tests-test-glue-tasks-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="atomate-common-firetasks-tests-test-parse-outputs-module">
-<h2>atomate.common.firetasks.tests.test_parse_outputs module<a class="headerlink" href="#atomate-common-firetasks-tests-test-parse-outputs-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.common.firetasks.tests.test_parse_outputs">
+<span id="atomate-common-firetasks-tests-test-parse-outputs-module"></span><h2>atomate.common.firetasks.tests.test_parse_outputs module<a class="headerlink" href="#module-atomate.common.firetasks.tests.test_parse_outputs" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="atomate.common.firetasks.tests.test_parse_outputs.TestDrone">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.tests.test_parse_outputs.</code><code class="sig-name descname">TestDrone</code><a class="headerlink" href="#atomate.common.firetasks.tests.test_parse_outputs.TestDrone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.apps.borg.hive.AbstractDrone</span></code></p>
+<dl class="py method">
+<dt id="atomate.common.firetasks.tests.test_parse_outputs.TestDrone.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.tests.test_parse_outputs.TestDrone.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.tests.test_parse_outputs.TestDrone.assimilate">
+<code class="sig-name descname">assimilate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.tests.test_parse_outputs.TestDrone.assimilate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assimilate data in a directory path into a pymatgen object. Because of
+the quirky nature of Python”s multiprocessing, the object must support
+pymatgen’s as_dict() for parallel processing.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>path: directory path</p>
+</dd>
+<dt>Returns:</dt><dd><p>An assimilated object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="atomate.common.firetasks.tests.test_parse_outputs.TestDrone.get_valid_paths">
+<code class="sig-name descname">get_valid_paths</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.tests.test_parse_outputs.TestDrone.get_valid_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if path contains valid data for assimilation, and then returns
+the valid paths. The paths returned can be a list of directory or file
+paths, depending on what kind of data you are assimilating. For
+example, if you are assimilating VASP runs, you are only interested in
+directories containing vasprun.xml files. On the other hand, if you are
+interested converting all POSCARs in a directory tree to cifs for
+example, you will want the file paths.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>path: input path as a tuple generated from os.walk, i.e.,</dt><dd><p>(parent, subdirs, files).</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>List of valid dir/file paths for assimilation</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="atomate.common.firetasks.tests.test_parse_outputs.TestToDbTask">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.common.firetasks.tests.test_parse_outputs.</code><code class="sig-name descname">TestToDbTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">methodName</span><span class="o">=</span><span class="default_value">'runTest'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.tests.test_parse_outputs.TestToDbTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="atomate.utils.html#atomate.utils.testing.AtomateTest" title="atomate.utils.testing.AtomateTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">atomate.utils.testing.AtomateTest</span></code></a></p>
+<dl class="py method">
+<dt id="atomate.common.firetasks.tests.test_parse_outputs.TestToDbTask.test_ToDbTask">
+<code class="sig-name descname">test_ToDbTask</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.firetasks.tests.test_parse_outputs.TestToDbTask.test_ToDbTask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-atomate.common.firetasks.tests">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.common.firetasks.tests" title="Permalink to this headline">¶</a></h2>
@@ -66,7 +124,7 @@
 <li><a class="reference internal" href="#">atomate.common.firetasks.tests package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#atomate-common-firetasks-tests-test-glue-tasks-module">atomate.common.firetasks.tests.test_glue_tasks module</a></li>
-<li><a class="reference internal" href="#atomate-common-firetasks-tests-test-parse-outputs-module">atomate.common.firetasks.tests.test_parse_outputs module</a></li>
+<li><a class="reference internal" href="#module-atomate.common.firetasks.tests.test_parse_outputs">atomate.common.firetasks.tests.test_parse_outputs module</a></li>
 <li><a class="reference internal" href="#module-atomate.common.firetasks.tests">Module contents</a></li>
 </ul>
 </li>
@@ -102,7 +160,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.common.firetasks.tests package</a></li> 
       </ul>
     </div>

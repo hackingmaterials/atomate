@@ -344,7 +344,7 @@ This is not at all required, but if you want to see what the queue templates loo
 
 .. _FireWorks documentation for writing queue adapters: https://materialsproject.github.io/fireworks/qadapter_programming.html?highlight=qadapter
 
-.. _here: https://github.com/materialsproject/fireworks/tree/master/fireworks/user_objects/queue_adapters
+.. _here: https://github.com/materialsproject/fireworks/tree/main/fireworks/user_objects/queue_adapters
 
 
 FW_config.yaml
@@ -481,7 +481,7 @@ Below are 4 different options for adding a workflow to the database. You only ne
 All of these function specify (i) a type of workflow and (ii) the structure to feed into that workflow.
 
 * The ``-l vasp`` option states to use the ``vasp`` library of workflows.
-* The ``-s optimize_only.yaml`` sets the specification of the workflow using the ``optimize_only.yaml`` file in `this directory <https://github.com/hackingmaterials/atomate/blob/master/atomate/vasp/workflows/base/library/>`_. Alternatively, the ``-p wf_structure_optimization`` sets the workflow specification using the preset Python function located in `this module <https://github.com/hackingmaterials/atomate/blob/master/atomate/vasp/workflows/presets/core.py>`_. For now, it's probably best not to worry about the distinction but to know that both libraries of workflows are available to you.
+* The ``-s optimize_only.yaml`` sets the specification of the workflow using the ``optimize_only.yaml`` file in `this directory <https://github.com/hackingmaterials/atomate/blob/main/atomate/vasp/workflows/base/library/>`_. Alternatively, the ``-p wf_structure_optimization`` sets the workflow specification using the preset Python function located in `this module <https://github.com/hackingmaterials/atomate/blob/main/atomate/vasp/workflows/presets/core.py>`_. For now, it's probably best not to worry about the distinction but to know that both libraries of workflows are available to you.
 * The ``-c`` option is used in file-based workflows to make sure that one uses the ``vasp_cmd`` and ``db_file`` that are specified in ``my_fworker.yaml`` that you specified earlier. In the preset workflows, it is the default behavior to take these parameters from the ``my_fworker.yaml`` so this option is not needed.
 
 Verify the workflow
