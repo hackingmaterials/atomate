@@ -1,6 +1,6 @@
 numpy==1.20.1
 scipy==1.6.1
-FireWorks==1.9.6
+FireWorks==1.9.7
 pymatgen_diffusion==2020.10.8
 monty==2021.3.3
 paramiko==2.7.2
