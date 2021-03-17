@@ -17,7 +17,7 @@ from atomate.utils.testing import AtomateTest
 from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDb
 
-from pymatgen import SETTINGS
+from pymatgen.core import SETTINGS
 
 __author__ = 'Tess Smidt'
 __email__ = 'blondegeek@gmail.com'
@@ -53,7 +53,7 @@ class TestFerroelectricWorkflow(AtomateTest):
         new_fw_spec = {'_fw_env': {"db_file": os.path.join(db_dir, "db.json")},
                        'tags':['wfid_1494203093.06934658']}
 
-        analysis = PolarizationToDb(db_file='>>db_file<<', name="_polarization_post_processing")
+        analysis = PolarizationToDb(db_file='>>db_file<<')
         analysis.run_task(new_fw_spec)
 
         # Check recovered change in polarization

@@ -1,0 +1,15 @@
+#!/bin/bash -l
+
+#SBATCH --nodes=1
+#SBATCH --time=48:00:00
+#SBATCH --account=silimorphous
+#SBATCH --job-name=prod
+#SBATCH --output=prod-%j.out
+#SBATCH --error=prod-%j.error
+
+
+module load q-chem/5.2
+cd /lustre/eaglefs/projects/silimorphous/sblau/new_frags/block_2019-12-21-04-16-21-972200/launcher_2019-12-21-04-21-12-081186
+rlaunch -c /home/sblau/config singleshot
+
+# CommonAdapter (SLURM) completed writing Template

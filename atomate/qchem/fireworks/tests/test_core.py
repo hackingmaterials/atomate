@@ -8,7 +8,8 @@ from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
-from atomate.qchem.fireworks.core import OptimizeFW, FrequencyFlatteningOptimizeFW, FragmentFW, SinglePointFW
+from atomate.qchem.firetasks.critic2 import RunCritic2, ProcessCritic2
+from atomate.qchem.fireworks.core import OptimizeFW, FrequencyFlatteningOptimizeFW, FragmentFW, SinglePointFW, CubeAndCritic2FW
 from atomate.utils.testing import AtomateTest
 from pymatgen.io.qchem.outputs import QCOutput
 
@@ -182,7 +183,7 @@ class TestCore(AtomateTest):
                              job_type="opt_with_frequency_flattener",
                              max_iterations=10,
                              max_molecule_perturb_scale=0.3,
-                             linked=False).as_dict())
+                             linked=True).as_dict())
         self.assertEqual(firework.tasks[2].as_dict(),
                          QChemToDb(
                              db_file=None,
@@ -194,7 +195,7 @@ class TestCore(AtomateTest):
                                  "special_run_type":
                                  "frequency_flattener",
                                  "linked":
-                                 False
+                                 True
                              }).as_dict())
         self.assertEqual(firework.parents, [])
         self.assertEqual(firework.name,
@@ -289,6 +290,85 @@ class TestCore(AtomateTest):
                             check_db=False).as_dict())
         self.assertEqual(firework.parents, [])
         self.assertEqual(firework.name, "fragmenting a thing")
+
+    def test_CubeAndCritic2FW_defaults(self):
+        firework = CubeAndCritic2FW(molecule=self.act_mol)
+        self.assertEqual(firework.tasks[0].as_dict(),
+                         WriteInputFromIOSet(
+                             molecule=self.act_mol,
+                             qchem_input_set="SinglePointSet",
+                             input_file="mol.qin",
+                             qchem_input_params={"plot_cubes":True}).as_dict())
+        self.assertEqual(firework.tasks[1].as_dict(),
+                         RunQChemCustodian(
+                             qchem_cmd=">>qchem_cmd<<",
+                             multimode=">>multimode<<",
+                             input_file="mol.qin",
+                             output_file="mol.qout",
+                             max_cores=">>max_cores<<",
+                             job_type="normal").as_dict())
+        self.assertEqual(firework.tasks[2].as_dict(),
+                         RunCritic2(
+                             molecule=self.act_mol,
+                             cube_file="dens.0.cube.gz").as_dict())
+        self.assertEqual(firework.tasks[3].as_dict(),
+                         ProcessCritic2(
+                             molecule=self.act_mol).as_dict())
+        self.assertEqual(firework.tasks[4].as_dict(),
+                         QChemToDb(
+                             db_file=None,
+                             input_file="mol.qin",
+                             output_file="mol.qout",
+                             additional_fields={
+                                 "task_label": "cube and critic2"
+                             }).as_dict())
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(firework.name, "cube and critic2")
+
+    def test_CubeAndCritic2FW_not_defaults(self):
+        firework = CubeAndCritic2FW(
+            molecule=self.act_mol,
+            name="special cube and critic2",
+            qchem_cmd="qchem -slurm",
+            multimode="mpi",
+            max_cores=12,
+            qchem_input_params={"pcm_dielectric": 10.0},
+            db_file=os.path.join(db_dir, "db.json"),
+            parents=None)
+        self.assertEqual(firework.tasks[0].as_dict(),
+                         WriteInputFromIOSet(
+                             molecule=self.act_mol,
+                             qchem_input_set="SinglePointSet",
+                             input_file="mol.qin",
+                             qchem_input_params={
+                                 "pcm_dielectric": 10.0,
+                                 "plot_cubes": True
+                             }).as_dict())
+        self.assertEqual(firework.tasks[1].as_dict(),
+                         RunQChemCustodian(
+                             qchem_cmd="qchem -slurm",
+                             multimode="mpi",
+                             input_file="mol.qin",
+                             output_file="mol.qout",
+                             max_cores=12,
+                             job_type="normal").as_dict())
+        self.assertEqual(firework.tasks[2].as_dict(),
+                         RunCritic2(
+                             molecule=self.act_mol,
+                             cube_file="dens.0.cube.gz").as_dict())
+        self.assertEqual(firework.tasks[3].as_dict(),
+                         ProcessCritic2(
+                             molecule=self.act_mol).as_dict())
+        self.assertEqual(firework.tasks[4].as_dict(),
+                         QChemToDb(
+                             db_file=os.path.join(db_dir, "db.json"),
+                             input_file="mol.qin",
+                             output_file="mol.qout",
+                             additional_fields={
+                                 "task_label": "special cube and critic2"
+                             }).as_dict())
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(firework.name, "special cube and critic2")
 
 if __name__ == "__main__":
     unittest.main()

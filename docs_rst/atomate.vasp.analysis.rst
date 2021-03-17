@@ -12,7 +12,6 @@ atomate.vasp.analysis.phonopy module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

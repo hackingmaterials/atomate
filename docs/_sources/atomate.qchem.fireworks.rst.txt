@@ -12,7 +12,6 @@ atomate.qchem.fireworks.core module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>atomate.vasp package &#8212; atomate 0.9.4 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>atomate.vasp package &#8212; atomate 0.9.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
  
@@ -27,7 +28,8 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.vasp package</a></li> 
       </ul>
     </div>  
 
@@ -78,7 +80,9 @@
 <li class="toctree-l3"><a class="reference internal" href="atomate.vasp.firetasks.tests.html">atomate.vasp.firetasks.tests package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#atomate-vasp-firetasks-tests-test-copy-module">atomate.vasp.firetasks.tests.test_copy module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#atomate-vasp-firetasks-tests-test-exchange-module">atomate.vasp.firetasks.tests.test_exchange module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#atomate-vasp-firetasks-tests-test-get-interpolated-poscar-module">atomate.vasp.firetasks.tests.test_get_interpolated_poscar module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#atomate-vasp-firetasks-tests-test-lobster-tasks-module">atomate.vasp.firetasks.tests.test_lobster_tasks module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#atomate-vasp-firetasks-tests-test-polarization-to-db-module">atomate.vasp.firetasks.tests.test_polarization_to_db module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#atomate-vasp-firetasks-tests-test-write-vasp-module">atomate.vasp.firetasks.tests.test_write_vasp module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.firetasks.tests.html#atomate-vasp-firetasks-tests-test-write-vasp-from-interpolated-poscar-module">atomate.vasp.firetasks.tests.test_write_vasp_from_interpolated_poscar module</a></li>
@@ -88,9 +92,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.html#atomate-vasp-firetasks-exchange-module">atomate.vasp.firetasks.exchange module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.html#module-atomate.vasp.firetasks.glue_tasks">atomate.vasp.firetasks.glue_tasks module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.html#atomate-vasp-firetasks-lobster-tasks-module">atomate.vasp.firetasks.lobster_tasks module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.html#module-atomate.vasp.firetasks.neb_tasks">atomate.vasp.firetasks.neb_tasks module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.html#module-atomate.vasp.firetasks.parse_outputs">atomate.vasp.firetasks.parse_outputs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.html#atomate-vasp-firetasks-parse-outputs-module">atomate.vasp.firetasks.parse_outputs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.html#atomate-vasp-firetasks-run-calc-module">atomate.vasp.firetasks.run_calc module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.html#atomate-vasp-firetasks-write-inputs-module">atomate.vasp.firetasks.write_inputs module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.firetasks.html#module-contents">Module contents</a></li>
@@ -99,6 +105,8 @@
 <li class="toctree-l1"><a class="reference internal" href="atomate.vasp.fireworks.html">atomate.vasp.fireworks package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.fireworks.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.fireworks.html#atomate-vasp-fireworks-core-module">atomate.vasp.fireworks.core module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.fireworks.html#atomate-vasp-fireworks-exchange-module">atomate.vasp.fireworks.exchange module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.fireworks.html#atomate-vasp-fireworks-lobster-module">atomate.vasp.fireworks.lobster module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.fireworks.html#atomate-vasp-fireworks-nmr-module">atomate.vasp.fireworks.nmr module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.fireworks.html#atomate-vasp-fireworks-polarization-module">atomate.vasp.fireworks.polarization module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.fireworks.html#module-contents">Module contents</a></li>
@@ -121,8 +129,10 @@
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-core-module">atomate.vasp.workflows.base.core module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-deformations-module">atomate.vasp.workflows.base.deformations module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-elastic-module">atomate.vasp.workflows.base.elastic module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-exchange-module">atomate.vasp.workflows.base.exchange module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-ferroelectric-module">atomate.vasp.workflows.base.ferroelectric module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-gibbs-module">atomate.vasp.workflows.base.gibbs module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-lobster-module">atomate.vasp.workflows.base.lobster module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-magnetism-module">atomate.vasp.workflows.base.magnetism module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-neb-module">atomate.vasp.workflows.base.neb module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-raman-module">atomate.vasp.workflows.base.raman module</a></li>
@@ -142,7 +152,9 @@
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-adsorbate-workflow-module">atomate.vasp.workflows.tests.test_adsorbate_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-bulk-modulus-workflow-module">atomate.vasp.workflows.tests.test_bulk_modulus_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-elastic-workflow-module">atomate.vasp.workflows.tests.test_elastic_workflow module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-exchange-workflow-module">atomate.vasp.workflows.tests.test_exchange_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-ferroelectric-workflow-module">atomate.vasp.workflows.tests.test_ferroelectric_workflow module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-lobster-workflow-module">atomate.vasp.workflows.tests.test_lobster_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-magnetism-workflow-module">atomate.vasp.workflows.tests.test_magnetism_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-neb-workflow-module">atomate.vasp.workflows.tests.test_neb_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-nmr-module">atomate.vasp.workflows.tests.test_nmr module</a></li>
@@ -165,142 +177,23 @@
 <div class="section" id="module-atomate.vasp.config">
 <span id="atomate-vasp-config-module"></span><h2>atomate.vasp.config module<a class="headerlink" href="#module-atomate.vasp.config" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.database">
-<span id="atomate-vasp-database-module"></span><h2>atomate.vasp.database module<a class="headerlink" href="#module-atomate.vasp.database" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="atomate.vasp.database.VaspCalcDb">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.database.</code><code class="sig-name descname">VaspCalcDb</code><span class="sig-paren">(</span><em class="sig-param">host='localhost'</em>, <em class="sig-param">port=27017</em>, <em class="sig-param">database='vasp'</em>, <em class="sig-param">collection='tasks'</em>, <em class="sig-param">user=None</em>, <em class="sig-param">password=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="atomate.utils.html#atomate.utils.database.CalcDb" title="atomate.utils.database.CalcDb"><code class="xref py py-class docutils literal notranslate"><span class="pre">atomate.utils.database.CalcDb</span></code></a></p>
-<p>Class to help manage database insertions of Vasp drones</p>
-<dl class="method">
-<dt id="atomate.vasp.database.VaspCalcDb.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">host='localhost'</em>, <em class="sig-param">port=27017</em>, <em class="sig-param">database='vasp'</em>, <em class="sig-param">collection='tasks'</em>, <em class="sig-param">user=None</em>, <em class="sig-param">password=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.database.VaspCalcDb.build_indexes">
-<code class="sig-name descname">build_indexes</code><span class="sig-paren">(</span><em class="sig-param">indexes=None</em>, <em class="sig-param">background=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.build_indexes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build the indexes.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>indexes (list): list of single field indexes to be built.
-background (bool): Run in the background or not.</p>
-</dd>
-<dt>TODO: make sure that the index building is sensible and check for</dt><dd><p>existing indexes.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.database.VaspCalcDb.get_aeccar">
-<code class="sig-name descname">get_aeccar</code><span class="sig-paren">(</span><em class="sig-param">task_id</em>, <em class="sig-param">check_valid=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_aeccar" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the AECCAR0 + AECCAR2 grid_fs data into a Chgcar object
-Args:</p>
-<blockquote>
-<div><p>task_id(int or str): the task_id containing the gridfs metadata
-check_valid (bool): make sure that the aeccar is positive definite</p>
-</div></blockquote>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>{“aeccar0” : Chgcar, “aeccar2” : Chgcar}: dict of Chgcar objects</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.database.VaspCalcDb.get_band_structure">
-<code class="sig-name descname">get_band_structure</code><span class="sig-paren">(</span><em class="sig-param">task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_band_structure" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.database.VaspCalcDb.get_chgcar">
-<code class="sig-name descname">get_chgcar</code><span class="sig-paren">(</span><em class="sig-param">task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_chgcar" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read the CHGCAR grid_fs data into a Chgcar object
-Args:</p>
-<blockquote>
-<div><p>task_id(int or str): the task_id containing the gridfs metadata</p>
-</div></blockquote>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>chgcar: Chgcar object</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.database.VaspCalcDb.get_chgcar_string">
-<code class="sig-name descname">get_chgcar_string</code><span class="sig-paren">(</span><em class="sig-param">task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_chgcar_string" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.database.VaspCalcDb.get_dos">
-<code class="sig-name descname">get_dos</code><span class="sig-paren">(</span><em class="sig-param">task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.get_dos" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.database.VaspCalcDb.insert_gridfs">
-<code class="sig-name descname">insert_gridfs</code><span class="sig-paren">(</span><em class="sig-param">d</em>, <em class="sig-param">collection='fs'</em>, <em class="sig-param">compress=True</em>, <em class="sig-param">oid=None</em>, <em class="sig-param">task_id=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.insert_gridfs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Insert the given document into GridFS.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>d (dict): the document
-collection (string): the GridFS collection name
-compress (bool): Whether to compress the data or not
-oid (ObjectId()): the _id of the file; if specified, it must not already exist in GridFS
-task_id(int or str): the task_id to store into the gridfs metadata</p>
-</dd>
-<dt>Returns:</dt><dd><p>file id, the type of compression used.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.database.VaspCalcDb.insert_task">
-<code class="sig-name descname">insert_task</code><span class="sig-paren">(</span><em class="sig-param">task_doc</em>, <em class="sig-param">use_gridfs=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.insert_task" title="Permalink to this definition">¶</a></dt>
-<dd><p>Inserts a task document (e.g., as returned by Drone.assimilate()) into the database.
-Handles putting DOS, band structure and charge density into GridFS as needed.
-During testing, a percentage of runs on some clusters had corrupted AECCAR files when even if everything else about the calculation looked OK.
-So we do a quick check here and only record the AECCARs if they are valid</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>task_doc: (dict) the task document
-use_gridfs (bool) use gridfs for  bandstructures and DOS</p>
-</dd>
-<dt>Returns:</dt><dd><p>(int) - task_id of inserted document</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.database.VaspCalcDb.reset">
-<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.reset" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="atomate.vasp.database.VaspCalcDb.retrieve_task">
-<code class="sig-name descname">retrieve_task</code><span class="sig-paren">(</span><em class="sig-param">task_id</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.database.VaspCalcDb.retrieve_task" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves a task document and unpacks the band structure and DOS as dict</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>task_id: (int) task_id to retrieve</p>
-</dd>
-<dt>Returns:</dt><dd><p>(dict) complete task document with BS + DOS included</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="atomate-vasp-database-module">
+<h2>atomate.vasp.database module<a class="headerlink" href="#atomate-vasp-database-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-atomate.vasp.drones">
 <span id="atomate-vasp-drones-module"></span><h2>atomate.vasp.drones module<a class="headerlink" href="#module-atomate.vasp.drones" title="Permalink to this headline">¶</a></h2>
 <p>This Drone tries to produce a more sensible task dictionary than the default VaspToDbTaskDrone.
 Some of the changes are documented in this thread:
 <a class="reference external" href="https://groups.google.com/forum/#!topic/pymatgen/pQ-emBpeV5U">https://groups.google.com/forum/#!topic/pymatgen/pQ-emBpeV5U</a></p>
-<dl class="class">
+<dl class="py class">
 <dt id="atomate.vasp.drones.VaspDrone">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.drones.</code><code class="sig-name descname">VaspDrone</code><span class="sig-paren">(</span><em class="sig-param">runs=None</em>, <em class="sig-param">parse_dos='auto'</em>, <em class="sig-param">bandstructure_mode='auto'</em>, <em class="sig-param">parse_locpot=True</em>, <em class="sig-param">additional_fields=None</em>, <em class="sig-param">use_full_uri=True</em>, <em class="sig-param">parse_bader=None</em>, <em class="sig-param">parse_chgcar=False</em>, <em class="sig-param">parse_aeccar=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.drones.</code><code class="sig-name descname">VaspDrone</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">runs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">parse_dos</span><span class="o">=</span><span class="default_value">'auto'</span></em>, <em class="sig-param"><span class="n">bandstructure_mode</span><span class="o">=</span><span class="default_value">'auto'</span></em>, <em class="sig-param"><span class="n">parse_locpot</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">additional_fields</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">use_full_uri</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">parse_bader</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">parse_chgcar</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">parse_aeccar</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">parse_potcar_file</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">store_volumetric_data</span><span class="o">=</span><span class="default_value">()</span></em>, <em class="sig-param"><span class="n">store_additional_json</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.apps.borg.hive.AbstractDrone</span></code></p>
 <p>pymatgen-db VaspToDbTaskDrone with updated schema and documents processing methods.
 Please refer to matgendb.creator.VaspToDbTaskDrone documentation.</p>
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">runs=None</em>, <em class="sig-param">parse_dos='auto'</em>, <em class="sig-param">bandstructure_mode='auto'</em>, <em class="sig-param">parse_locpot=True</em>, <em class="sig-param">additional_fields=None</em>, <em class="sig-param">use_full_uri=True</em>, <em class="sig-param">parse_bader=None</em>, <em class="sig-param">parse_chgcar=False</em>, <em class="sig-param">parse_aeccar=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">runs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">parse_dos</span><span class="o">=</span><span class="default_value">'auto'</span></em>, <em class="sig-param"><span class="n">bandstructure_mode</span><span class="o">=</span><span class="default_value">'auto'</span></em>, <em class="sig-param"><span class="n">parse_locpot</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">additional_fields</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">use_full_uri</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">parse_bader</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">parse_chgcar</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">parse_aeccar</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">parse_potcar_file</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">store_volumetric_data</span><span class="o">=</span><span class="default_value">()</span></em>, <em class="sig-param"><span class="n">store_additional_json</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a Vasp drone to parse vasp outputs
 Args:</p>
 <blockquote>
@@ -310,7 +203,8 @@ Args:</p>
 </dl>
 <p>parse_dos (str or bool): Whether to parse the DOS. Can be “auto”, True or False.
 “auto” will only parse DOS if NSW = 0, so there are no ionic steps
-bandstructure_mode (str or bool): How to parse the bandstructure or not. Can be “auto”,”line”, True or False.</p>
+bandstructure_mode (str or bool): How to parse the bandstructure or not.
+Can be “auto”,”line”, True or False.</p>
 <blockquote>
 <div><dl class="simple">
 <dt>“auto” will parse the bandstructure with projections for NSCF calcs and decide automatically</dt><dd><p>if it’s line mode or uniform. Saves the bandstructure in the output doc.</p>
@@ -328,19 +222,23 @@ additional_fields (dict): dictionary of additional fields to add to output docum
 use_full_uri (bool): converts the directory path to the full URI path
 parse_bader (bool): Run and parse Bader charge data. Defaults to True if Bader is present
 parse_chgcar (bool): Run and parse CHGCAR file
-parse_aeccar (bool): Run and parse AECCAR0 and AECCAR2 files</p>
+parse_aeccar (bool): Run and parse AECCAR0 and AECCAR2 files
+store_volumetric_data (list): List of files to store, choose from (‘CHGCAR’, ‘LOCPOT’,
+‘AECCAR0’, ‘AECCAR1’, ‘AECCAR2’, ‘ELFCAR’), case insensitive
+store_additional_json (bool): If True, parse any .json files present and store as
+sub-doc including the FW.json if present</p>
 </div></blockquote>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.as_dict">
 <code class="sig-name descname">as_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.as_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>A JSON serializable dict representation of an object.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.assimilate">
-<code class="sig-name descname">assimilate</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.assimilate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">assimilate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.assimilate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adapted from matgendb.creator
 Parses vasp runs(vasprun.xml file) and insert the result into the db.
 Get the entire task doc from the vasprum.xml and the OUTCAR files in the path.
@@ -353,9 +251,9 @@ Also adds some post-processed info.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.filter_files">
-<code class="sig-name descname">filter_files</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">file_pattern='vasprun.xml'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.filter_files" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">filter_files</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em>, <em class="sig-param"><span class="n">file_pattern</span><span class="o">=</span><span class="default_value">'vasprun.xml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.filter_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the files that match the pattern in the given path and
 return them in an ordered dictionary. The searched for files are
 filtered by the run types defined in self.runs. e.g. [“relax1”, “relax2”, …].
@@ -372,20 +270,28 @@ The key is set from list of run types: self.runs</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.from_dict">
-<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.from_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>d</strong> – Dict representation.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>MSONable class.</p>
+</dd>
+</dl>
+</dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.generate_doc">
-<code class="sig-name descname">generate_doc</code><span class="sig-paren">(</span><em class="sig-param">dir_name</em>, <em class="sig-param">vasprun_files</em>, <em class="sig-param">outcar_files</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.generate_doc" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">generate_doc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_name</span></em>, <em class="sig-param"><span class="n">vasprun_files</span></em>, <em class="sig-param"><span class="n">outcar_files</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.generate_doc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adapted from matgendb.creator.generate_doc</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.get_valid_paths">
-<code class="sig-name descname">get_valid_paths</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.get_valid_paths" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_valid_paths</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.get_valid_paths" title="Permalink to this definition">¶</a></dt>
 <dd><p>There are some restrictions on the valid directory structures:</p>
 <ol class="arabic simple">
 <li><p>There can be only one vasp run in each directory. Nested directories
@@ -397,9 +303,9 @@ also considered as parts of a multiple-optimization run.</p></li>
 </ol>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.post_process">
-<code class="sig-name descname">post_process</code><span class="sig-paren">(</span><em class="sig-param">dir_name</em>, <em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.post_process" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">post_process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_name</span></em>, <em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.post_process" title="Permalink to this definition">¶</a></dt>
 <dd><p>Post-processing for various files other than the vasprun.xml and OUTCAR.
 Looks for files: transformations.json and custodian.json. Modify this if other
 output files need to be processed.</p>
@@ -414,24 +320,19 @@ output files need to be processed.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.process_bandstructure">
-<code class="sig-name descname">process_bandstructure</code><span class="sig-paren">(</span><em class="sig-param">vrun</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_bandstructure" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process_bandstructure</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vrun</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_bandstructure" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="atomate.vasp.drones.VaspDrone.process_chgcar">
-<em class="property">classmethod </em><code class="sig-name descname">process_chgcar</code><span class="sig-paren">(</span><em class="sig-param">chg_file</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_chgcar" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.process_dos">
-<code class="sig-name descname">process_dos</code><span class="sig-paren">(</span><em class="sig-param">vrun</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_dos" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process_dos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">vrun</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_dos" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.process_raw_data">
-<code class="sig-name descname">process_raw_data</code><span class="sig-paren">(</span><em class="sig-param">dir_name</em>, <em class="sig-param">taskname='standard'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_raw_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process_raw_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_name</span></em>, <em class="sig-param"><span class="n">taskname</span><span class="o">=</span><span class="default_value">'standard'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_raw_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>It is useful to store what raw data has been calculated
 and exists for easier querying of the taskdoc.</p>
 <dl class="field-list simple">
@@ -447,28 +348,28 @@ and exists for easier querying of the taskdoc.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.process_vasprun">
-<code class="sig-name descname">process_vasprun</code><span class="sig-paren">(</span><em class="sig-param">dir_name</em>, <em class="sig-param">taskname</em>, <em class="sig-param">filename</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_vasprun" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">process_vasprun</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dir_name</span></em>, <em class="sig-param"><span class="n">taskname</span></em>, <em class="sig-param"><span class="n">filename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.process_vasprun" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adapted from matgendb.creator</p>
 <p>Process a vasprun.xml file.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="atomate.vasp.drones.VaspDrone.schema">
 <code class="sig-name descname">schema</code><em class="property"> = {'analysis': {'delta_volume', 'delta_volume_as_percent', 'errors', 'max_force', 'warnings'}, 'calcs_reversed': {'completed_at', 'composition_reduced', 'composition_unit_cell', 'dir_name', 'elements', 'formula_anonymous', 'formula_pretty', 'formula_reduced_abc', 'has_vasp_completed', 'input', 'nelements', 'nsites', 'output', 'run_type', 'task', 'vasp_version'}, 'input': {'hubbards', 'is_hubbard', 'is_lasph', 'potcar_spec', 'pseudo_potential', 'structure', 'xc_override'}, 'output': {'bandgap', 'cbm', 'density', 'energy', 'energy_per_atom', 'forces', 'is_gap_direct', 'is_metal', 'spacegroup', 'stress', 'structure', 'vbm'}, 'root': {'analysis', 'calcs_reversed', 'chemsys', 'completed_at', 'composition_reduced', 'composition_unit_cell', 'dir_name', 'elements', 'formula_anonymous', 'formula_pretty', 'formula_reduced_abc', 'input', 'nelements', 'nsites', 'output', 'run_stats', 'schema', 'state'}}</em><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.schema" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.set_analysis">
-<em class="property">static </em><code class="sig-name descname">set_analysis</code><span class="sig-paren">(</span><em class="sig-param">d</em>, <em class="sig-param">max_force_threshold=0.5</em>, <em class="sig-param">volume_change_threshold=0.2</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.set_analysis" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">set_analysis</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em>, <em class="sig-param"><span class="n">max_force_threshold</span><span class="o">=</span><span class="default_value">0.5</span></em>, <em class="sig-param"><span class="n">volume_change_threshold</span><span class="o">=</span><span class="default_value">0.2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.set_analysis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adapted from matgendb.creator</p>
 <p>set the ‘analysis’ key</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.validate_doc">
-<code class="sig-name descname">validate_doc</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.validate_doc" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">validate_doc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.validate_doc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sanity check.
 Make sure all the important keys are set</p>
 </dd></dl>
@@ -481,18 +382,18 @@ Make sure all the important keys are set</p>
 </div>
 <div class="section" id="module-atomate.vasp.submission_filter">
 <span id="atomate-vasp-submission-filter-module"></span><h2>atomate.vasp.submission_filter module<a class="headerlink" href="#module-atomate.vasp.submission_filter" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="atomate.vasp.submission_filter.SubmissionFilter">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.submission_filter.</code><code class="sig-name descname">SubmissionFilter</code><span class="sig-paren">(</span><em class="sig-param">is_valid=True</em>, <em class="sig-param">potcar_exists=True</em>, <em class="sig-param">max_natoms=200</em>, <em class="sig-param">is_ordered=True</em>, <em class="sig-param">not_in_MP=True</em>, <em class="sig-param">MAPI_KEY=None</em>, <em class="sig-param">require_bandstructure=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.submission_filter.SubmissionFilter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.submission_filter.</code><code class="sig-name descname">SubmissionFilter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_valid</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">potcar_exists</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">max_natoms</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">is_ordered</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">not_in_MP</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">MAPI_KEY</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">require_bandstructure</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.submission_filter.SubmissionFilter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pymatgen.alchemy.filters.AbstractStructureFilter</span></code></p>
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="atomate.vasp.submission_filter.SubmissionFilter.NO_POTCARS">
 <code class="sig-name descname">NO_POTCARS</code><em class="property"> = ['Po', 'At', 'Rn', 'Fr', 'Ra', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']</em><a class="headerlink" href="#atomate.vasp.submission_filter.SubmissionFilter.NO_POTCARS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.submission_filter.SubmissionFilter.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">is_valid=True</em>, <em class="sig-param">potcar_exists=True</em>, <em class="sig-param">max_natoms=200</em>, <em class="sig-param">is_ordered=True</em>, <em class="sig-param">not_in_MP=True</em>, <em class="sig-param">MAPI_KEY=None</em>, <em class="sig-param">require_bandstructure=False</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.submission_filter.SubmissionFilter.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">is_valid</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">potcar_exists</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">max_natoms</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">is_ordered</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">not_in_MP</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">MAPI_KEY</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">require_bandstructure</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.submission_filter.SubmissionFilter.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a submission filter for checking that structures are valid for calculations.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>is_valid (bool): If true, checks structure validity
@@ -506,22 +407,32 @@ require_bandstructure (bool): For MP checks, require a band structure calc</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.submission_filter.SubmissionFilter.as_dict">
 <code class="sig-name descname">as_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.submission_filter.SubmissionFilter.as_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>A JSON serializable dict representation of an object.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.submission_filter.SubmissionFilter.from_dict">
-<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.submission_filter.SubmissionFilter.from_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">d</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.submission_filter.SubmissionFilter.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>d</strong> – Dict representation.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>MSONable class.</p>
+</dd>
+</dl>
+</dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.vasp.submission_filter.SubmissionFilter.test">
-<code class="sig-name descname">test</code><span class="sig-paren">(</span><em class="sig-param">structure</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.submission_filter.SubmissionFilter.test" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">test</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">structure</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.submission_filter.SubmissionFilter.test" title="Permalink to this definition">¶</a></dt>
 <dd><p>Method to execute the test.</p>
 <dl class="simple">
+<dt>Args:</dt><dd><p>structure (Structure): Input structure to test</p>
+</dd>
 <dt>Returns:</dt><dd><p>(bool) Structures that return true are kept in the Transmuter
 object during filtering.</p>
 </dd>
@@ -543,6 +454,7 @@ object during filtering.</p>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -554,7 +466,7 @@ object during filtering.</p>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.config">atomate.vasp.config module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.database">atomate.vasp.database module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-database-module">atomate.vasp.database module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.drones">atomate.vasp.drones module</a></li>
 <li><a class="reference internal" href="#atomate-vasp-powerups-module">atomate.vasp.powerups module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.submission_filter">atomate.vasp.submission_filter module</a></li>
@@ -581,7 +493,7 @@ object during filtering.</p>
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -595,13 +507,14 @@ object during filtering.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.vasp package</a></li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
 
   </body>

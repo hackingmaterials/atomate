@@ -490,7 +490,7 @@ def wf_bulk_modulus(structure, c=None):
     # get the deformations wflow for bulk modulus calculation
     wf_bm = get_wf_bulk_modulus(structure, eos=eos, user_kpoints_settings=user_kpoints_settings,
                                 deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file, tag=tag,
-                                vasp_input_set=vis_static)
+                                copy_vasp_outputs=True, vasp_input_set=vis_static)
 
     # chain it
     wf.append_wf(wf_bm, wf.leaf_fw_ids)
@@ -542,6 +542,7 @@ def wf_thermal_expansion(structure, c=None):
 
     wf_thermal = get_wf_thermal_expansion(structure, user_kpoints_settings=user_kpoints_settings,
                                           deformations=deformations, vasp_cmd=vasp_cmd, db_file=db_file,
+                                          copy_vasp_outputs=True,
                                           eos=eos, pressure=pressure, tag=tag)
 
     # chain it

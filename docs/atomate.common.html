@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>atomate.common package &#8212; atomate 0.9.4 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>atomate.common package &#8212; atomate 0.9.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
  
@@ -27,7 +28,8 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.common package</a></li> 
       </ul>
     </div>  
 
@@ -60,8 +62,36 @@
 <li class="toctree-l2"><a class="reference internal" href="atomate.common.firetasks.html#module-atomate.common.firetasks">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="atomate.common.tests.html">atomate.common.tests package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="atomate.common.tests.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.common.tests.html#module-atomate.common.tests.test_powerups">atomate.common.tests.test_powerups module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.common.tests.html#module-atomate.common.tests">Module contents</a></li>
+</ul>
+</li>
 </ul>
 </div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-atomate.common.powerups">
+<span id="atomate-common-powerups-module"></span><h2>atomate.common.powerups module<a class="headerlink" href="#module-atomate.common.powerups" title="Permalink to this headline">¶</a></h2>
+<p>This module defines general powerups that can be used for all workflows</p>
+<dl class="py function">
+<dt id="atomate.common.powerups.set_queue_adapter">
+<code class="sig-prename descclassname">atomate.common.powerups.</code><code class="sig-name descname">set_queue_adapter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">original_wf</span><span class="p">:</span> <span class="n">fireworks.core.firework.Workflow</span></em>, <em class="sig-param"><span class="n">queueadapter</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fw_name_constraint</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">task_name_constraint</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; fireworks.core.firework.Workflow<a class="headerlink" href="#atomate.common.powerups.set_queue_adapter" title="Permalink to this definition">¶</a></dt>
+<dd><p>set _queueadapter spec of Fireworker(s) of a Workflow. It can be used to change the overall queueadapter during the run.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>original_wf (Workflow): workflow that will be changed
+queueadapter (dict): dict to change _queueadapter
+fw_name_constraint (str): name of the Fireworks to be tagged (all if None is passed)
+task_name_constraint (str): name of the Firetasks to be tagged (e.g. None or ‘RunVasp’)</p>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow: modified workflow with specified Fireworkers tagged</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="module-atomate.common">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.common" title="Permalink to this headline">¶</a></h2>
@@ -69,6 +99,7 @@
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -78,6 +109,8 @@
   <ul>
 <li><a class="reference internal" href="#">atomate.common package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-atomate.common.powerups">atomate.common.powerups module</a></li>
 <li><a class="reference internal" href="#module-atomate.common">Module contents</a></li>
 </ul>
 </li>
@@ -99,7 +132,7 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -113,13 +146,14 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.common package</a></li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
 
   </body>
