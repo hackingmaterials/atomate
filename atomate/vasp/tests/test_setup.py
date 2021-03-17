@@ -4,7 +4,7 @@
 import os
 import unittest
 
-from pymatgen import IStructure, Lattice
+from pymatgen.core import IStructure, Lattice
 from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
 from pymatgen.io.vasp.sets import MPRelaxSet
 

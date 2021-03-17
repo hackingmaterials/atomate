@@ -1,0 +1,33 @@
+#LAO_HSE_CUBIC_CONV
+System= rLAO
+PREC= Accurate
+ENCUT= 500
+EDIFF= 1.0E-05
+# Restarting parameter
+ISTART=1
+
+# Electric Min Algorithm
+ALGO= Normal
+IMIX= 1
+
+# Smearing parameters
+ISMEAR=0 ; SIGMA=0.05
+
+LCHARG=.FALSE.
+
+# Parallelization
+NBANDS= 96
+NPAR= 1
+
+# Structural
+ISIF=0
+IBRION=-1
+NSW=0
+
+# Optical
+LOPTICS=.TRUE.
+LORBIT=11
+NELM= 0     # not electronic steps
+NBVALOPT=32 #number of valence bands
+NBCONOPT=64 #number of conduction bands
+NEDOS=5000

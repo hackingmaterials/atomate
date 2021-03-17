@@ -11,7 +11,7 @@ from time import time
 from pymongo import MongoClient
 from monty.json import MontyDecoder
 from monty.serialization import loadfn
-from pymatgen import Composition
+from pymatgen.core import Composition
 
 from fireworks import Workflow
 from pymatgen.alchemy.materials import TransformedStructure

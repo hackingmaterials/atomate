@@ -116,7 +116,7 @@ def get_packmol_wf(input_file, user_settings, constituent_molecules, packing_con
 
     fw_packmol = PackmolFW(constituent_molecules, packing_config, tolerance=tolerance,
                            filetype=filetype, control_params=control_params,
-                           copy_to_current_on_exit=True, output_file=packmol_output_file,
+                           output_file=packmol_output_file,
                            site_property=ff_site_property, packmol_cmd=packmol_cmd)
 
     fws.append(fw_packmol)

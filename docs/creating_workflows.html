@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Creating workflows &#8212; atomate 0.9.4 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Creating workflows &#8212; atomate 0.9.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Customizing Workflows" href="customizing_workflows.html" />
@@ -35,7 +36,8 @@
         <li class="right" >
           <a href="builders.html" title="Builders: creating calculation reports for data analysis"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Creating workflows</a></li> 
       </ul>
     </div>  
 
@@ -131,7 +133,7 @@
 <li><p>PerturbStructureTransformation: Applies a perturbation of a specified amplitude to each site</p></li>
 <li><p>DeformStructureTransformation: Apply a deformation matrix to the lattice matrix of the structure</p></li>
 </ul>
-<p>You’ll notice that more generic Fireworks and Fireworks for analysis tasks are not in this list. Because they are intended to be simple and modular, these Fireworks are actually written as plain Firetasks that will get wrapped into a Firework when the Workflow is constructed. We’ll cover how to use them as Fireworks in the next section, but know that they can be found at places like <a class="reference internal" href="atomate.common.firetasks.html#module-atomate.common.firetasks" title="atomate.common.firetasks"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.common.firetasks</span> <span class="pre">module</span></code></a> for software-agnostic tasks such as <code class="docutils literal notranslate"><span class="pre">PassCalcLocs</span></code> or <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.firetasks</span> <span class="pre">package</span> <span class="pre">&lt;atomate.vasp.firetasks</span></code> for some VASP specific ones, including the analysis tasks usually found in <a class="reference internal" href="atomate.vasp.firetasks.html#module-atomate.vasp.firetasks.parse_outputs" title="atomate.vasp.firetasks.parse_outputs"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.firetasks.parse_outputs</span></code></a>.</p>
+<p>You’ll notice that more generic Fireworks and Fireworks for analysis tasks are not in this list. Because they are intended to be simple and modular, these Fireworks are actually written as plain Firetasks that will get wrapped into a Firework when the Workflow is constructed. We’ll cover how to use them as Fireworks in the next section, but know that they can be found at places like <a class="reference internal" href="atomate.common.firetasks.html#module-atomate.common.firetasks" title="atomate.common.firetasks"><code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.common.firetasks</span> <span class="pre">module</span></code></a> for software-agnostic tasks such as <code class="docutils literal notranslate"><span class="pre">PassCalcLocs</span></code> or <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.firetasks</span> <span class="pre">package</span> <span class="pre">&lt;atomate.vasp.firetasks</span></code> for some VASP specific ones, including the analysis tasks usually found in <code class="xref py py-mod docutils literal notranslate"><span class="pre">atomate.vasp.firetasks.parse_outputs</span></code>.</p>
 </div>
 <div class="section" id="creating-the-workflow">
 <h3>Creating the workflow<a class="headerlink" href="#creating-the-workflow" title="Permalink to this headline">¶</a></h3>
@@ -232,8 +234,8 @@
 <span class="kn">from</span> <span class="nn">atomate.vasp.firetasks.parse_outputs</span> <span class="kn">import</span> <span class="n">GibbsFreeEnergyTask</span>
 
 
-<span class="k">def</span> <span class="nf">wf_gibbs_free_energy</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">deformations</span><span class="p">,</span> <span class="n">vasp_input_set_relax</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">vasp_input_set_static</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">vasp_cmd</span><span class="o">=</span><span class="s2">&quot;vasp&quot;</span><span class="p">,</span>
-                             <span class="n">db_file</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">user_kpoints_settings</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">t_step</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">t_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">wf_gibbs_free_energy</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">deformations</span><span class="p">,</span> <span class="n">vasp_input_set_relax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vasp_input_set_static</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vasp_cmd</span><span class="o">=</span><span class="s2">&quot;vasp&quot;</span><span class="p">,</span>
+                             <span class="n">db_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">user_kpoints_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t_step</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">t_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
                              <span class="n">mesh</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="n">eos</span><span class="o">=</span><span class="s2">&quot;vinet&quot;</span><span class="p">,</span> <span class="n">qha_type</span><span class="o">=</span><span class="s2">&quot;debye_model&quot;</span><span class="p">,</span> <span class="n">pressure</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
                              <span class="n">poisson</span><span class="o">=</span><span class="mf">0.25</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -264,7 +266,7 @@
     <span class="n">tag</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">-%H-%M-%S-</span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">)</span>
 
     <span class="c1"># get the input set for the optimization and update it if we passed custom settings</span>
-    <span class="n">vis_relax</span> <span class="o">=</span> <span class="n">vasp_input_set</span> <span class="ow">or</span> <span class="n">MPRelaxSet</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">force_gamma</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">vis_relax</span> <span class="o">=</span> <span class="n">vasp_input_set</span> <span class="ow">or</span> <span class="n">MPRelaxSet</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">force_gamma</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">user_kpoints_settings</span><span class="p">:</span>
         <span class="n">v</span> <span class="o">=</span> <span class="n">vis_relax</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span>
         <span class="n">v</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;user_kpoints_settings&quot;</span><span class="p">:</span> <span class="n">user_kpoints_settings</span><span class="p">})</span>
@@ -272,15 +274,15 @@
 
     <span class="c1"># Structure optimization firework</span>
     <span class="n">fws</span> <span class="o">=</span> <span class="p">[</span><span class="n">OptimizeFW</span><span class="p">(</span><span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">vis_relax</span><span class="p">,</span> <span class="n">vasp_cmd</span><span class="o">=</span><span class="n">vasp_cmd</span><span class="p">,</span>
-                      <span class="n">db_file</span><span class="o">=</span><span class="n">db_file</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;{} structure optimization&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="p">))]</span>
+                      <span class="n">db_file</span><span class="o">=</span><span class="n">db_file</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> structure optimization&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="p">))]</span>
 
     <span class="c1"># get the input set for the static calculations and update it if we passed custom settings</span>
     <span class="n">uis_static</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ISIF&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;ISTART&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">}</span>
-    <span class="n">lepsilon</span> <span class="o">=</span> <span class="bp">False</span> <span class="c1"># use IBRION = -1; don&#39;t update the ions</span>
+    <span class="n">lepsilon</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># use IBRION = -1; don&#39;t update the ions</span>
     <span class="k">if</span> <span class="n">qha_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;debye model&#39;</span><span class="p">]:</span>
         <span class="n">uis_static</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ISIF&#39;</span><span class="p">}</span>
-        <span class="n">lepsilon</span> <span class="o">=</span> <span class="bp">True</span> <span class="c1"># use IBRION = -8; DFPT</span>
-    <span class="n">vis_static</span> <span class="o">=</span> <span class="n">MPStaticSet</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">force_gamma</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">lepsilon</span><span class="o">=</span><span class="n">lepsilon</span><span class="p">,</span>
+        <span class="n">lepsilon</span> <span class="o">=</span> <span class="kc">True</span> <span class="c1"># use IBRION = -8; DFPT</span>
+    <span class="n">vis_static</span> <span class="o">=</span> <span class="n">MPStaticSet</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">force_gamma</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lepsilon</span><span class="o">=</span><span class="n">lepsilon</span><span class="p">,</span>
                          <span class="n">user_kpoints_settings</span><span class="o">=</span><span class="n">user_kpoints_settings</span><span class="p">,</span>
                          <span class="n">user_incar_settings</span><span class="o">=</span><span class="n">uis_static</span><span class="p">)</span>
 
@@ -288,7 +290,7 @@
     <span class="n">parents</span> <span class="o">=</span> <span class="n">fws</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">deformations</span> <span class="o">=</span> <span class="p">[</span><span class="n">Deformation</span><span class="p">(</span><span class="n">defo_mat</span><span class="p">)</span> <span class="k">for</span> <span class="n">defo_mat</span> <span class="ow">in</span> <span class="n">deformations</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">deformation</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">deformations</span><span class="p">):</span>
-        <span class="n">fw</span> <span class="o">=</span> <span class="n">TransmuterFW</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;{} {} {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="s1">&#39;gibbs deformation&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span>
+        <span class="n">fw</span> <span class="o">=</span> <span class="n">TransmuterFW</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="s1">&#39;gibbs deformation&#39;</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">structure</span><span class="o">=</span><span class="n">structure</span><span class="p">,</span>
                           <span class="n">transformations</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;DeformStructureTransformation&#39;</span><span class="p">],</span>
                           <span class="n">transformation_params</span><span class="o">=</span><span class="p">[{</span><span class="s2">&quot;deformation&quot;</span><span class="p">:</span> <span class="n">deformation</span><span class="o">.</span><span class="n">tolist</span><span class="p">()}],</span>
                           <span class="n">vasp_input_set</span><span class="o">=</span><span class="n">vis_static</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="n">parents</span><span class="p">,</span>
@@ -306,7 +308,7 @@
 
     <span class="c1"># finally, create the workflow</span>
     <span class="n">wf_gibbs</span> <span class="o">=</span> <span class="n">Workflow</span><span class="p">(</span><span class="n">fws</span><span class="p">)</span>
-    <span class="n">wf_gibbs</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;{}:{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">reduced_formula</span><span class="p">,</span> <span class="s2">&quot;gibbs free energy&quot;</span><span class="p">)</span>
+    <span class="n">wf_gibbs</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">reduced_formula</span><span class="p">,</span> <span class="s2">&quot;gibbs free energy&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">wf_gibbs</span>
 </pre></div>
@@ -367,7 +369,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">&gt;&gt;vasp_cmd&lt;&lt;</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&gt;&gt;db_file&lt;&lt;</span></code></p></li>
 </ul>
-<p>If you think there are other potentially useful variables that should support <code class="docutils literal notranslate"><span class="pre">env_chk</span></code>, please propose your idea in the <a class="reference external" href="https://groups.google.com/forum/#!forum/atomate">atomate Google Group</a> (or better, submit a pull request)!</p>
+<p>If you think there are other potentially useful variables that should support <code class="docutils literal notranslate"><span class="pre">env_chk</span></code>, please propose your idea in the <a class="reference external" href="https://discuss.matsci.org/c/atomate">atomate Discourse forum</a> (or better, submit a pull request)!</p>
 </div>
 <div class="section" id="passcalclocs">
 <h3>PassCalcLocs<a class="headerlink" href="#passcalclocs" title="Permalink to this headline">¶</a></h3>
@@ -377,11 +379,12 @@
 <div class="section" id="conclusion">
 <h2>Conclusion<a class="headerlink" href="#conclusion" title="Permalink to this headline">¶</a></h2>
 <p>Understanding this guide has enabled you to create arbitrarily complex atomate workflows with any combination of Firetasks and Fireworks, but not everything was able to be covered in detail with examples. See the <a class="reference internal" href="customizing_workflows.html#customizing-workflows"><span class="std std-ref">Customizing Workflows</span></a> documentation for specific examples for customizing workflows that you can adapt to your needs.</p>
-<p>If any of this was unclear, or if you feel that useful documentation is missing, please leave us feedback on the <a class="reference external" href="https://groups.google.com/forum/#!forum/atomate">atomate Google Group</a>! To see all of the different pieces you can control with Python, go to the <a class="reference internal" href="py-modindex.html"><span class="std std-ref">API documentation</span></a>. Many customization options and features of interest are not in atomate alone, but in <a class="reference external" href="https://materialsproject.github.io/fireworks/">FireWorks</a>, <a class="reference external" href="http://pymatgen.org">pymatgen</a>, and <a class="reference external" href="https://materialsproject.github.io/custodian/">custodian</a>. Mastering FireWorks will enable you to get the most out of executing and managing your workflows. Mastering pymatgen will help you write complex materials workflows and perform sophisticated analyses of results.</p>
+<p>If any of this was unclear, or if you feel that useful documentation is missing, please leave us feedback on the <a class="reference external" href="https://discuss.matsci.org/c/atomate">atomate Discourse forum</a>! To see all of the different pieces you can control with Python, go to the <a class="reference internal" href="py-modindex.html"><span class="std std-ref">API documentation</span></a>. Many customization options and features of interest are not in atomate alone, but in <a class="reference external" href="https://materialsproject.github.io/fireworks/">FireWorks</a>, <a class="reference external" href="http://pymatgen.org">pymatgen</a>, and <a class="reference external" href="https://materialsproject.github.io/custodian/">custodian</a>. Mastering FireWorks will enable you to get the most out of executing and managing your workflows. Mastering pymatgen will help you write complex materials workflows and perform sophisticated analyses of results.</p>
 </div>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -434,7 +437,7 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -454,13 +457,14 @@
         <li class="right" >
           <a href="builders.html" title="Builders: creating calculation reports for data analysis"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Creating workflows</a></li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
 
   </body>

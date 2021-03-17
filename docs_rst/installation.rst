@@ -226,6 +226,18 @@ The ``db.json`` file tells atomate the location and credentials of the MongoDB s
         "aliases": {}
     }
 
+If you want to test whether your ``db.json`` is set up correctly (**and you do not mind resetting your database!!**)), try running the Python script below in the directory with your ``db.json`` file:
+
+.. code-block:: python
+
+    from atomate.vasp.database import VaspCalcDb
+    x = VaspCalcDb.from_db_file("db.json")
+    x.reset()
+    print("SUCCESS")
+
+If you would like to store data beyond the 16 Mb limit of MongoDB please read:
+:ref:`advanced_storage`.
+
 my_fworker.yaml
 ---------------
 
@@ -282,6 +294,10 @@ You can optionally set ``logdir`` to your ``<<INSTALL_DIR>>/logs`` directory, al
 
 **Note**: If you prefer to use the same database for FireWorks and calculation outputs, these values will largely be duplicated with ``db.json`` (this is what our tutorial is assuming). If you prefer to use different databases for workflows and calculation outputs, the information here will be different than ``db.json``.
 
+If you want to test whether your ``my_launchpad.yaml`` is set up correctly (**and you do not mind resetting your database!!**)), try executing the following command in the command line::
+
+    lpad -l my_launchpad.yaml reset
+
 my_qadapter.yaml
 ----------------
 
@@ -328,7 +344,7 @@ This is not at all required, but if you want to see what the queue templates loo
 
 .. _FireWorks documentation for writing queue adapters: https://materialsproject.github.io/fireworks/qadapter_programming.html?highlight=qadapter
 
-.. _here: https://github.com/materialsproject/fireworks/tree/master/fireworks/user_objects/queue_adapters
+.. _here: https://github.com/materialsproject/fireworks/tree/main/fireworks/user_objects/queue_adapters
 
 
 FW_config.yaml
@@ -465,7 +481,7 @@ Below are 4 different options for adding a workflow to the database. You only ne
 All of these function specify (i) a type of workflow and (ii) the structure to feed into that workflow.
 
 * The ``-l vasp`` option states to use the ``vasp`` library of workflows.
-* The ``-s optimize_only.yaml`` sets the specification of the workflow using the ``optimize_only.yaml`` file in `this directory <https://github.com/hackingmaterials/atomate/blob/master/atomate/vasp/workflows/base/library/>`_. Alternatively, the ``-p wf_structure_optimization`` sets the workflow specification using the preset Python function located in `this module <https://github.com/hackingmaterials/atomate/blob/master/atomate/vasp/workflows/presets/core.py>`_. For now, it's probably best not to worry about the distinction but to know that both libraries of workflows are available to you.
+* The ``-s optimize_only.yaml`` sets the specification of the workflow using the ``optimize_only.yaml`` file in `this directory <https://github.com/hackingmaterials/atomate/blob/main/atomate/vasp/workflows/base/library/>`_. Alternatively, the ``-p wf_structure_optimization`` sets the workflow specification using the preset Python function located in `this module <https://github.com/hackingmaterials/atomate/blob/main/atomate/vasp/workflows/presets/core.py>`_. For now, it's probably best not to worry about the distinction but to know that both libraries of workflows are available to you.
 * The ``-c`` option is used in file-based workflows to make sure that one uses the ``vasp_cmd`` and ``db_file`` that are specified in ``my_fworker.yaml`` that you specified earlier. In the preset workflows, it is the default behavior to take these parameters from the ``my_fworker.yaml`` so this option is not needed.
 
 Verify the workflow
@@ -609,5 +625,5 @@ The non-reservation mode for qlaunching requires a little less maintenance with 
 Q: I honestly tried everything I can to solve my problem. I still need help!
 ----------------------------------------------------------------------------
 
-:A: There is a Google group for atomate: https://groups.google.com/forum/#!forum/atomate
+:A: There is a support forum for atomate: https://discuss.matsci.org/c/atomate
 
