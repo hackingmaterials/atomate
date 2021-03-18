@@ -109,10 +109,10 @@ def add_namefile(original_wf, use_slug=True):
 
 
 def add_additional_fields_to_taskdocs(
-    original_wf, update_dict=None, task_name_constraint="VaspToDb"
+    original_wf, update_dict=None, task_name_constraint="ToDb"
 ):
     """
-    For all VaspToDbTasks in a given workflow, add information  to
+    For all XXToDbTasks in a given workflow, add information  to
     "additional_fields" to be placed in the task doc.
 
     Args:
