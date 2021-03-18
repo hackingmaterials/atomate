@@ -44,7 +44,7 @@ def add_tags(original_wf, tags_list):
 
     Tags are written to the "_spec" key of each Firework in the workflow and
     to the "metadata.tags" key of each Workflow. If the workflow contains any
-    Fireworks ending in "ToDb", e.g. VaspToDb, QChemToDb, etc., then the tags
+    Firetasks ending in "ToDb", e.g. VaspToDb, QChemToDb, etc., then the tags
     are also passed as "additional_fields" to these tasks and included in the
     resulting task documents.
 
@@ -72,7 +72,7 @@ def add_tags(original_wf, tags_list):
     # DB insertion tasks
     idxs = get_fws_and_tasks(original_wf, task_name_constraint="ToDb")
     for idx_fw, idx_t in idxs:
-        if original_wf.fws[idx_fw].tasks[idx_t].get("additional_fields"):
+        if "additional_fields" in original_wf.fws[idx_fw].tasks[idx_t].optional_params:
             if "tags" in original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"]:
                 original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
                     "tags"
