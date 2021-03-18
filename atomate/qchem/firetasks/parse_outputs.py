@@ -66,7 +66,7 @@ class QChemToDb(FiretaskBase):
         # parse the QChem directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
-        additional_fields = self.get("additional_fields", [])
+        additional_fields = self.get("additional_fields", {})
 
         drone = QChemDrone(additional_fields=additional_fields)
 
