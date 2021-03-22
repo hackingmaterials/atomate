@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>atomate.lammps.firetasks package &#8212; atomate 0.9.6 documentation</title>
+    <title>atomate.lammps.firetasks package &#8212; atomate 0.9.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.lammps.firetasks package</a></li> 
       </ul>
     </div>  
@@ -43,17 +43,309 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="atomate-lammps-firetasks-glue-tasks-module">
-<h2>atomate.lammps.firetasks.glue_tasks module<a class="headerlink" href="#atomate-lammps-firetasks-glue-tasks-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.lammps.firetasks.glue_tasks">
+<span id="atomate-lammps-firetasks-glue-tasks-module"></span><h2>atomate.lammps.firetasks.glue_tasks module<a class="headerlink" href="#module-atomate.lammps.firetasks.glue_tasks" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="atomate.lammps.firetasks.glue_tasks.CopyPackmolOutputs">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.lammps.firetasks.glue_tasks.</code><code class="sig-name descname">CopyPackmolOutputs</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.glue_tasks.CopyPackmolOutputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="atomate.common.firetasks.html#atomate.common.firetasks.glue_tasks.CopyFiles" title="atomate.common.firetasks.glue_tasks.CopyFiles"><code class="xref py py-class docutils literal notranslate"><span class="pre">atomate.common.firetasks.glue_tasks.CopyFiles</span></code></a></p>
+<p>Copy files from a previous run directory to the current directory.
+Note: must specify either “calc_loc” or “calc_dir” to indicate the directory</p>
+<blockquote>
+<div><p>containing the files to copy.</p>
+</div></blockquote>
+<dl>
+<dt>Optional params:</dt><dd><dl class="simple">
+<dt>calc_loc (str OR bool): if True will set most recent calc_loc. If str</dt><dd><p>search for the most recent calc_loc with the matching name.</p>
+</dd>
+</dl>
+<p>calc_dir (str): path to dir that contains VASP output files.
+filesystem (str): remote filesystem. e.g. <a class="reference external" href="mailto:username&#37;&#52;&#48;host">username<span>&#64;</span>host</a>
+exclude_files (list): list fo filenames to be excluded when copying.</p>
+<blockquote>
+<div><p>NOte: by default nothing is excluded.</p>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.lammps.firetasks.glue_tasks.CopyPackmolOutputs.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['calc_loc', 'calc_dir', 'filesystem', 'exclude_files']</em><a class="headerlink" href="#atomate.lammps.firetasks.glue_tasks.CopyPackmolOutputs.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.lammps.firetasks.glue_tasks.CopyPackmolOutputs.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.glue_tasks.CopyPackmolOutputs.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="atomate-lammps-firetasks-parse-outputs-module">
 <h2>atomate.lammps.firetasks.parse_outputs module<a class="headerlink" href="#atomate-lammps-firetasks-parse-outputs-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="atomate-lammps-firetasks-run-calc-module">
-<h2>atomate.lammps.firetasks.run_calc module<a class="headerlink" href="#atomate-lammps-firetasks-run-calc-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.lammps.firetasks.run_calc">
+<span id="atomate-lammps-firetasks-run-calc-module"></span><h2>atomate.lammps.firetasks.run_calc module<a class="headerlink" href="#module-atomate.lammps.firetasks.run_calc" title="Permalink to this headline">¶</a></h2>
+<p>This module defines firetasks for running lammps</p>
+<dl class="py class">
+<dt id="atomate.lammps.firetasks.run_calc.RunLammpsDirect">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.lammps.firetasks.run_calc.</code><code class="sig-name descname">RunLammpsDirect</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunLammpsDirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Run LAMMPS directly (no custodian).</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><dl class="simple">
+<dt>lammsps_cmd (str): lammps command to run sans the input file name.</dt><dd><p>e.g. ‘mpirun -n 4 lmp_mpi’</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.lammps.firetasks.run_calc.RunLammpsDirect.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['lammps_cmd', 'input_filename']</em><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunLammpsDirect.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.lammps.firetasks.run_calc.RunLammpsDirect.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunLammpsDirect.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="atomate.lammps.firetasks.run_calc.RunLammpsFake">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.lammps.firetasks.run_calc.</code><code class="sig-name descname">RunLammpsFake</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunLammpsFake" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Pretend run i.e just copy files from existing run dir.</p>
+<dl class="simple">
+<dt>Required params:</dt><dd><p>ref_dir (str): path to the reference dir</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.lammps.firetasks.run_calc.RunLammpsFake.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['ref_dir']</em><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunLammpsFake.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.lammps.firetasks.run_calc.RunLammpsFake.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunLammpsFake.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="atomate.lammps.firetasks.run_calc.RunPackmol">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.lammps.firetasks.run_calc.</code><code class="sig-name descname">RunPackmol</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunPackmol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Run packmol.</p>
+<dl>
+<dt>Required params:</dt><dd><p>molecules (list): list of constituent molecules(Molecule objects)
+packing_config (list): list of dict config settings for each molecule in the</p>
+<blockquote>
+<div><p>molecules list. eg: config settings for a single moelcule
+[{“number”: 1, “inside box”:[0,0,0,100,100,100]}]</p>
+</div></blockquote>
+</dd>
+<dt>Optional params:</dt><dd><p>tolerance (float): packmol tolerance
+filetype (string): input/output structure file type
+control_params (dict): packmol control parameters dictionary. Basically all parameters other</p>
+<blockquote>
+<div><p>than structure/atoms</p>
+</div></blockquote>
+<p>output_file (str): output file name. The extension will be adjusted according to the filetype
+site_property (str): the specified site property will be restored for the final Molecule object.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.lammps.firetasks.run_calc.RunPackmol.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['tolerance', 'filetype', 'control_params', 'output_file', 'site_property']</em><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunPackmol.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.lammps.firetasks.run_calc.RunPackmol.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['molecules', 'packing_config', 'packmol_cmd']</em><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunPackmol.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.lammps.firetasks.run_calc.RunPackmol.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.run_calc.RunPackmol.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
-<div class="section" id="atomate-lammps-firetasks-write-inputs-module">
-<h2>atomate.lammps.firetasks.write_inputs module<a class="headerlink" href="#atomate-lammps-firetasks-write-inputs-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-atomate.lammps.firetasks.write_inputs">
+<span id="atomate-lammps-firetasks-write-inputs-module"></span><h2>atomate.lammps.firetasks.write_inputs module<a class="headerlink" href="#module-atomate.lammps.firetasks.write_inputs" title="Permalink to this headline">¶</a></h2>
+<p>This module defines firetasks for writing LAMMPS input files (data file and the control
+parameters file)</p>
+<dl class="py class">
+<dt id="atomate.lammps.firetasks.write_inputs.WriteInputFromForceFieldAndTopology">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.lammps.firetasks.write_inputs.</code><code class="sig-name descname">WriteInputFromForceFieldAndTopology</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.write_inputs.WriteInputFromForceFieldAndTopology" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<dl class="py attribute">
+<dt id="atomate.lammps.firetasks.write_inputs.WriteInputFromForceFieldAndTopology.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['data_filename', 'user_settings', 'ff_site_property']</em><a class="headerlink" href="#atomate.lammps.firetasks.write_inputs.WriteInputFromForceFieldAndTopology.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.lammps.firetasks.write_inputs.WriteInputFromForceFieldAndTopology.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['input_file', 'final_molecule', 'constituent_molecules', 'mols_number', 'box_size', 'forcefield', 'topologies', 'input_filename']</em><a class="headerlink" href="#atomate.lammps.firetasks.write_inputs.WriteInputFromForceFieldAndTopology.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.lammps.firetasks.write_inputs.WriteInputFromForceFieldAndTopology.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.write_inputs.WriteInputFromForceFieldAndTopology.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="atomate.lammps.firetasks.write_inputs.WriteInputFromIOSet">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.lammps.firetasks.write_inputs.</code><code class="sig-name descname">WriteInputFromIOSet</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.write_inputs.WriteInputFromIOSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Writes LAMMPS Input files(data file and the control parameters file) from DictLammpsInput.</p>
+<dl class="simple">
+<dt>required_params:</dt><dd><p>lammps_input_set (LammpsInputSet)
+input_file (string): name of the file to which the input params will be written</p>
+</dd>
+<dt>optional_params:</dt><dd><p>data_filename (string): if specified the data file will be renamed</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt id="atomate.lammps.firetasks.write_inputs.WriteInputFromIOSet.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['data_filename']</em><a class="headerlink" href="#atomate.lammps.firetasks.write_inputs.WriteInputFromIOSet.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.lammps.firetasks.write_inputs.WriteInputFromIOSet.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = ['lammps_input_set', 'input_filename']</em><a class="headerlink" href="#atomate.lammps.firetasks.write_inputs.WriteInputFromIOSet.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.lammps.firetasks.write_inputs.WriteInputFromIOSet.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.lammps.firetasks.write_inputs.WriteInputFromIOSet.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-atomate.lammps.firetasks">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.lammps.firetasks" title="Permalink to this headline">¶</a></h2>
@@ -71,10 +363,10 @@
   <ul>
 <li><a class="reference internal" href="#">atomate.lammps.firetasks package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#atomate-lammps-firetasks-glue-tasks-module">atomate.lammps.firetasks.glue_tasks module</a></li>
+<li><a class="reference internal" href="#module-atomate.lammps.firetasks.glue_tasks">atomate.lammps.firetasks.glue_tasks module</a></li>
 <li><a class="reference internal" href="#atomate-lammps-firetasks-parse-outputs-module">atomate.lammps.firetasks.parse_outputs module</a></li>
-<li><a class="reference internal" href="#atomate-lammps-firetasks-run-calc-module">atomate.lammps.firetasks.run_calc module</a></li>
-<li><a class="reference internal" href="#atomate-lammps-firetasks-write-inputs-module">atomate.lammps.firetasks.write_inputs module</a></li>
+<li><a class="reference internal" href="#module-atomate.lammps.firetasks.run_calc">atomate.lammps.firetasks.run_calc module</a></li>
+<li><a class="reference internal" href="#module-atomate.lammps.firetasks.write_inputs">atomate.lammps.firetasks.write_inputs module</a></li>
 <li><a class="reference internal" href="#module-atomate.lammps.firetasks">Module contents</a></li>
 </ul>
 </li>
@@ -110,7 +402,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.lammps.firetasks package</a></li> 
       </ul>
     </div>

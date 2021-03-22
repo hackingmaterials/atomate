@@ -130,7 +130,8 @@ def use_no_vasp(original_wf, ref_dirs):
                         )
                     if "VaspToDb" in str(t):
                         original_wf.fws[idx_fw].tasks[idx_t] = JsonToDb(
-                            db_file=t.get("db_file", None), calc_dir=ref_dirs[job_type],
+                            db_file=t.get("db_file", None),
+                            calc_dir=ref_dirs[job_type],
                         )
     return original_wf
 
@@ -195,7 +196,8 @@ def use_fake_vasp(
 
                     if "RunVaspCustodian" in t_str and t_job_type == "neb":
                         original_wf.fws[idx_fw].tasks[idx_t] = RunNEBVaspFake(
-                            ref_dir=ref_dirs[job_type], params_to_check=params_to_check,
+                            ref_dir=ref_dirs[job_type],
+                            params_to_check=params_to_check,
                         )
 
     return original_wf

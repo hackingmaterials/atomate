@@ -14,7 +14,7 @@ from atomate.vasp.firetasks.parse_outputs import (
 from atomate.utils.testing import AtomateTest, DB_DIR
 
 from json import load
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 __author__ = "Matthew Horton"
 __email__ = "mkhorton@lbl.gov"

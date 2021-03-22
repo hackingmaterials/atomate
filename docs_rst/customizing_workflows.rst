@@ -36,7 +36,7 @@ An example for adding an INCAR setting to use a different force convergence crit
 
     from atomate.vasp.workflows.presets.core import wf_elastic_constant
     from atomate.vasp.powerups import add_modify_incar
-    from pymatgen import Structure
+    from pymatgen.core import Structure
 
     # load your structure, e.g. from a POSCAR
     struct = Structure.from_file('POSCAR')
@@ -74,7 +74,7 @@ To use a different functional, for instance in a optimization calculation, you c
     from fireworks import Workflow
     from atomate.vasp.fireworks.core import OptimizeFW
     from pymatgen.io.vasp.sets import MPRelaxSet
-    from pymatgen import Structure
+    from pymatgen.core import Structure
 
     def get_optimize_wf(structure, name="optimization wf", vasp_input_set=None,
                         vasp_cmd="vasp", db_file=None, user_kpoints_settings=None,
@@ -134,7 +134,7 @@ KPOINTS settings can also be similarly customized using the above example. You c
 .. code-block:: python
 
     from pymatgen.io.vasp.sets import MPRelaxSet
-    from pymatgen import Structure
+    from pymatgen.core import Structure
 
     # load your structure, e.g. from a POSCAR
     struct = Structure.from_file('POSCAR')
@@ -151,7 +151,7 @@ If you need more control, create the ``Kpoints`` object directly with pymatgen. 
 
     from pymatgen.io.vasp.sets import MPRelaxSet
     from pymatgen.io.vasp.inputs import Kpoints
-    from pymatgen import Structure
+    from pymatgen.core import Structure
 
     # load your structure, e.g. from a POSCAR
     struct = Structure.from_file('POSCAR')
@@ -199,7 +199,7 @@ Which POTCAR file you want to use is controlled by the input set as well. The ea
 .. code-block:: python
 
     from pymatgen.io.vasp.sets import MPRelaxSet
-    from pymatgen import Structure
+    from pymatgen.core import Structure
 
     # load your structure, e.g. from a POSCAR
     struct = Structure.from_file('POSCAR')
