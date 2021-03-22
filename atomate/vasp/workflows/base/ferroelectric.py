@@ -9,7 +9,7 @@ from fireworks import Firework, Workflow
 
 from atomate.utils.utils import get_logger, get_a_unique_id
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 from atomate.vasp.fireworks.core import OptimizeFW
 from atomate.vasp.fireworks.polarization import LcalcpolFW

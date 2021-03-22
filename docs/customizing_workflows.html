@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Customizing workflows &#8212; atomate 0.9.6 documentation</title>
+    <title>Customizing workflows &#8212; atomate 0.9.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="creating_workflows.html" title="Creating Workflows"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Customizing workflows</a></li> 
       </ul>
     </div>  
@@ -69,7 +69,7 @@
 <p>An example for adding an INCAR setting to use a different force convergence criteria for the only the structure optimization in the elastic workflow is</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atomate.vasp.workflows.presets.core</span> <span class="kn">import</span> <span class="n">wf_elastic_constant</span>
 <span class="kn">from</span> <span class="nn">atomate.vasp.powerups</span> <span class="kn">import</span> <span class="n">add_modify_incar</span>
-<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Structure</span>
 
 <span class="c1"># load your structure, e.g. from a POSCAR</span>
 <span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;POSCAR&#39;</span><span class="p">)</span>
@@ -104,7 +104,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fireworks</span> <span class="kn">import</span> <span class="n">Workflow</span>
 <span class="kn">from</span> <span class="nn">atomate.vasp.fireworks.core</span> <span class="kn">import</span> <span class="n">OptimizeFW</span>
 <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
-<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Structure</span>
 
 <span class="k">def</span> <span class="nf">get_optimize_wf</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;optimization wf&quot;</span><span class="p">,</span> <span class="n">vasp_input_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">vasp_cmd</span><span class="o">=</span><span class="s2">&quot;vasp&quot;</span><span class="p">,</span> <span class="n">db_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">user_kpoints_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -161,7 +161,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">user_kpoints_settings</span></code>: Override kpoints setting by supplying a dict. E.g., <code class="docutils literal notranslate"><span class="pre">{&quot;reciprocal_density&quot;:</span> <span class="pre">1000}</span></code>. Other options are <code class="docutils literal notranslate"><span class="pre">grid_density</span></code> or <code class="docutils literal notranslate"><span class="pre">length</span></code>.</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
-<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Structure</span>
 
 <span class="c1"># load your structure, e.g. from a POSCAR</span>
 <span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;POSCAR&#39;</span><span class="p">)</span>
@@ -176,7 +176,7 @@
 <p>If you need more control, create the <code class="docutils literal notranslate"><span class="pre">Kpoints</span></code> object directly with pymatgen. It is flexible and only a brief example will be shown. See the <a class="reference external" href="http://pymatgen.org/pymatgen.io.vasp.inputs.html#pymatgen.io.vasp.inputs.Kpoints">full Kpoints documentation</a> for more</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
 <span class="kn">from</span> <span class="nn">pymatgen.io.vasp.inputs</span> <span class="kn">import</span> <span class="n">Kpoints</span>
-<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Structure</span>
 
 <span class="c1"># load your structure, e.g. from a POSCAR</span>
 <span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;POSCAR&#39;</span><span class="p">)</span>
@@ -215,7 +215,7 @@
 <h3>Use a different POTCAR<a class="headerlink" href="#use-a-different-potcar" title="Permalink to this headline">¶</a></h3>
 <p>Which POTCAR file you want to use is controlled by the input set as well. The easist way to control it is by updating the <code class="docutils literal notranslate"><span class="pre">config_dict</span></code> dictionary of your input set.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pymatgen.io.vasp.sets</span> <span class="kn">import</span> <span class="n">MPRelaxSet</span>
-<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Structure</span>
 
 <span class="c1"># load your structure, e.g. from a POSCAR</span>
 <span class="n">struct</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s1">&#39;POSCAR&#39;</span><span class="p">)</span>
@@ -306,7 +306,7 @@
         <li class="right" >
           <a href="creating_workflows.html" title="Creating Workflows"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Customizing workflows</a></li> 
       </ul>
     </div>

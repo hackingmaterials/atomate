@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Running workflows tutorial &#8212; atomate 0.9.6 documentation</title>
+    <title>Running workflows tutorial &#8212; atomate 0.9.8 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="developer_installation.html" title="Installing atomate in development mode"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Running workflows tutorial</a></li> 
       </ul>
     </div>  
@@ -151,7 +151,7 @@ We can setup the workflow and add it to our LaunchPad ready to run in just a few
 <p>In the same directory as the POSCAR, create a Python script named <code class="docutils literal notranslate"><span class="pre">mgo_bandstructure.py</span></code> with the following contents:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a bandstructure from the workflow from the atomate presets</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Structure</span>
 <span class="kn">from</span> <span class="nn">fireworks</span> <span class="kn">import</span> <span class="n">LaunchPad</span>
 <span class="kn">from</span> <span class="nn">atomate.vasp.workflows.presets.core</span> <span class="kn">import</span> <span class="n">wf_bandstructure</span>
 <span class="kn">from</span> <span class="nn">atomate.vasp.powerups</span> <span class="kn">import</span> <span class="n">add_modify_incar</span>
@@ -315,7 +315,7 @@ Simply add the following Python script (<code class="docutils literal notranslat
         <li class="right" >
           <a href="developer_installation.html" title="Installing atomate in development mode"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Running workflows tutorial</a></li> 
       </ul>
     </div>

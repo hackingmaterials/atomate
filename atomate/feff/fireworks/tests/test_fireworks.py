@@ -5,7 +5,7 @@ import os
 import shutil
 import unittest
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 from atomate.feff.fireworks.core import EXAFSPathsFW
 from atomate.utils.testing import AtomateTest

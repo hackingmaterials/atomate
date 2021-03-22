@@ -3,7 +3,7 @@
 
 from monty.json import MSONable, MontyDecoder
 
-from pymatgen import MPRester
+from pymatgen.ext.matproj import MPRester
 from pymatgen.alchemy.filters import AbstractStructureFilter
 
 __author__ = 'Anubhav Jain <ajain@lbl.gov>, Kiran Mathew <kmathew@lbl.gov>'

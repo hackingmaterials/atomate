@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from atomate.utils.utils import get_logger , get_database
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 
