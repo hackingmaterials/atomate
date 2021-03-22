@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>atomate.qchem.workflows.base package &#8212; atomate 0.9.5 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>atomate.qchem.workflows.base package &#8212; atomate 0.9.6 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
  
@@ -27,7 +28,8 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.qchem.workflows.base package</a></li> 
       </ul>
     </div>  
 
@@ -41,182 +43,17 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.qchem.workflows.base.double_FF_opt">
-<span id="atomate-qchem-workflows-base-double-ff-opt-module"></span><h2>atomate.qchem.workflows.base.double_FF_opt module<a class="headerlink" href="#module-atomate.qchem.workflows.base.double_FF_opt" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.qchem.workflows.base.double_FF_opt.get_wf_double_FF_opt">
-<code class="sig-prename descclassname">atomate.qchem.workflows.base.double_FF_opt.</code><code class="sig-name descname">get_wf_double_FF_opt</code><span class="sig-paren">(</span><em class="sig-param">molecule</em>, <em class="sig-param">pcm_dielectric</em>, <em class="sig-param">linked=False</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">name='douple_FF_opt'</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.workflows.base.double_FF_opt.get_wf_double_FF_opt" title="Permalink to this definition">¶</a></dt>
-<dd><dl>
-<dt>Firework 1<span class="classifier">write QChem input for an FF optimization,</span></dt><dd><p>run FF_opt QCJob,
-parse directory and insert into db,
-pass relaxed molecule to fw_spec and on to fw2,</p>
-</dd>
-<dt>Firework 2<span class="classifier">write QChem input for an optimization in the</span></dt><dd><blockquote>
-<div><p>presence of a PCM, using the molecule passed
-from fw1,</p>
-</div></blockquote>
-<p>run FF_opt QCJob,
-parse directory and insert into db</p>
-</dd>
-<dt>Args:</dt><dd><p>molecule (Molecule): input molecule to be optimized and run.
-pcm_dielectric (float): The PCM dielectric constant.
-max_cores (int): Maximum number of cores to parallelize over.</p>
-<blockquote>
-<div><p>Defaults to 32.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</dt><dd><p>Basic uses would be to modify the default inputs of the set,
-such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
-or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
-values of all input parameters. For instance, if a user wanted
-to use a more advanced DFT functional, include a pcm with a
-dielectric of 30, and use a larger basis, the user would set
-qchem_input_params = {“dft_rung”: 5, “pcm_dielectric”: 30,
-“basis_set”: “6-311++g**”}. However, more advanced customization
-of the input is also possible through the overwrite_inputs key
-which allows the user to directly modify the rem, pcm, smd, and
-solvent dictionaries that QChemDictSet passes to inputs.py to
-print an actual input file. For instance, if a user wanted to
-set the sym_ignore flag in the rem section of the input file
-to true, then they would set qchem_input_params = {“overwrite_inputs”:
-“rem”: {“sym_ignore”: “true”}}. Of course, overwrite_inputs
-could be used in conjuction with more typical modifications,
-as seen in the test_double_FF_opt workflow test.</p>
-</dd>
-</dl>
-<p>qchem_cmd (str): Command to run QChem.
-db_file (str): path to file containing the database credentials.
-kwargs (keyword arguments): additional kwargs to be passed to Workflow</p>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-qchem-workflows-base-ff-and-critic-module">
+<h2>atomate.qchem.workflows.base.FF_and_critic module<a class="headerlink" href="#atomate-qchem-workflows-base-ff-and-critic-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.qchem.workflows.base.fragmentation">
-<span id="atomate-qchem-workflows-base-fragmentation-module"></span><h2>atomate.qchem.workflows.base.fragmentation module<a class="headerlink" href="#module-atomate.qchem.workflows.base.fragmentation" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.qchem.workflows.base.fragmentation.get_fragmentation_wf">
-<code class="sig-prename descclassname">atomate.qchem.workflows.base.fragmentation.</code><code class="sig-name descname">get_fragmentation_wf</code><span class="sig-paren">(</span><em class="sig-param">molecule</em>, <em class="sig-param">depth=1</em>, <em class="sig-param">open_rings=True</em>, <em class="sig-param">additional_charges=None</em>, <em class="sig-param">do_triplets=True</em>, <em class="sig-param">pcm_dielectric=None</em>, <em class="sig-param">do_optimization=True</em>, <em class="sig-param">linked=False</em>, <em class="sig-param">qchem_input_params=None</em>, <em class="sig-param">name='FF then fragment'</em>, <em class="sig-param">db_file='&gt;&gt;db_file&lt;&lt;'</em>, <em class="sig-param">check_db=True</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.workflows.base.fragmentation.get_fragmentation_wf" title="Permalink to this definition">¶</a></dt>
-<dd><dl>
-<dt>Args:</dt><dd><p>molecule (Molecule): input molecule to be fragmented.
-depth (int): The number of levels of iterative fragmentation to perform,</p>
-<blockquote>
-<div><p>where each evel will include fragments obtained by breaking
-one bond of a fragment one level up. If set to 0, instead
-all possible fragments are generated using an alternative,
-non-iterative scheme. Defaults to 1.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>open_rings (bool): Whether or not to open any rings encountered during fragmentation.</dt><dd><p>Defaults to True. If true, any bond that fails to yield disconnected
-graphs when broken is instead removed and the entire structure is
-optimized with OpenBabel in order to obtain a good initial guess for
-an opened geometry that can then be put back into QChem to be
-optimized without the ring just reforming.</p>
-</dd>
-<dt>additional_charges (list): List of additional charges besides the defaults described in the</dt><dd><p>firetask. For example, if a principle molecule with a +2 charge
-is provided, by default all fragments will be calculated with
-+1 and +2 charges. If the user includes additional_charges=[0]
-then all fragments will be calculated with 0, +1, and +2 charges.
-Additional charge values of 1 or 2 would not cause any new charges
-to be calculated as they are already done. Defaults to [].</p>
-</dd>
-<dt>do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with</dt><dd><p>an even number of electrons. Defaults to True.</p>
-</dd>
-</dl>
-<p>pcm_dielectric (float): The PCM dielectric constant.
-do_optimization (bool): Whether or not to optimize the given molecule</p>
-<blockquote>
-<div><p>before fragmentation. Defaults to True.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</dt><dd><p>Basic uses would be to modify the default inputs of the set,
-such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
-or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
-values of all input parameters. For instance, if a user wanted
-to use a more advanced DFT functional, include a pcm with a
-dielectric of 30, and use a larger basis, the user would set
-qchem_input_params = {“dft_rung”: 5, “pcm_dielectric”: 30,
-“basis_set”: “6-311++g**”}. However, more advanced customization
-of the input is also possible through the overwrite_inputs key
-which allows the user to directly modify the rem, pcm, smd, and
-solvent dictionaries that QChemDictSet passes to inputs.py to
-print an actual input file. For instance, if a user wanted to
-set the sym_ignore flag in the rem section of the input file
-to true, then they would set qchem_input_params = {“overwrite_inputs”:
-“rem”: {“sym_ignore”: “true”}}. Of course, overwrite_inputs
-could be used in conjuction with more typical modifications,
-as seen in the test_double_FF_opt workflow test.</p>
-</dd>
-</dl>
-<p>db_file (str): path to file containing the database credentials.
-check_db (bool): Whether or not to check the database for equivalent</p>
-<blockquote>
-<div><p>structures before adding new fragment fireworks.
-Defaults to True.</p>
-</div></blockquote>
-<p>kwargs (keyword arguments): additional kwargs to be passed to Workflow</p>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow with the following fireworks:</p>
-<dl class="simple">
-<dt>Firework 1<span class="classifier">write QChem input for an FF optimization,</span></dt><dd><p>run FF_opt QCJob,
-parse directory and insert into db,
-pass relaxed molecule to fw_spec and on to fw2,</p>
-</dd>
-<dt>Firework 2<span class="classifier">find all unique fragments of the optimized molecule</span></dt><dd><p>and add a frequency flattening optimize FW to the
-workflow for each one</p>
-</dd>
-</dl>
-<p>Note that Firework 1 is only present if do_optimization=True.</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="atomate-qchem-workflows-base-double-ff-opt-module">
+<h2>atomate.qchem.workflows.base.double_FF_opt module<a class="headerlink" href="#atomate-qchem-workflows-base-double-ff-opt-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.qchem.workflows.base.torsion_potential">
-<span id="atomate-qchem-workflows-base-torsion-potential-module"></span><h2>atomate.qchem.workflows.base.torsion_potential module<a class="headerlink" href="#module-atomate.qchem.workflows.base.torsion_potential" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.qchem.workflows.base.torsion_potential.get_wf_torsion_potential">
-<code class="sig-prename descclassname">atomate.qchem.workflows.base.torsion_potential.</code><code class="sig-name descname">get_wf_torsion_potential</code><span class="sig-paren">(</span><em class="sig-param">molecule</em>, <em class="sig-param">atom_indexes</em>, <em class="sig-param">angles</em>, <em class="sig-param">rem</em>, <em class="sig-param">name='torsion_potential'</em>, <em class="sig-param">qchem_cmd='&gt;&gt;qchem_cmd&lt;&lt;'</em>, <em class="sig-param">multimode='&gt;&gt;multimode&lt;&lt;'</em>, <em class="sig-param">max_cores='&gt;&gt;max_cores&lt;&lt;'</em>, <em class="sig-param">db_file=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.workflows.base.torsion_potential.get_wf_torsion_potential" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a workflow to the torsion potential for a molecule.</p>
-<dl class="simple">
-<dt>Firework 1<span class="classifier">write QChem input for an optimization,</span></dt><dd><p>run Qchem,
-parse output and insert into db,
-pass relaxed molecule to fw_spec and on to fw2,</p>
-</dd>
-<dt>Firework 2<span class="classifier">rotate molecule torsion to a particular angle,</span></dt><dd><p>write QChem input for an optimization,
-run Qchem,
-parse output and insert into db</p>
-</dd>
-</dl>
-<p>last Firework : add analysis code at some point</p>
-<blockquote>
-<div><dl>
-<dt>Args:</dt><dd><p>molecule (Molecule): Input molecule (needs to be a pymatgen molecule object)
-atom_indexes (list of ints): list of atom indexes in the torsion angle to be rotated (i.e. [6, 8, 9, 10])
-angles (list of floats): list of all the torsion angles to run
-rem (list of two rem dictionaries): a list with two rem dictionaries, one for the first optimization and
-one for the second constrained optimization
-name (str): Name for the workflow.
-qchem_cmd (str): Command to run QChem. Defaults to qchem.
-multimode (str): Parallelization scheme, either openmp or mpi.
-input_file (str): Name of the QChem input file. Defaults to mol.qin.
-output_file (str): Name of the QChem output file. Defaults to mol.qout.
-max_cores (int): Maximum number of cores to parallelize over. Defaults to 32.
-qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.</p>
-<blockquote>
-<div><p>For example, if you want to change the DFT_rung, you should
-provide: {“DFT_rung”: …}. Defaults to None.</p>
-</div></blockquote>
-<p>db_file (str): Path to file specifying db credentials to place output parsing.
-<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: Other kwargs that are passed to Firework.__init__.</p>
-</dd>
-</dl>
-</div></blockquote>
-<p>Returns: Workflow</p>
-</dd></dl>
-
+<div class="section" id="atomate-qchem-workflows-base-fragmentation-module">
+<h2>atomate.qchem.workflows.base.fragmentation module<a class="headerlink" href="#atomate-qchem-workflows-base-fragmentation-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="atomate-qchem-workflows-base-torsion-potential-module">
+<h2>atomate.qchem.workflows.base.torsion_potential module<a class="headerlink" href="#atomate-qchem-workflows-base-torsion-potential-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-atomate.qchem.workflows.base">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.qchem.workflows.base" title="Permalink to this headline">¶</a></h2>
@@ -224,6 +61,7 @@ provide: {“DFT_rung”: …}. Defaults to None.</p>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -233,9 +71,10 @@ provide: {“DFT_rung”: …}. Defaults to None.</p>
   <ul>
 <li><a class="reference internal" href="#">atomate.qchem.workflows.base package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-atomate.qchem.workflows.base.double_FF_opt">atomate.qchem.workflows.base.double_FF_opt module</a></li>
-<li><a class="reference internal" href="#module-atomate.qchem.workflows.base.fragmentation">atomate.qchem.workflows.base.fragmentation module</a></li>
-<li><a class="reference internal" href="#module-atomate.qchem.workflows.base.torsion_potential">atomate.qchem.workflows.base.torsion_potential module</a></li>
+<li><a class="reference internal" href="#atomate-qchem-workflows-base-ff-and-critic-module">atomate.qchem.workflows.base.FF_and_critic module</a></li>
+<li><a class="reference internal" href="#atomate-qchem-workflows-base-double-ff-opt-module">atomate.qchem.workflows.base.double_FF_opt module</a></li>
+<li><a class="reference internal" href="#atomate-qchem-workflows-base-fragmentation-module">atomate.qchem.workflows.base.fragmentation module</a></li>
+<li><a class="reference internal" href="#atomate-qchem-workflows-base-torsion-potential-module">atomate.qchem.workflows.base.torsion_potential module</a></li>
 <li><a class="reference internal" href="#module-atomate.qchem.workflows.base">Module contents</a></li>
 </ul>
 </li>
@@ -257,7 +96,7 @@ provide: {“DFT_rung”: …}. Defaults to None.</p>
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -271,13 +110,14 @@ provide: {“DFT_rung”: …}. Defaults to None.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.qchem.workflows.base package</a></li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
 
   </body>

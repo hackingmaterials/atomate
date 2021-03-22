@@ -68,6 +68,14 @@ atomate.vasp.workflows.base.gibbs module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.workflows.base.lobster module
+------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.lobster
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.workflows.base.magnetism module
 --------------------------------------------
 
@@ -99,7 +107,6 @@ atomate.vasp.workflows.base.thermal\_expansion module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>atomate.utils package &#8212; atomate 0.9.5 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>atomate.utils package &#8212; atomate 0.9.6 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
  
@@ -27,7 +28,8 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.utils package</a></li> 
       </ul>
     </div>  
 
@@ -44,8 +46,9 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="atomate.utils.tests.html">atomate.utils.tests package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.utils.tests.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.utils.tests.html#module-atomate.utils.tests.test_loaders">atomate.utils.tests.test_loaders module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.utils.tests.html#module-atomate.utils.tests.test_utils">atomate.utils.tests.test_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.utils.tests.html#atomate-utils-tests-test-database-module">atomate.utils.tests.test_database module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.utils.tests.html#atomate-utils-tests-test-loaders-module">atomate.utils.tests.test_loaders module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.utils.tests.html#atomate-utils-tests-test-utils-module">atomate.utils.tests.test_utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.utils.tests.html#module-atomate.utils.tests">Module contents</a></li>
 </ul>
 </li>
@@ -55,75 +58,20 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.utils.database">
-<span id="atomate-utils-database-module"></span><h2>atomate.utils.database module<a class="headerlink" href="#module-atomate.utils.database" title="Permalink to this headline">¶</a></h2>
-<p>This module defines a base class for derived database classes that store calculation data.</p>
-<dl class="class">
-<dt id="atomate.utils.database.CalcDb">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.utils.database.</code><code class="sig-name descname">CalcDb</code><span class="sig-paren">(</span><em class="sig-param">host</em>, <em class="sig-param">port</em>, <em class="sig-param">database</em>, <em class="sig-param">collection</em>, <em class="sig-param">user</em>, <em class="sig-param">password</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.database.CalcDb" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<dl class="method">
-<dt id="atomate.utils.database.CalcDb.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">host</em>, <em class="sig-param">port</em>, <em class="sig-param">database</em>, <em class="sig-param">collection</em>, <em class="sig-param">user</em>, <em class="sig-param">password</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.database.CalcDb.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.utils.database.CalcDb.build_indexes">
-<em class="property">abstract </em><code class="sig-name descname">build_indexes</code><span class="sig-paren">(</span><em class="sig-param">indexes=None</em>, <em class="sig-param">background=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.database.CalcDb.build_indexes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build the indexes.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>indexes (list): list of single field indexes to be built.
-background (bool): Run in the background or not.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.utils.database.CalcDb.from_db_file">
-<em class="property">classmethod </em><code class="sig-name descname">from_db_file</code><span class="sig-paren">(</span><em class="sig-param">db_file</em>, <em class="sig-param">admin=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.database.CalcDb.from_db_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create MMDB from database file. File requires host, port, database,
-collection, and optionally admin_user/readonly_user and
-admin_password/readonly_password</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>db_file (str): path to the file containing the credentials
-admin (bool): whether to use the admin user</p>
-</dd>
-<dt>Returns:</dt><dd><p>MMDb object</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.utils.database.CalcDb.insert">
-<code class="sig-name descname">insert</code><span class="sig-paren">(</span><em class="sig-param">d</em>, <em class="sig-param">update_duplicates=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.database.CalcDb.insert" title="Permalink to this definition">¶</a></dt>
-<dd><p>Insert the task document ot the database collection.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>d (dict): task document
-update_duplicates (bool): whether to update the duplicates</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.utils.database.CalcDb.reset">
-<em class="property">abstract </em><code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.database.CalcDb.reset" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="atomate-utils-database-module">
+<h2>atomate.utils.database module<a class="headerlink" href="#atomate-utils-database-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-atomate.utils.fileio">
 <span id="atomate-utils-fileio-module"></span><h2>atomate.utils.fileio module<a class="headerlink" href="#module-atomate.utils.fileio" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="atomate.utils.fileio.FileClient">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.utils.fileio.</code><code class="sig-name descname">FileClient</code><span class="sig-paren">(</span><em class="sig-param">filesystem=None</em>, <em class="sig-param">private_key='~/.ssh/id_rsa'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<em class="property">class </em><code class="sig-prename descclassname">atomate.utils.fileio.</code><code class="sig-name descname">FileClient</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filesystem</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">private_key</span><span class="o">=</span><span class="default_value">'~/.ssh/id_rsa'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A client for performing many file operations while being agnostic
 of whether those operations are happening locally or via SSH</p>
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.utils.fileio.FileClient.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">filesystem=None</em>, <em class="sig-param">private_key='~/.ssh/id_rsa'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filesystem</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">private_key</span><span class="o">=</span><span class="default_value">'~/.ssh/id_rsa'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>Args:</dt><dd><dl class="simple">
 <dt>filesystem (str): remote filesystem, e.g. <a class="reference external" href="mailto:username&#37;&#52;&#48;remote_host">username<span>&#64;</span>remote_host</a>.</dt><dd><p>If None, use local</p>
@@ -135,9 +83,9 @@ of whether those operations are happening locally or via SSH</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.utils.fileio.FileClient.abspath">
-<code class="sig-name descname">abspath</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.abspath" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">abspath</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.abspath" title="Permalink to this definition">¶</a></dt>
 <dd><p>return the absolute path</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>path (str): path to get absolute string of</p>
@@ -145,9 +93,9 @@ of whether those operations are happening locally or via SSH</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.utils.fileio.FileClient.copy">
-<code class="sig-name descname">copy</code><span class="sig-paren">(</span><em class="sig-param">src</em>, <em class="sig-param">dest</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.copy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src</span></em>, <em class="sig-param"><span class="n">dest</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Copy from source to destination.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>src (str): source full path
@@ -156,9 +104,9 @@ dest (str): destination file full path</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.utils.fileio.FileClient.exists">
-<em class="property">static </em><code class="sig-name descname">exists</code><span class="sig-paren">(</span><em class="sig-param">sftp</em>, <em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.exists" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">exists</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sftp</span></em>, <em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.exists" title="Permalink to this definition">¶</a></dt>
 <dd><p>os.path.exists() for paramiko’s SCP object</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>sftp (SFTPClient):
@@ -167,9 +115,9 @@ path (str): path to check existence of</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.utils.fileio.FileClient.get_ssh_connection">
-<em class="property">static </em><code class="sig-name descname">get_ssh_connection</code><span class="sig-paren">(</span><em class="sig-param">username</em>, <em class="sig-param">host</em>, <em class="sig-param">private_key</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.get_ssh_connection" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="sig-name descname">get_ssh_connection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">username</span></em>, <em class="sig-param"><span class="n">host</span></em>, <em class="sig-param"><span class="n">private_key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.get_ssh_connection" title="Permalink to this definition">¶</a></dt>
 <dd><p>Connect to the remote host via paramiko using the private key.
 If the host key is not present it will be added automatically.</p>
 <dl>
@@ -182,9 +130,9 @@ host (str):</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.utils.fileio.FileClient.glob">
-<code class="sig-name descname">glob</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.glob" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">glob</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.glob" title="Permalink to this definition">¶</a></dt>
 <dd><p>return the glob</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>path (str): path to glob</p>
@@ -192,9 +140,9 @@ host (str):</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="atomate.utils.fileio.FileClient.listdir">
-<code class="sig-name descname">listdir</code><span class="sig-paren">(</span><em class="sig-param">ldir</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.listdir" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">listdir</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ldir</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.fileio.FileClient.listdir" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the directory listing from either the local or remote filesystem.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>ldir (str): full path to the directory</p>
@@ -207,254 +155,11 @@ host (str):</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-atomate.utils.testing">
-<span id="atomate-utils-testing-module"></span><h2>atomate.utils.testing module<a class="headerlink" href="#module-atomate.utils.testing" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="atomate.utils.testing.AtomateTest">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.utils.testing.</code><code class="sig-name descname">AtomateTest</code><span class="sig-paren">(</span><em class="sig-param">methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.testing.AtomateTest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
-<dl class="method">
-<dt id="atomate.utils.testing.AtomateTest.get_task_collection">
-<code class="sig-name descname">get_task_collection</code><span class="sig-paren">(</span><em class="sig-param">coll_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.testing.AtomateTest.get_task_collection" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns pymongo collection</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.utils.testing.AtomateTest.get_task_database">
-<code class="sig-name descname">get_task_database</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.testing.AtomateTest.get_task_database" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns pymongo db connection.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.utils.testing.AtomateTest.setUp">
-<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><em class="sig-param">lpad=True</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.testing.AtomateTest.setUp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create scratch directory(removes the old one if there is one) and change to it.
-Also initialize launchpad.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="atomate.utils.testing.AtomateTest.tearDown">
-<code class="sig-name descname">tearDown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.testing.AtomateTest.tearDown" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove the scratch directory and teardown the test db.</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="atomate-utils-testing-module">
+<h2>atomate.utils.testing module<a class="headerlink" href="#atomate-utils-testing-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.utils.utils">
-<span id="atomate-utils-utils-module"></span><h2>atomate.utils.utils module<a class="headerlink" href="#module-atomate.utils.utils" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="atomate.utils.utils.env_chk">
-<code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">env_chk</code><span class="sig-paren">(</span><em class="sig-param">val</em>, <em class="sig-param">fw_spec</em>, <em class="sig-param">strict=True</em>, <em class="sig-param">default=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.env_chk" title="Permalink to this definition">¶</a></dt>
-<dd><p>env_chk() is a way to set different values for a property depending
-on the worker machine. For example, you might have slightly different
-executable names or scratch directories on different machines.</p>
-<p>env_chk() works using the principles of the FWorker env in FireWorks.</p>
-<p>This helper method translates string “val” that looks like this:
-“&gt;&gt;ENV_KEY&lt;&lt;”
-to the contents of:
-fw_spec[“_fw_env”][ENV_KEY]</p>
-<p>Otherwise, the string “val” is interpreted literally and passed-through as is.</p>
-<p>The fw_spec[“_fw_env”] is in turn set by the FWorker. For more details,
-see: <a class="reference external" href="https://materialsproject.github.io/fireworks/worker_tutorial.html">https://materialsproject.github.io/fireworks/worker_tutorial.html</a></p>
-<p>Since the fw_env can be set differently for each FireWorker, one can
-use this method to translate a single “val” into multiple possibilities,
-thus achieving different behavior on different machines.</p>
-<dl>
-<dt>Args:</dt><dd><p>val: any value, with “&gt;&gt;&lt;&lt;” notation reserved for special env lookup values
-fw_spec: (dict) fw_spec where one can find the _fw_env keys
-strict (bool): if True, errors if env format (&gt;&gt;&lt;&lt;) specified but cannot be found in fw_spec
-default: if val is None or env cannot be found in non-strict mode,</p>
-<blockquote>
-<div><p>return default</p>
-</div></blockquote>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.utils.utils.get_a_unique_id">
-<code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">get_a_unique_id</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_a_unique_id" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="atomate.utils.utils.get_database">
-<code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">get_database</code><span class="sig-paren">(</span><em class="sig-param">config_file=None</em>, <em class="sig-param">settings=None</em>, <em class="sig-param">admin=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_database" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="atomate.utils.utils.get_fws_and_tasks">
-<code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">get_fws_and_tasks</code><span class="sig-paren">(</span><em class="sig-param">workflow</em>, <em class="sig-param">fw_name_constraint=None</em>, <em class="sig-param">task_name_constraint=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_fws_and_tasks" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper method: given a workflow, returns back the fw_ids and task_ids that match name
-constraints. Used in developing multiple powerups.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>workflow (Workflow): Workflow
-fw_name_constraint (str): a constraint on the FW name
-task_name_constraint (str): a constraint on the task name</p>
-</dd>
-<dt>Returns:</dt><dd><p>a list of tuples of the form (fw_id, task_id) of the RunVasp-type tasks</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.utils.utils.get_logger">
-<code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">get_logger</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">level=10</em>, <em class="sig-param">log_format='%(asctime)s %(levelname)s %(name)s %(message)s'</em>, <em class="sig-param">stream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_logger" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="atomate.utils.utils.get_meta_from_structure">
-<code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">get_meta_from_structure</code><span class="sig-paren">(</span><em class="sig-param">structure</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_meta_from_structure" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="atomate.utils.utils.get_mongolike">
-<code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">get_mongolike</code><span class="sig-paren">(</span><em class="sig-param">d</em>, <em class="sig-param">key</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_mongolike" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve a dict value using dot-notation like “a.b.c” from dict {“a”:{“b”:{“c”: 3}}}
-Args:</p>
-<blockquote>
-<div><p>d (dict): the dictionary to search
-key (str): the key we want to retrieve with dot notation, e.g., “a.b.c”</p>
-</div></blockquote>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>value from desired dict (whatever is stored at the desired key)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.utils.utils.get_uri">
-<code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">get_uri</code><span class="sig-paren">(</span><em class="sig-param">dir_name</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_uri" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the URI path for a directory. This allows files hosted on
-different file servers to have distinct locations.
-Args:</p>
-<blockquote>
-<div><dl class="simple">
-<dt>dir_name:</dt><dd><p>A directory name.</p>
-</dd>
-</dl>
-</div></blockquote>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>Full URI path, e.g., fileserver.host.com:/full/path/of/dir_name.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.utils.utils.get_wf_from_spec_dict">
-<code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">get_wf_from_spec_dict</code><span class="sig-paren">(</span><em class="sig-param">structure</em>, <em class="sig-param">wfspec</em>, <em class="sig-param">common_param_updates=None</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.get_wf_from_spec_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load a WF from a structure and a spec dict. This allows simple
-custom workflows to be constructed quickly via a YAML file.</p>
-<dl>
-<dt>Args:</dt><dd><p>structure (Structure): An input structure object.
-wfspec (dict): A dict specifying workflow. A sample of the dict in</p>
-<blockquote>
-<div><p>YAML format for the usual MP workflow is given as follows:</p>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
-fireworks:
-- fw: atomate.vasp.fireworks.core.OptimizeFW
-- fw: atomate.vasp.fireworks.core.StaticFW</p>
-<blockquote>
-<div><dl class="simple">
-<dt>params:</dt><dd><p>parents: 0</p>
-</dd>
-</dl>
-</div></blockquote>
-<ul>
-<li><p>fw: atomate.vasp.fireworks.core.NonSCFUniformFW
-params:</p>
-<blockquote>
-<div><p>parents: 1</p>
-</div></blockquote>
-</li>
-<li><p>fw: atomate.vasp.fireworks.core.NonSCFLineFW
-params:</p>
-<blockquote>
-<div><p>parents: 1</p>
-</div></blockquote>
-</li>
-</ul>
-<dl class="simple">
-<dt>common_params:</dt><dd><p>db_file: db.json
-$vasp_cmd: $HOME/opt/vasp</p>
-</dd>
-</dl>
-<p>name: bandstructure
-metadata:</p>
-<blockquote>
-<div><p>tag: testing_workflow</p>
-</div></blockquote>
-<p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
-<p>The <cite>fireworks</cite> key is a list of Fireworks; it is expected that
-all such Fireworks have “structure” as the first argument and
-other optional arguments following that. Each Firework is specified
-via “fw”: &lt;explicit path&gt;.</p>
-<p>You can pass arguments into the constructor using the special
-keyword <cite>params</cite>, which is a dict. Any param starting with a $ will
-be expanded using environment variables.If multiple fireworks share
-the same <cite>params</cite>, you can use <cite>common_params</cite> to specify a common
-set of arguments that are passed to all fireworks. Local params
-take precedent over global params.</p>
-<p>Another special keyword is <cite>parents</cite>, which provides
-the <em>indices</em> of the parents of that particular Firework in the
-list. This allows you to link the Fireworks into a logical
-workflow.</p>
-<p>Finally, <cite>name</cite> is used to set the Workflow name
-(structure formula + name) which can be helpful in record keeping.</p>
-</div></blockquote>
-<p>common_param_updates (dict): A dict specifying any user-specified updates to common_params</p>
-</dd>
-<dt>Returns:</dt><dd><p>Workflow</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.utils.utils.load_class">
-<code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">load_class</code><span class="sig-paren">(</span><em class="sig-param">modulepath</em>, <em class="sig-param">classname</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.load_class" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load and return the class from the given module.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>modulepath (str): dotted path to the module. eg: “pymatgen.io.vasp.sets”
-classname (str): name of the class to be loaded.</p>
-</dd>
-<dt>Returns:</dt><dd><p>class</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.utils.utils.recursive_get_result">
-<code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">recursive_get_result</code><span class="sig-paren">(</span><em class="sig-param">d</em>, <em class="sig-param">result</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.recursive_get_result" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function that gets designated keys or values of d
-(i. e. those that start with “d&gt;&gt;” or “a&gt;&gt;”) from
-the corresponding entry in result_dict, similar to
-FireWorks recursive_deserialize.</p>
-<p>Note that the plain “&gt;&gt;” notation will get a key from
-the result.as_dict() object and may use MongoDB
-dot notation, while “a&gt;&gt;” will get an attribute
-of the object.</p>
-<p>Examples:</p>
-<dl class="simple">
-<dt>Getting a dict key from a VaspRun instance:</dt><dd><p>recursive_get_result({“stress”:”&gt;&gt;output.ionic_steps.-1.stress”}, vasprun)
-–&gt; {“stress”:[[0.2, 0, 0], [0, 0.3, 0], [0, 0, 0.3]]}</p>
-</dd>
-<dt>Getting an <strong>attribute</strong> from a vasprun:</dt><dd><p>recursive_get_result({“epsilon”:”a&gt;&gt;epsilon_static”, vasprun}
-–&gt; {“epsilon”:-3.4}</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="atomate.utils.utils.recursive_update">
-<code class="sig-prename descclassname">atomate.utils.utils.</code><code class="sig-name descname">recursive_update</code><span class="sig-paren">(</span><em class="sig-param">d</em>, <em class="sig-param">u</em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.utils.utils.recursive_update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Recursive updates d with values from u
-Args:</p>
-<blockquote>
-<div><p>d (dict): dict to update
-u (dict): updates to propogate</p>
-</div></blockquote>
-</dd></dl>
-
+<div class="section" id="atomate-utils-utils-module">
+<h2>atomate.utils.utils module<a class="headerlink" href="#atomate-utils-utils-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-atomate.utils">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-atomate.utils" title="Permalink to this headline">¶</a></h2>
@@ -462,6 +167,7 @@ u (dict): updates to propogate</p>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -472,10 +178,10 @@ u (dict): updates to propogate</p>
 <li><a class="reference internal" href="#">atomate.utils package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-atomate.utils.database">atomate.utils.database module</a></li>
+<li><a class="reference internal" href="#atomate-utils-database-module">atomate.utils.database module</a></li>
 <li><a class="reference internal" href="#module-atomate.utils.fileio">atomate.utils.fileio module</a></li>
-<li><a class="reference internal" href="#module-atomate.utils.testing">atomate.utils.testing module</a></li>
-<li><a class="reference internal" href="#module-atomate.utils.utils">atomate.utils.utils module</a></li>
+<li><a class="reference internal" href="#atomate-utils-testing-module">atomate.utils.testing module</a></li>
+<li><a class="reference internal" href="#atomate-utils-utils-module">atomate.utils.utils module</a></li>
 <li><a class="reference internal" href="#module-atomate.utils">Module contents</a></li>
 </ul>
 </li>
@@ -497,7 +203,7 @@ u (dict): updates to propogate</p>
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -511,13 +217,14 @@ u (dict): updates to propogate</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.5 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.6 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">atomate.utils package</a></li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
 
   </body>

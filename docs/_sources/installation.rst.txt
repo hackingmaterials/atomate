@@ -235,6 +235,8 @@ If you want to test whether your ``db.json`` is set up correctly (**and you do n
     x.reset()
     print("SUCCESS")
 
+If you would like to store data beyond the 16 Mb limit of MongoDB please read:
+:ref:`advanced_storage`.
 
 my_fworker.yaml
 ---------------

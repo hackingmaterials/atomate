@@ -2,6 +2,8 @@
 Contributors
 ============
 
+.. caution:: Starting v0.9.6 onwards, the contributors list is no longer maintained. Please check the Github commit log for a record of changes.
+
 atomate development is led by the Hacking Materials research group led by Anubhav Jain at Lawrence Berkeley National Lab, using primarily research funding from U.S. Department of Energy Early Career program; additional support and funding is from the U.S. Department of Energy Materials Project program.
 
 Contributions are provided by:

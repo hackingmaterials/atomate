@@ -12,7 +12,6 @@ atomate.lammps.fireworks.core module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

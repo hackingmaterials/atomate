@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomate.vasp.analysis
    atomate.vasp.builders
@@ -71,7 +72,6 @@ atomate.vasp.vasp\_powerups module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------
