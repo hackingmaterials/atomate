@@ -2,7 +2,7 @@ import math
 from collections import defaultdict
 
 from fireworks import FiretaskBase, explicit_serialize, FWAction, Firework, Workflow
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher
 
 from atomate.utils.utils import env_chk, get_logger

@@ -1,5 +1,5 @@
 from fireworks import Workflow
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher
 
 from atomate.vasp.config import DB_FILE
@@ -89,7 +89,8 @@ def get_ion_insertion_wf(
     )
 
     wf_name = "{}-{}".format(
-        structure.composition.reduced_formula if structure else "unknown", "insertion",
+        structure.composition.reduced_formula if structure else "unknown",
+        "insertion",
     )
 
     # Configure the analysis FW
