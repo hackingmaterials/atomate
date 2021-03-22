@@ -17,13 +17,14 @@ from atomate.vasp.firetasks.run_calc import (
     RunNoVasp,
 )
 from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyPotcar, ModifyKpoints
-from fireworks import Workflow, FileWriteTask
+from fireworks import FileWriteTask
 from fireworks.core.firework import Tracker
 from fireworks.utilities.fw_utilities import get_slug
-from pymatgen.core import Structure
 
 __author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
+
+POWERUP_NAMES = []
 
 
 def add_priority(original_wf, root_priority, child_priority=None):
@@ -129,7 +130,8 @@ def use_no_vasp(original_wf, ref_dirs):
                         )
                     if "VaspToDb" in str(t):
                         original_wf.fws[idx_fw].tasks[idx_t] = JsonToDb(
-                            db_file=t.get("db_file", None), calc_dir=ref_dirs[job_type],
+                            db_file=t.get("db_file", None),
+                            calc_dir=ref_dirs[job_type],
                         )
     return original_wf
 
@@ -194,7 +196,8 @@ def use_fake_vasp(
 
                     if "RunVaspCustodian" in t_str and t_job_type == "neb":
                         original_wf.fws[idx_fw].tasks[idx_t] = RunNEBVaspFake(
-                            ref_dir=ref_dirs[job_type], params_to_check=params_to_check,
+                            ref_dir=ref_dirs[job_type],
+                            params_to_check=params_to_check,
                         )
 
     return original_wf
@@ -375,7 +378,7 @@ def modify_to_soc(
             structure = (
                 original_wf.fws[fw_id].tasks[task_id]["vasp_input_set"].structure
             )
-        except:
+        except Exception:
             raise ValueError(
                 "modify_to_soc powerup requires the structure in vasp_input_set"
             )
@@ -939,3 +942,35 @@ def use_fake_lobster(original_wf, ref_dirs, params_to_check=None):
                         )
 
     return original_wf
+
+
+local_names = dict(locals())  # locals() changes as the program runs, make a copy here
+
+for k, v in local_names.items():
+    if (
+        hasattr(v, "__module__")
+        and v.__module__ == "atomate.vasp.powerups"
+        and k != "power_up_by_kwargs"
+    ):
+        POWERUP_NAMES.append(k)
+
+local_names = {k: v for k, v in local_names.items() if k in POWERUP_NAMES}
+
+
+def powerup_by_kwargs(wf, **kwargs):
+    """
+    apply powerups in the form using a kwargs dictionary of the form:
+    {
+        powerup_function_name1 : {parameter1 : value1, parameter2: value2},
+        powerup_function_name2 : {parameter1 : value1, parameter2: value2},
+    }
+
+    As an example:
+        power_up_by_kwargs( "add_additional_fields_to_taskdocs" : {
+                                                                "update_dict" : {"foo" : "bar"}
+                                                                }
+        )
+    """
+    for k, v in kwargs.items():
+        wf = local_names[k](wf, **v)
+    return wf

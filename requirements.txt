@@ -14,3 +14,4 @@ networkx==2.5
 pydash==4.9.3
 pyyaml==5.4.1
 maggma==0.26.0
+scikit-image==0.18.1
