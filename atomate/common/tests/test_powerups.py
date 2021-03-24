@@ -1,6 +1,11 @@
 import unittest
 
-from atomate.common.powerups import set_queue_adapter
+from atomate.vasp.workflows.base.core import get_wf
+
+from pymatgen.io.vasp.sets import MPRelaxSet
+from pymatgen.util.testing import PymatgenTest
+
+from atomate.common.powerups import set_queue_adapter, add_priority, add_tags
 from fireworks import Firework, ScriptTask, Workflow
 
 __author__ = "Janine George, Guido Petretto"
@@ -12,6 +17,65 @@ class ModifiedScriptTask(ScriptTask):
 
 
 class TestPowerups(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        struct_si = PymatgenTest.get_structure("Si")
+        vis = MPRelaxSet(struct_si, force_gamma=True)
+        cls.bs_wf = get_wf(
+            struct_si,
+            "bandstructure.yaml",
+            vis=vis,
+            common_params={"vasp_cmd": "test_VASP"},
+        )
+        cls.bsboltz_wf = get_wf(struct_si, "bandstructure_boltztrap.yaml", vis=vis)
+
+    def test_add_priority(self):
+        fw1 = Firework([ScriptTask(script=None)], fw_id=-1)
+        fw2 = Firework([ScriptTask(script=None)], parents=[fw1], fw_id=-2)
+        fw3 = Firework([ScriptTask(script=None)], parents=[fw1], fw_id=-3)
+
+        wf = Workflow([fw1, fw2, fw3])
+
+        wf = add_priority(wf, 4, 8)
+        self.assertEqual(wf.id_fw[-1].spec["_priority"], 4)
+        self.assertEqual(wf.id_fw[-2].spec["_priority"], 8)
+        self.assertEqual(wf.id_fw[-3].spec["_priority"], 8)
+
+    def test_add_tags(self):
+        my_wf = copy_wf(self.bs_wf)
+        my_wf.metadata = {"tags": ["a"]}
+        my_wf = add_tags(my_wf, ["b", "c"])
+
+        found = 0
+
+        self.assertEqual(my_wf.metadata["tags"], ["a", "b", "c"])
+        for fw in my_wf.fws:
+            self.assertEqual(fw.spec["tags"], ["b", "c"])
+            for t in fw.tasks:
+                if "VaspToDb" in str(t):
+                    self.assertEqual(t["additional_fields"]["tags"], ["b", "c"])
+                    found += 1
+        self.assertEqual(found, 4)
+
+        my_wf = copy_wf(self.bsboltz_wf)
+        my_wf = add_tags(my_wf, ["foo", "bar"])
+
+        v_found = 0
+        b_found = 0
+
+        self.assertEqual(my_wf.metadata["tags"], ["foo", "bar"])
+        for fw in my_wf.fws:
+            self.assertEqual(fw.spec["tags"], ["foo", "bar"])
+            for t in fw.tasks:
+                if "BoltztrapToDb" in str(t):
+                    self.assertEqual(t["additional_fields"]["tags"], ["foo", "bar"])
+                    b_found += 1
+                if "VaspToDb" in str(t):
+                    self.assertEqual(t["additional_fields"]["tags"], ["foo", "bar"])
+                    v_found += 1
+        self.assertEqual(b_found, 1)
+        self.assertEqual(v_found, 4)
+
     def test_set_queue_adapter(self):
         # test fw_name_constraint
         fw1 = Firework([ScriptTask(script=None)], fw_id=-1, name="Firsttask")
@@ -53,6 +117,10 @@ class TestPowerups(unittest.TestCase):
             wf.id_fw[-2].spec, {"_queueadapter": {"test": {"test": 1}}}
         )
         self.assertDictEqual(wf.id_fw[-3].spec, {})
+
+
+def copy_wf(wf):
+    return Workflow.from_dict(wf.to_dict())
 
 
 if __name__ == "__main__":

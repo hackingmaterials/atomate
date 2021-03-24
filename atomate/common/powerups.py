@@ -10,7 +10,9 @@ from fireworks.utilities.fw_utilities import get_slug
 
 
 __author__ = "Janine George, Guido Petretto, Ryan Kingsbury"
-__email__ = "janine.george@uclouvain.be, guido.petretto@uclouvain.be, RKingsbury@lbl.gov"
+__email__ = (
+    "janine.george@uclouvain.be, guido.petretto@uclouvain.be, RKingsbury@lbl.gov"
+)
 
 
 def add_priority(original_wf, root_priority, child_priority=None):

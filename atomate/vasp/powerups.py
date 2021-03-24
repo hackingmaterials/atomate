@@ -1,9 +1,13 @@
 from atomate.common.firetasks.glue_tasks import DeleteFiles
 from atomate.common.powerups import add_priority as common_add_priority
 from atomate.common.powerups import preserve_fworker as common_preserve_fworker
-from atomate.common.powerups import set_execution_options as common_set_execution_options
+from atomate.common.powerups import (
+    set_execution_options as common_set_execution_options,
+)
 from atomate.common.powerups import add_namefile as common_add_namefile
-from atomate.common.powerups import add_additional_fields_to_taskdocs as common_add_additional_fields_to_taskdocs
+from atomate.common.powerups import (
+    add_additional_fields_to_taskdocs as common_add_additional_fields_to_taskdocs,
+)
 from atomate.common.powerups import add_tags as common_add_tags
 from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
 from atomate.vasp.config import (
@@ -34,7 +38,9 @@ POWERUP_NAMES = []
 
 @deprecated(replacement=common_add_priority)
 def add_priority(original_wf, root_priority, child_priority=None):
-    return common_add_priority(original_wf, root_priority, child_priority=child_priority)
+    return common_add_priority(
+        original_wf, root_priority, child_priority=child_priority
+    )
 
 
 def remove_custodian(original_wf, fw_name_constraint=None):
@@ -470,12 +476,13 @@ def set_execution_options(
     fw_name_constraint=None,
     task_name_constraint=None,
 ):
-    return common_set_execution_options(original_wf,
-                                        fworker_name=fworker_name,
-                                        category=category,
-                                        fw_name_constraint=fw_name_constraint,
-                                        task_name_constraint=task_name_constraint,
-                                        )
+    return common_set_execution_options(
+        original_wf,
+        fworker_name=fworker_name,
+        category=category,
+        fw_name_constraint=fw_name_constraint,
+        task_name_constraint=task_name_constraint,
+    )
 
 
 @deprecated(replacement=common_preserve_fworker)
@@ -660,9 +667,9 @@ def clean_up_files(
 def add_additional_fields_to_taskdocs(
     original_wf, update_dict=None, task_name_constraint="VaspToDb"
 ):
-    return common_add_additional_fields_to_taskdocs(original_wf,
-                                                    update_dict=update_dict,
-                                                    task_name_constraint=task_name_constraint)
+    return common_add_additional_fields_to_taskdocs(
+        original_wf, update_dict=update_dict, task_name_constraint=task_name_constraint
+    )
 
 
 @deprecated(replacement=common_add_tags)

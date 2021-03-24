@@ -40,9 +40,7 @@ class TestVaspPowerups(unittest.TestCase):
             vis=vis,
             common_params={"vasp_cmd": "test_VASP"},
         )
-        cls.bsboltz_wf = get_wf(
-            struct_si, "bandstructure_boltztrap.yaml", vis=vis
-        )
+        cls.bsboltz_wf = get_wf(struct_si, "bandstructure_boltztrap.yaml", vis=vis)
 
     def test_add_priority(self):
         fw1 = Firework([ScriptTask(script=None)], fw_id=-1)
@@ -75,9 +73,7 @@ class TestVaspPowerups(unittest.TestCase):
         for fw in my_wf_double_relax.fws:
             if "structure optimization" in fw.name:
                 self.assertTrue("RunVaspCustodian" in fw.tasks[1]._fw_name)
-                self.assertEqual(
-                    fw.tasks[1]["job_type"], "double_relaxation_run"
-                )
+                self.assertEqual(fw.tasks[1]["job_type"], "double_relaxation_run")
             else:
                 self.assertTrue("RunVaspDirect" in fw.tasks[2]._fw_name)
                 self.assertFalse("job_type" in fw.tasks[2])
@@ -100,15 +96,14 @@ class TestVaspPowerups(unittest.TestCase):
     def test_modify_kpoints(self):
         my_wf = add_modify_kpoints(
             copy_wf(self.bs_wf),
-            {"kpoints_update": {"kpts": [[3,4,5]]}},
+            {"kpoints_update": {"kpts": [[3, 4, 5]]}},
             fw_name_constraint="structure optimization",
         )
 
         for fw in my_wf.fws:
             if "structure optimization" in fw.name:
                 self.assertTrue("ModifyKpoints" in fw.tasks[1]._fw_name)
-                self.assertEqual(fw.tasks[1]["kpoints_update"],
-                                 {"kpts": [[3,4,5]]})
+                self.assertEqual(fw.tasks[1]["kpoints_update"], {"kpts": [[3, 4, 5]]})
             else:
                 for t in fw.tasks:
                     self.assertFalse("ModifyKpoints" in t["_fw_name"])
@@ -123,9 +118,7 @@ class TestVaspPowerups(unittest.TestCase):
         for fw in my_wf.fws:
             if "structure optimization" in fw.name:
                 self.assertTrue("ModifyPotcar" in fw.tasks[1]._fw_name)
-                self.assertEqual(
-                    fw.tasks[1]["potcar_symbols"], {"Si": "Si_alt"}
-                )
+                self.assertEqual(fw.tasks[1]["potcar_symbols"], {"Si": "Si_alt"})
             else:
                 for t in fw.tasks:
                     self.assertFalse("ModifyPotcar" in t["_fw_name"])
@@ -176,9 +169,7 @@ class TestVaspPowerups(unittest.TestCase):
             self.assertEqual(fw.spec["tags"], ["b", "c"])
             for t in fw.tasks:
                 if "VaspToDb" in str(t):
-                    self.assertEqual(
-                        t["additional_fields"]["tags"], ["b", "c"]
-                    )
+                    self.assertEqual(t["additional_fields"]["tags"], ["b", "c"])
                     found += 1
         self.assertEqual(found, 4)
 
@@ -193,14 +184,10 @@ class TestVaspPowerups(unittest.TestCase):
             self.assertEqual(fw.spec["tags"], ["foo", "bar"])
             for t in fw.tasks:
                 if "BoltztrapToDb" in str(t):
-                    self.assertEqual(
-                        t["additional_fields"]["tags"], ["foo", "bar"]
-                    )
+                    self.assertEqual(t["additional_fields"]["tags"], ["foo", "bar"])
                     b_found += 1
                 if "VaspToDb" in str(t):
-                    self.assertEqual(
-                        t["additional_fields"]["tags"], ["foo", "bar"]
-                    )
+                    self.assertEqual(t["additional_fields"]["tags"], ["foo", "bar"])
                     v_found += 1
         self.assertEqual(b_found, 1)
         self.assertEqual(v_found, 4)
@@ -244,9 +231,7 @@ class TestVaspPowerups(unittest.TestCase):
             clean_idx = fw_names.index(
                 "{{atomate.common.firetasks.glue_tasks.DeleteFiles}}"
             )
-            self.assertEqual(
-                list(fw.tasks[clean_idx].get("files")), ["WAVECAR*"]
-            )
+            self.assertEqual(list(fw.tasks[clean_idx].get("files")), ["WAVECAR*"])
 
     def test_use_potcar_spec(self):
         wf = copy_wf(self.bs_wf)
