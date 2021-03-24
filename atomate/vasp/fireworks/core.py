@@ -31,7 +31,7 @@ from atomate.common.firetasks.glue_tasks import (
     PassCalcLocs,
     CopyFiles,
     DeleteFiles,
-    GzipDir
+    GzipDir,
 )
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
@@ -99,10 +99,15 @@ class OptimizeFW(Firework):
             structure, force_gamma=force_gamma, **override_default_vasp_params
         )
 
-        if vasp_input_set.incar["ISIF"] in (0, 1, 2, 7) and job_type == "double_relaxation":
+        if (
+            vasp_input_set.incar["ISIF"] in (0, 1, 2, 7)
+            and job_type == "double_relaxation"
+        ):
             warnings.warn(
                 "A double relaxation run might not be appropriate with ISIF {}".format(
-                    vasp_input_set.incar["ISIF"]))
+                    vasp_input_set.incar["ISIF"]
+                )
+            )
 
         t = []
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
@@ -195,37 +200,51 @@ class ScanOptimizeFW(Firework):
         if prev_calc_dir:
             has_previous_calc = True
             # Copy the CHGCAR from previous calc directory (usually PBE)
-            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir,
-                                     contcar_to_poscar=True,
-                                     additional_files=["CHGCAR"]
-                                     )
-                     )
+            t.append(
+                CopyVaspOutputs(
+                    calc_dir=prev_calc_dir,
+                    contcar_to_poscar=True,
+                    additional_files=["CHGCAR"],
+                )
+            )
         elif parents:
             if prev_calc_loc:
                 has_previous_calc = True
                 # Copy the CHGCAR from previous calc location (usually PBE)
-                t.append(CopyVaspOutputs(calc_loc=prev_calc_loc,
-                                         contcar_to_poscar=True, 
-                                         additional_files=["CHGCAR"]
-                                         )
-                         )
+                t.append(
+                    CopyVaspOutputs(
+                        calc_loc=prev_calc_loc,
+                        contcar_to_poscar=True,
+                        additional_files=["CHGCAR"],
+                    )
+                )
             else:
-                raise UserWarning("You specified parent Firework but did not provide its location. Set "
-                                  "prev_calc_dir or prev_calc_loc and try again.")
+                raise UserWarning(
+                    "You specified parent Firework but did not provide its location. Set "
+                    "prev_calc_dir or prev_calc_loc and try again."
+                )
         elif prev_calc_loc:
-            raise UserWarning("You specified prev_calc_loc but did not provide a parent Firework. Set "
-                              "parents and try again.")
+            raise UserWarning(
+                "You specified prev_calc_loc but did not provide a parent Firework. Set "
+                "parents and try again."
+            )
 
         if has_previous_calc:
             # Update the InputSet with the bandgap from the previous calc
-            t.append(WriteScanRelaxFromPrev(vasp_input_set_params=vasp_input_set_params))
+            t.append(
+                WriteScanRelaxFromPrev(vasp_input_set_params=vasp_input_set_params)
+            )
 
             # Set ICHARG to 1 to utilize the pre-existing CHGCAR
             settings = {"_set": {"ICHARG": 1}}
 
             if vasp_input_set_params.get("vdw"):
                 # Copy the pre-compiled VdW kernel for VASP
-                t.append(CopyFiles(files_to_copy=["vdw_kernel.bindat"], from_dir=vdw_kernel_dir))
+                t.append(
+                    CopyFiles(
+                        files_to_copy=["vdw_kernel.bindat"], from_dir=vdw_kernel_dir
+                    )
+                )
 
                 # Enable vdW for the SCAN step
                 settings["_set"]["LUSE_VDW"] = True
@@ -234,7 +253,7 @@ class ScanOptimizeFW(Firework):
             t.append(ModifyIncar(incar_dictmod=settings))
 
             # use the 'scan' custodian handler group
-            handler_group = 'scan'
+            handler_group = "scan"
 
         elif structure:
             vasp_input_set = vasp_input_set or MPScanRelaxSet(
@@ -244,28 +263,28 @@ class ScanOptimizeFW(Firework):
                 WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
             )
             # Update the INCAR for the PBESol GGA preconditioning step
-            pre_opt_settings = {"_set": {"GGA": "Ps",
-                                         "METAGGA": None,
-                                         "EDIFFG": -0.05
-                                         }}
+            pre_opt_settings = {"_set": {"GGA": "Ps", "METAGGA": None, "EDIFFG": -0.05}}
 
             # Disable vdW for the precondition step
             if vasp_input_set_params.get("vdw"):
-                pre_opt_settings.update({"_unset": {"LUSE_VDW": True,
-                                                    "BPARAM": 15.7}})
+                pre_opt_settings.update({"_unset": {"LUSE_VDW": True, "BPARAM": 15.7}})
 
             t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
 
             # use the 'default' custodian handler group
-            handler_group = 'default'
+            handler_group = "default"
         else:
             raise ValueError("Must specify structure or previous calculation")
 
         # Run VASP
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd,
-                                  auto_npar=">>auto_npar<<",
-                                  handler_group=handler_group,
-                                  gzip_output=False))
+        t.append(
+            RunVaspCustodian(
+                vasp_cmd=vasp_cmd,
+                auto_npar=">>auto_npar<<",
+                handler_group=handler_group,
+                gzip_output=False,
+            )
+        )
         t.append(PassCalcLocs(name=name))
         # Parse
         t.append(VaspToDb(db_file=db_file, **vasptodb_kwargs))
@@ -290,6 +309,7 @@ class StaticFW(Firework):
         db_file=DB_FILE,
         vasptodb_kwargs=None,
         parents=None,
+        spec_structure_key=None,
         **kwargs
     ):
         """
@@ -325,7 +345,18 @@ class StaticFW(Firework):
             structure.composition.reduced_formula if structure else "unknown", name
         )
 
-        if prev_calc_dir:
+        if spec_structure_key is not None:
+            vasp_input_set = vasp_input_set or MPStaticSet(
+                structure, **vasp_input_set_params
+            )
+            t.append(
+                WriteVaspFromIOSet(
+                    structure=structure,
+                    vasp_input_set=vasp_input_set,
+                    spec_structure_key="prev_calc_structure",
+                )
+            )
+        elif prev_calc_dir:
             t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
         elif parents:

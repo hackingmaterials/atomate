@@ -8,9 +8,10 @@ tqdm==4.59.0
 pybtex==0.24.0
 ruamel.yaml==0.16.13
 pandas==1.2.3
-pymatgen==2022.0.4
+pymatgen==2022.0.5
 custodian==2021.2.8
 networkx==2.5
 pydash==4.9.3
 pyyaml==5.4.1
 maggma==0.26.0
+scikit-image==0.18.1
