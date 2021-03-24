@@ -1,4 +1,14 @@
 from atomate.common.firetasks.glue_tasks import DeleteFiles
+from atomate.common.powerups import add_priority as common_add_priority
+from atomate.common.powerups import preserve_fworker as common_preserve_fworker
+from atomate.common.powerups import (
+    set_execution_options as common_set_execution_options,
+)
+from atomate.common.powerups import add_namefile as common_add_namefile
+from atomate.common.powerups import (
+    add_additional_fields_to_taskdocs as common_add_additional_fields_to_taskdocs,
+)
+from atomate.common.powerups import add_tags as common_add_tags
 from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
 from atomate.vasp.config import (
     ADD_NAMEFILE,
@@ -17,9 +27,8 @@ from atomate.vasp.firetasks.run_calc import (
     RunNoVasp,
 )
 from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyPotcar, ModifyKpoints
-from fireworks import FileWriteTask
+from monty.dev import deprecated
 from fireworks.core.firework import Tracker
-from fireworks.utilities.fw_utilities import get_slug
 
 __author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
@@ -27,27 +36,11 @@ __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
 POWERUP_NAMES = []
 
 
+@deprecated(replacement=common_add_priority)
 def add_priority(original_wf, root_priority, child_priority=None):
-    """
-    Adds priority to a workflow
-
-    Args:
-        original_wf (Workflow): original WF
-        root_priority (int): priority of first (root) job(s)
-        child_priority(int): priority of all child jobs. Defaults to
-            root_priority
-
-    Returns:
-       Workflow: priority-decorated workflow
-    """
-    child_priority = child_priority or root_priority
-    root_fw_ids = original_wf.root_fw_ids
-    for fw in original_wf.fws:
-        if fw.fw_id in root_fw_ids:
-            fw.spec["_priority"] = root_priority
-        else:
-            fw.spec["_priority"] = child_priority
-    return original_wf
+    return common_add_priority(
+        original_wf, root_priority, child_priority=child_priority
+    )
 
 
 def remove_custodian(original_wf, fw_name_constraint=None):
@@ -203,27 +196,9 @@ def use_fake_vasp(
     return original_wf
 
 
+@deprecated(replacement=common_add_namefile)
 def add_namefile(original_wf, use_slug=True):
-    """
-    Every FireWork begins by writing an empty file with the name
-    "FW--<fw.name>". This makes it easy to figure out what jobs are in what
-    launcher directories, e.g. "ls -l launch*/FW--*" from within a "block" dir.
-
-    Args:
-        original_wf (Workflow)
-        use_slug (bool): whether to replace whitespace-type chars with a slug
-
-    Returns:
-       Workflow
-    """
-    for idx, fw in enumerate(original_wf.fws):
-        fname = "FW--{}".format(fw.name)
-        if use_slug:
-            fname = get_slug(fname)
-
-        t = FileWriteTask(files_to_write=[{"filename": fname, "contents": ""}])
-        original_wf.fws[idx].tasks.insert(0, t)
-    return original_wf
+    return common_add_namefile(original_wf, use_slug=use_slug)
 
 
 def add_trackers(original_wf, tracked_files=None, nlines=25):
@@ -493,6 +468,7 @@ def set_queue_options(
     return original_wf
 
 
+@deprecated(replacement=common_set_execution_options)
 def set_execution_options(
     original_wf,
     fworker_name=None,
@@ -500,57 +476,18 @@ def set_execution_options(
     fw_name_constraint=None,
     task_name_constraint=None,
 ):
-    """
-    set _fworker spec of Fireworker(s) of a Workflow. It can be used to specify
-    a queue; e.g. run large-memory jobs on a separate queue.
-
-    Args:
-        original_wf (Workflow):
-        fworker_name (str): user-defined tag to be added under fw.spec._fworker
-            e.g. "large memory", "big", etc
-        category (str): category of FWorker that should pul job
-        fw_name_constraint (str): name of the Fireworks to be tagged (all if
-            None is passed)
-        task_name_constraint (str): name of the Firetasks to be tagged (e.g.
-            None or 'RunVasp')
-
-    Returns:
-        Workflow: modified workflow with specified Fireworkers tagged
-    """
-    idx_list = get_fws_and_tasks(
+    return common_set_execution_options(
         original_wf,
+        fworker_name=fworker_name,
+        category=category,
         fw_name_constraint=fw_name_constraint,
         task_name_constraint=task_name_constraint,
     )
 
-    for idx_fw, idx_t in idx_list:
-        if fworker_name:
-            original_wf.fws[idx_fw].spec["_fworker"] = fworker_name
-        if category:
-            original_wf.fws[idx_fw].spec["_category"] = category
-    return original_wf
 
-
+@deprecated(replacement=common_preserve_fworker)
 def preserve_fworker(original_wf, fw_name_constraint=None):
-    """
-    set _preserve_fworker spec of Fireworker(s) of a Workflow. Can be used to
-    pin a workflow to the first fworker it is run with. Very useful when running
-    on multiple machines that can't share files. fw_name_constraint can be used
-    to only preserve fworker after a certain point where file passing becomes
-    important
-
-    Args:
-        original_wf (Workflow):
-        fw_name_constraint (str): name of the Fireworks to be tagged (all if
-        None is passed)
-
-    Returns:
-        Workflow: modified workflow with specified Fireworkers tagged
-    """
-    idx_list = get_fws_and_tasks(original_wf, fw_name_constraint=fw_name_constraint)
-    for idx_fw, idx_t in idx_list:
-        original_wf.fws[idx_fw].spec["_preserve_fworker"] = True
-    return original_wf
+    return common_preserve_fworker(original_wf, fw_name_constraint=fw_name_constraint)
 
 
 def add_wf_metadata(original_wf, structure):
@@ -726,68 +663,18 @@ def clean_up_files(
     return original_wf
 
 
+@deprecated(replacement=common_add_additional_fields_to_taskdocs)
 def add_additional_fields_to_taskdocs(
     original_wf, update_dict=None, task_name_constraint="VaspToDb"
 ):
-    """
-    For all VaspToDbTasks in a given workflow, add information  to
-    "additional_fields" to be placed in the task doc.
-
-    Args:
-        original_wf (Workflow)
-        update_dict (Dict): dictionary to add additional_fields
-        task_name_constraint (str): name of the Firetasks to be modified.
-
-    Returns:
-       Workflow
-    """
-    idx_list = get_fws_and_tasks(original_wf, task_name_constraint=task_name_constraint)
-    for idx_fw, idx_t in idx_list:
-        original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"].update(update_dict)
-    return original_wf
+    return common_add_additional_fields_to_taskdocs(
+        original_wf, update_dict=update_dict, task_name_constraint=task_name_constraint
+    )
 
 
+@deprecated(replacement=common_add_tags)
 def add_tags(original_wf, tags_list):
-    """
-    Adds tags to all Fireworks in the Workflow, WF metadata, as well as
-    additional_fields for the VaspDrone to track them later (e.g. all fireworks
-    and vasp tasks related to a research project)
-
-    Args:
-        original_wf (Workflow)
-        tags_list: list of tags parameters (list of strings)
-
-    Returns:
-       Workflow
-    """
-
-    # WF metadata
-    if "tags" in original_wf.metadata:
-        original_wf.metadata["tags"].extend(tags_list)
-    else:
-        original_wf.metadata["tags"] = tags_list
-
-    # FW metadata
-    for idx_fw in range(len(original_wf.fws)):
-        if "tags" in original_wf.fws[idx_fw].spec:
-            original_wf.fws[idx_fw].spec["tags"].extend(tags_list)
-        else:
-            original_wf.fws[idx_fw].spec["tags"] = tags_list
-
-    # DB insertion tasks
-    for constraint in ["VaspToDb", "BoltztrapToDb"]:
-        idxs = get_fws_and_tasks(original_wf, task_name_constraint=constraint)
-        for idx_fw, idx_t in idxs:
-            if "tags" in original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"]:
-                original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
-                    "tags"
-                ].extend(tags_list)
-            else:
-                original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
-                    "tags"
-                ] = tags_list
-
-    return original_wf
+    return common_add_tags(original_wf, tags_list)
 
 
 def add_common_powerups(wf, c=None):
@@ -805,7 +692,7 @@ def add_common_powerups(wf, c=None):
     c = c or {}
 
     if c.get("ADD_NAMEFILE", ADD_NAMEFILE):
-        wf = add_namefile(wf)
+        wf = common_add_namefile(wf)
 
     if c.get("SCRATCH_DIR", SCRATCH_DIR):
         wf = use_scratch_dir(wf, c.get("SCRATCH_DIR", SCRATCH_DIR))
