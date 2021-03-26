@@ -1,4 +1,4 @@
-from fireworks import Firework, Workflow
+from fireworks import Workflow
 from copy import deepcopy
 from atomate.vasp.config import VASP_CMD, DB_FILE
 from atomate.vasp.powerups import (
@@ -18,7 +18,7 @@ from custodian.vasp.handlers import (
 )
 from uuid import uuid4
 
-from atomate.vasp.fireworks.approx_neb import HostFW, ImageFW, EndPointFW
+from atomate.vasp.fireworks.approx_neb import HostFW, EndPointFW
 from atomate.vasp.fireworks.approx_neb_dynamic import EvaluatePathFW
 
 
@@ -44,7 +44,10 @@ def approx_neb_wf(
     Workflow for running the "ApproxNEB" algorithm to estimate
     energetic barriers for a working ion in a structure (host)
     between end point positions specified by insert_coords and
-    insert_coords_combinations.
+    insert_coords_combinations. Note this workflow is only
+    intended for the dilute lattice limit (where one working
+    ion is in a large supercell structure of the host and
+    little volume change upon insertion is expected).
     By default workflow sets appropriate VASP input parameters
     and Custodian handler groups.
 
@@ -64,8 +67,8 @@ def approx_neb_wf(
     working_ion: specie of site to insert in structure
         (e.g. "Li").
     insert_coords (1x3 array or list of 1x3 arrays):
-        coordinates of site(s) to insert in structure
-        (e.g. [[0,0,0], [0,0.25,0], [0.5,0,0]]).
+        fractional coordinates of site(s) to insert in
+        structure (e.g. [[0,0,0], [0,0.25,0], [0.5,0,0]]).
     insert_coords_combinations (list of strings): list of
         strings corresponding to the list index of
         insert_coords to specify which combination
@@ -127,7 +130,7 @@ def approx_neb_wf(
             "NELMIN": 4,
         }
     }
-    # TODO: Add LASPH: True
+
     handler_group = handler_group or [
         VaspErrorHandler(),
         MeshSymmetryErrorHandler(),

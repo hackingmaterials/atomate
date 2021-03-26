@@ -10,8 +10,6 @@ from atomate.vasp.firetasks.approx_neb_tasks import (
     InsertSites,
     WriteVaspInput,
     EndPointToDb,
-    PathfinderToDb,
-    AddSelectiveDynamics,
     ImageToDb,
 )
 from atomate.vasp.config import VASP_CMD, DB_FILE
@@ -142,8 +140,8 @@ class EndPointFW(Firework):
             insert_specie (str): specie of site to insert in
                 structure (e.g. "Li").
             insert_coords (1x3 array or list of 1x3 arrays):
-                coordinates of site(s) to insert in structure
-                (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]]).
+                fractional coordinates of site(s) to insert in
+                structure (e.g. [0,0,0] or [[0,0,0],[0,0.25,0]]).
             end_points_index (int): index used in end_points
                 field of approx_neb collection for workflow
                 record keeping.

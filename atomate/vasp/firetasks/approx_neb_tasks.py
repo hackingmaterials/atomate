@@ -1,5 +1,4 @@
 from pymatgen import Element, Structure
-from pymatgen.io.vasp.outputs import Chgcar
 from pymatgen.analysis.path_finder import NEBPathfinder, ChgcarPotential
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from atomate.utils.utils import env_chk
