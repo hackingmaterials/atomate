@@ -514,11 +514,13 @@ class PathfinderToDb(FiretaskBase):
             end_struct,
             relax_sites=inserted_site_indexes,
             v=host_v,
-            n_images=n_images - 1,
+            n_images=n_images + 1,
         )
         # note NEBPathfinder currently returns n_images+1 images (rather than n_images)
+        # and the first and last images generated are very similar to the end points
+        # provided so they are discarded
         pathfinder_output = {
-            "images": [structure.as_dict() for structure in neb_pf.images],
+            "images": [structure.as_dict() for structure in neb_pf.images[1:-1]],
             "relax_site_indexes": inserted_site_indexes,
         }
 
