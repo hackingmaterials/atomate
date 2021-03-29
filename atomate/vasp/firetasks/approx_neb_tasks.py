@@ -73,6 +73,7 @@ class HostToDb(FiretaskBase):
             "wf_uuid": wf_uuid,
             "host": {
                 "dir_name": host_tasks_doc["dir_name"],
+                "chemsys": host_tasks_doc["chemsys"],
                 "formula_pretty": host_tasks_doc["formula_pretty"],
                 "input_structure": host_tasks_doc["input"]["structure"],
                 "output": host_tasks_doc["output"],
