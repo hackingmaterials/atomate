@@ -211,7 +211,8 @@ def approx_neb_wf(
     wf = use_custodian(wf, custodian_params={"handler_group": handler_group})
     if isinstance(tags, (list)):
         wf = add_tags(wf, tags)
-    wf = add_additional_fields_to_taskdocs(wf, update_dict=additional_fields)
+    if isinstance(additional_fields,(dict)):
+        wf = add_additional_fields_to_taskdocs(wf, update_dict=additional_fields)
     wf.metadata.update({"approx_neb_wf_uuid": wf_uuid})
     wf.name = name
 
