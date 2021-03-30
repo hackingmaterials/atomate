@@ -81,7 +81,7 @@ class EvaluatePathFW(Firework):
             task docs.
         \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "path: " + mobile_specie + " " + end_points_combo
+        fw_name = "hop: " + mobile_specie + " " + end_points_combo
         fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "evaluate_path"]}
 
         t = []
