@@ -265,7 +265,13 @@ class InsertSites(FiretaskBase):
             + ".input_structure",
         }
 
-        return FWAction(stored_data=stored_data)
+        return FWAction(
+            update_spec={
+                "insert_specie": insert_specie,
+                "inserted_site_indexes": inserted_site_indexes,
+            },
+            stored_data=stored_data,
+        )
 
 
 @explicit_serialize
@@ -389,9 +395,9 @@ class EndPointToDb(FiretaskBase):
 
         # get any workflow inputs provided in fw_spec to store in task_doc
         wf_input_host_structure = fw_spec.get("wf_input_host_structure")
-        for key, value in fw_spec.items():
-            if "wf_input_insert_coords" in key:
-                wf_input_insert_coords = [value]
+        wf_input_insert_coords = self.get("wf_input_insert_coords")
+        wf_insertion_site_specie = fw_spec.get("insert_specie")
+        wf_insertion_site_index = fw_spec.get("inserted_site_indexes")
 
         # get task doc (parts stored in approx_neb collection) and update for record keeping
         task_doc = mmdb.collection.find_one_and_update(
@@ -404,6 +410,8 @@ class EndPointToDb(FiretaskBase):
                 "$set": {
                     "approx_neb._wf_input_host_structure": wf_input_host_structure,
                     "approx_neb._wf_input_insert_coords": wf_input_insert_coords,
+                    "approx_neb._wf_insertion_site_specie": wf_insertion_site_specie,
+                    "approx_neb._wf_insertion_site_index": wf_insertion_site_index,
                 },
             },
         )

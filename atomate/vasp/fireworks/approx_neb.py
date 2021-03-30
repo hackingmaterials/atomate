@@ -173,12 +173,15 @@ class EndPointFW(Firework):
 
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
+        inserted_site_indexes = []
         additional_fields = {
             "approx_neb": {
                 "wf_uuids": [],
                 "_source_wf_uuid": approx_neb_wf_uuid,
                 "_wf_input_host_structure": None,
                 "_wf_input_insert_coords": None,
+                "_wf_insertion_site_specie": None,
+                "_wf_insertion_site_index": None,
                 "calc_type": "end_point",
                 "task_label": "relaxation",
                 "end_points_indexes": [],
@@ -243,6 +246,7 @@ class EndPointFW(Firework):
                 end_points_index=end_points_index,
                 db_file=db_file,
                 approx_neb_wf_uuid=approx_neb_wf_uuid,
+                wf_input_insert_coords=insert_coords,
             )
         )
 
