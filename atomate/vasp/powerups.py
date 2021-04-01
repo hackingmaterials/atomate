@@ -1,3 +1,5 @@
+import sys
+
 from atomate.common.firetasks.glue_tasks import DeleteFiles
 from atomate.common.powerups import add_priority as common_add_priority
 from atomate.common.powerups import preserve_fworker as common_preserve_fworker
@@ -832,7 +834,7 @@ def use_fake_lobster(original_wf, ref_dirs, params_to_check=None):
     return original_wf
 
 
-local_names.update(get_powerup_dict())
+local_names.update(get_powerup_dict(sys.modules[__name__]))
 
 
 def powerup_by_kwargs(wf, **kwargs):
@@ -849,6 +851,7 @@ def powerup_by_kwargs(wf, **kwargs):
                                                                 }
         )
     """
+    print(local_names)
     for k, v in kwargs.items():
         wf = local_names[k](wf, **v)
     return wf

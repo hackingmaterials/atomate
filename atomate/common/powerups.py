@@ -7,7 +7,8 @@ This module defines general powerups that can be used for all workflows
 from atomate.utils.utils import get_fws_and_tasks
 from fireworks import Workflow, FileWriteTask
 from fireworks.utilities.fw_utilities import get_slug
-from inspect import getmembers, isfunction, stack, getmodule
+from inspect import getmembers, isfunction
+import sys
 
 __author__ = "Janine George, Guido Petretto, Ryan Kingsbury"
 __email__ = (
@@ -221,7 +222,7 @@ def set_queue_adapter(
     return original_wf
 
 
-def get_powerup_dict():
+def get_powerup_dict(module):
     """
     Return a complete list of functions in any module where where this `get_powerup_dict` is called.
     Note: this is a quick and dirty way to serialize powerup functions for dynamic workflows.
@@ -229,14 +230,14 @@ def get_powerup_dict():
     Returns:
         A dict of {<function name> : <function object>}
     """
-    frm = stack()[1]
-    mod = getmodule(frm[0])
     return dict(
-        filter(lambda x: x[1].__module__ == mod.__name__, getmembers(mod, isfunction))
+        filter(
+            lambda x: x[1].__module__ == module.__name__, getmembers(module, isfunction)
+        )
     )
 
 
-local_names = get_powerup_dict()
+local_names = get_powerup_dict(sys.modules[__name__])
 
 
 def powerup_by_kwargs(wf, **kwargs):

@@ -21,6 +21,9 @@ ref_dir = module_dir / "../../test_files"
 wf_dir = ref_dir / "insertion_wf"
 
 VASP_CMD = None  # for fake VASP
+DEBUG_MODE = (
+    False  # If true, retains the database and output dirs at the end of the test
+)
 
 
 class TestInsertionWorkflow(AtomateTest):
