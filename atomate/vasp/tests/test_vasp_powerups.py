@@ -18,6 +18,7 @@ from atomate.vasp.powerups import (
     clean_up_files,
     set_queue_options,
     use_potcar_spec,
+    powerup_by_kwargs,
 )
 from atomate.vasp.workflows.base.core import get_wf
 
@@ -243,6 +244,14 @@ class TestVaspPowerups(unittest.TestCase):
         for idx_fw, idx_t in idx_list:
             task = wf.fws[idx_fw].tasks[idx_t]
             self.assertTrue(task["potcar_spec"])
+
+    def test_powerup_by_kwargs(self):
+        my_wf = copy_wf(self.bs_wf)
+        my_wf = powerup_by_kwargs(my_wf, add_trackers={})
+        my_wf = powerup_by_kwargs(my_wf, add_tags={"tags_list": ["foo", "bar"]})
+        for fw in my_wf.fws:
+            self.assertEqual(len(fw.spec["_trackers"]), 2)
+        self.assertEqual(my_wf.metadata["tags"], ["foo", "bar"])
 
 
 def copy_wf(wf):
