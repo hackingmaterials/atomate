@@ -7,7 +7,7 @@ This module defines general powerups that can be used for all workflows
 from atomate.utils.utils import get_fws_and_tasks
 from fireworks import Workflow, FileWriteTask
 from fireworks.utilities.fw_utilities import get_slug
-
+from inspect import getmembers, isfunction, stack, getmodule
 
 __author__ = "Janine George, Guido Petretto, Ryan Kingsbury"
 __email__ = (
@@ -219,3 +219,40 @@ def set_queue_adapter(
         original_wf.fws[idx_fw].spec["_queueadapter"] = q
 
     return original_wf
+
+
+def get_powerup_dict():
+    """
+    Return a complete list of functions in any module where where this `get_powerup_dict` is called.
+    Note: this is a quick and dirty way to serialize powerup functions for dynamic workflows.
+    Proper serialization extending Monty of converting powerups to objects.
+    Returns:
+        A dict of {<function name> : <function object>}
+    """
+    frm = stack()[1]
+    mod = getmodule(frm[0])
+    return dict(
+        filter(lambda x: x[1].__module__ == mod.__name__, getmembers(mod, isfunction))
+    )
+
+
+local_names = get_powerup_dict()
+
+
+def powerup_by_kwargs(wf, **kwargs):
+    """
+    apply powerups in the form using a kwargs dictionary of the form:
+    {
+        powerup_function_name1 : {parameter1 : value1, parameter2: value2},
+        powerup_function_name2 : {parameter1 : value1, parameter2: value2},
+    }
+
+    As an example:
+        power_up_by_kwargs( "add_additional_fields_to_taskdocs" : {
+                                                                "update_dict" : {"foo" : "bar"}
+                                                                }
+        )
+    """
+    for k, v in kwargs.items():
+        wf = local_names[k](wf, **v)
+    return wf

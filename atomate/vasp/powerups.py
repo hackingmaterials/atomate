@@ -9,6 +9,7 @@ from atomate.common.powerups import (
     add_additional_fields_to_taskdocs as common_add_additional_fields_to_taskdocs,
 )
 from atomate.common.powerups import add_tags as common_add_tags
+from atomate.common.powerups import get_powerup_dict
 from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
 from atomate.vasp.config import (
     ADD_NAMEFILE,
@@ -831,17 +832,7 @@ def use_fake_lobster(original_wf, ref_dirs, params_to_check=None):
     return original_wf
 
 
-local_names = dict(locals())  # locals() changes as the program runs, make a copy here
-
-for k, v in local_names.items():
-    if (
-        hasattr(v, "__module__")
-        and v.__module__ == "atomate.vasp.powerups"
-        and k != "power_up_by_kwargs"
-    ):
-        POWERUP_NAMES.append(k)
-
-local_names = {k: v for k, v in local_names.items() if k in POWERUP_NAMES}
+local_names = get_powerup_dict()
 
 
 def powerup_by_kwargs(wf, **kwargs):
