@@ -257,6 +257,7 @@ def powerup_by_kwargs(
         "atomate.qchem.powerups",
         "atomate.common.powerups",
     ]
+
     # user can add new modules containing custom powerups
     if add_powerup_module is not None:
         powerup_modules = add_powerup_module + powerup_modules
