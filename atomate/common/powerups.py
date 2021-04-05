@@ -243,10 +243,12 @@ def powerup_by_kwargs(
     Args:
         original_wf: workflow that will be changed
         add_powerup_module: user_made modules that contain powerups
-        powerup_kwargs: KWARGS used to apply any power:  {"add_modify_incar": {
-                                                            "modify_incar_params": {
-                                                            "incar_update": {"KPAR": 8}}
-                                                            }}
+        powerup_kwargs: KWARGS used to apply any power, EXAMPLE:
+                {"add_modify_incar": {
+                                      "modify_incar_params": {
+                                      "incar_update": {"KPAR": 8}}
+                                        }
+                }
 
     """
     # a list of possible powerups in atomate (most specific first)
