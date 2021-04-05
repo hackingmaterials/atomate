@@ -9,7 +9,7 @@ import numpy as np
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
-from atomate.vasp.powerups import powerup_by_kwargs
+from atomate.common.powerups import powerup_by_kwargs
 from atomate.vasp.workflows.presets.core import wf_raman_spectra
 from atomate.utils.testing import AtomateTest
 
