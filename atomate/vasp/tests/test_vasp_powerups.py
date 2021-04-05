@@ -18,8 +18,8 @@ from atomate.vasp.powerups import (
     clean_up_files,
     set_queue_options,
     use_potcar_spec,
-    powerup_by_kwargs,
 )
+from atomate.common.powerups import powerup_by_kwargs
 from atomate.vasp.workflows.base.core import get_wf
 
 from pymatgen.io.vasp.sets import MPRelaxSet

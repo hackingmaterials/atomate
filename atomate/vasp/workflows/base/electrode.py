@@ -9,7 +9,7 @@ __author__ = "Jimmy Shen"
 __email__ = "jmmshn@lbl.gov"
 
 from atomate.vasp.fireworks import Firework, OptimizeFW, StaticFW, pass_vasp_result
-from atomate.vasp.powerups import powerup_by_kwargs
+from atomate.common.powerups import powerup_by_kwargs
 
 """
 Define workflow related to battery material simulation --- they all have a working ion

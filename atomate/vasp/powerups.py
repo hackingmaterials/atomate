@@ -1,5 +1,3 @@
-import sys
-
 from atomate.common.firetasks.glue_tasks import DeleteFiles
 from atomate.common.powerups import add_priority as common_add_priority
 from atomate.common.powerups import preserve_fworker as common_preserve_fworker
@@ -11,7 +9,6 @@ from atomate.common.powerups import (
     add_additional_fields_to_taskdocs as common_add_additional_fields_to_taskdocs,
 )
 from atomate.common.powerups import add_tags as common_add_tags
-from atomate.common.powerups import get_powerup_dict, local_names
 from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
 from atomate.vasp.config import (
     ADD_NAMEFILE,
@@ -35,8 +32,6 @@ from fireworks.core.firework import Tracker
 
 __author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
-
-POWERUP_NAMES = []
 
 
 @deprecated(replacement=common_add_priority)
@@ -832,26 +827,3 @@ def use_fake_lobster(original_wf, ref_dirs, params_to_check=None):
                         )
 
     return original_wf
-
-
-local_names.update(get_powerup_dict(sys.modules[__name__]))
-
-
-def powerup_by_kwargs(wf, **kwargs):
-    """
-    apply powerups in the form using a kwargs dictionary of the form:
-    {
-        powerup_function_name1 : {parameter1 : value1, parameter2: value2},
-        powerup_function_name2 : {parameter1 : value1, parameter2: value2},
-    }
-
-    As an example:
-        power_up_by_kwargs( "add_additional_fields_to_taskdocs" : {
-                                                                "update_dict" : {"foo" : "bar"}
-                                                                }
-        )
-    """
-    print(local_names)
-    for k, v in kwargs.items():
-        wf = local_names[k](wf, **v)
-    return wf

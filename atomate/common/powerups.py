@@ -3,12 +3,12 @@
 """
 This module defines general powerups that can be used for all workflows
 """
+from importlib import import_module
+from typing import List
 
 from atomate.utils.utils import get_fws_and_tasks
 from fireworks import Workflow, FileWriteTask
 from fireworks.utilities.fw_utilities import get_slug
-from inspect import getmembers, isfunction
-import sys
 
 __author__ = "Janine George, Guido Petretto, Ryan Kingsbury"
 __email__ = (
@@ -222,25 +222,11 @@ def set_queue_adapter(
     return original_wf
 
 
-def get_powerup_dict(module):
-    """
-    Return a complete list of functions in any module where where this `get_powerup_dict` is called.
-    Note: this is a quick and dirty way to serialize powerup functions for dynamic workflows.
-    Proper serialization extending Monty of converting powerups to objects.
-    Returns:
-        A dict of {<function name> : <function object>}
-    """
-    return dict(
-        filter(
-            lambda x: x[1].__module__ == module.__name__, getmembers(module, isfunction)
-        )
-    )
-
-
-local_names = get_powerup_dict(sys.modules[__name__])
-
-
-def powerup_by_kwargs(wf, **kwargs):
+def powerup_by_kwargs(
+    wf,
+    add_powerup_module: List[str] = None,
+    **kwargs,
+):
     """
     apply powerups in the form using a kwargs dictionary of the form:
     {
@@ -254,6 +240,23 @@ def powerup_by_kwargs(wf, **kwargs):
                                                                 }
         )
     """
+    # a list of possible powerups in atomate (most specific first)
+    powerup_modules = [
+        "atomate.vasp.powerups",
+        "atomate.qchem.powerups",
+        "atomate.common.powerups",
+    ]
+    # user can add new modules containing custom powerups
+    if add_powerup_module is not None:
+        powerup_modules = add_powerup_module + powerup_modules
+
     for k, v in kwargs.items():
-        wf = local_names[k](wf, **v)
+        for module_name in powerup_modules:
+            try:
+                module = import_module(module_name)
+                powerup = getattr(module, k)
+                wf = powerup(wf, **v)
+                break
+            except Exception:
+                pass
     return wf

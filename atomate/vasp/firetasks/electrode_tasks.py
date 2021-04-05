@@ -13,7 +13,7 @@ from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
 
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.firetasks import pass_vasp_result
-from atomate.vasp.powerups import powerup_by_kwargs, POWERUP_NAMES
+from atomate.common.powerups import powerup_by_kwargs
 
 __author__ = "Jimmy Shen"
 __email__ = "jmmshn@lbl.gov"
@@ -322,5 +322,4 @@ def get_powerup_wf(wf, fw_spec, additional_fields=None):
         d_pu["add_additional_fields_to_taskdocs"].update(
             {"update_dict": additional_fields}
         )
-    p_kwargs = {k: d_pu[k] for k in POWERUP_NAMES if k in d_pu}
-    return powerup_by_kwargs(wf, **p_kwargs)
+    return powerup_by_kwargs(wf, **d_pu)
