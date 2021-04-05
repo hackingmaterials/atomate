@@ -223,9 +223,9 @@ def set_queue_adapter(
 
 
 def powerup_by_kwargs(
-    wf,
+    original_wf: Workflow,
     add_powerup_module: List[str] = None,
-    **kwargs,
+    **powerup_kwargs,
 ):
     """
     apply powerups in the form using a kwargs dictionary of the form:
@@ -239,6 +239,15 @@ def powerup_by_kwargs(
                                                                 "update_dict" : {"foo" : "bar"}
                                                                 }
         )
+
+    Args:
+        original_wf: workflow that will be changed
+        add_powerup_module: user_made modules that contain powerups
+        powerup_kwargs: KWARGS used to apply any power:  {"add_modify_incar": {
+                                                            "modify_incar_params": {
+                                                            "incar_update": {"KPAR": 8}}
+                                                            }}
+
     """
     # a list of possible powerups in atomate (most specific first)
     powerup_modules = [
@@ -250,13 +259,13 @@ def powerup_by_kwargs(
     if add_powerup_module is not None:
         powerup_modules = add_powerup_module + powerup_modules
 
-    for k, v in kwargs.items():
+    for k, v in powerup_kwargs.items():
         for module_name in powerup_modules:
             try:
                 module = import_module(module_name)
                 powerup = getattr(module, k)
-                wf = powerup(wf, **v)
+                original_wf = powerup(original_wf, **v)
                 break
             except Exception:
                 pass
-    return wf
+    return original_wf
