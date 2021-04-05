@@ -11,7 +11,7 @@ pandas==1.2.3
 pymatgen==2022.0.5
 custodian==2021.2.8
 networkx==2.5.1
-pydash==4.9.3
+pydash==5.0.0
 pyyaml==5.4.1
 maggma==0.26.0
 scikit-image==0.18.1
