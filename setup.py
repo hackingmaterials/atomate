@@ -26,7 +26,7 @@ if __name__ == "__main__":
                           'tqdm>=4.7.4',
                           'pymatgen-diffusion>=2018.1.4',
                           'pydash>=4.1.0',
-                          'pyyaml>=5.1.2'],
+                          'pyyaml>=5.1.2', 'maggma>=0.26.0'],
         extras_require={'rtransfer': ['paramiko>=2.4.2'],
                         'plotting': ['matplotlib>=1.5.2'],
                         'phonons': ['phonopy>=1.10.8'],
