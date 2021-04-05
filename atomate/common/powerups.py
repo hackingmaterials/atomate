@@ -224,31 +224,27 @@ def set_queue_adapter(
 
 def powerup_by_kwargs(
     original_wf: Workflow,
-    add_powerup_module: List[str] = None,
-    **powerup_kwargs,
+    powerup_dicts: List[dict],
 ):
     """
-    apply powerups in the form using a kwargs dictionary of the form:
-    {
-        powerup_function_name1 : {parameter1 : value1, parameter2: value2},
-        powerup_function_name2 : {parameter1 : value1, parameter2: value2},
-    }
+    apply powerups in the form using a list of dictionaries
+    [
+        {"powerup_name" : powerup_function1, "kwargs": {parameter1 : value1, parameter2: value2}},
+        {"powerup_name" : powerup_function2, "kwargs": {parameter1 : value1, parameter2: value2}},
+    ]
 
     As an example:
-        power_up_by_kwargs( "add_additional_fields_to_taskdocs" : {
-                                                                "update_dict" : {"foo" : "bar"}
-                                                                }
+        power_up_by_kwargs([
+            {"powerup_name" : "add_additional_fields_to_taskdocs",
+             "kwargs: {"update_dict" : {"foo" : "bar"}}}
+             ]
         )
 
     Args:
         original_wf: workflow that will be changed
-        add_powerup_module: user_made modules that contain powerups
-        powerup_kwargs: KWARGS used to apply any power, EXAMPLE:
-                {"add_modify_incar": {
-                                      "modify_incar_params": {
-                                      "incar_update": {"KPAR": 8}}
-                                        }
-                }
+        powerup_dicts: dictionary containing the powerup_name and kwarg.
+            if "." is present in the name it will be imported as a full path
+            if not we will use standard atomate modules where the powerups are kept
 
     """
     # a list of possible powerups in atomate (most specific first)
@@ -257,17 +253,27 @@ def powerup_by_kwargs(
         "atomate.qchem.powerups",
         "atomate.common.powerups",
     ]
-    # user can add new modules containing custom powerups
-    if add_powerup_module is not None:
-        powerup_modules = add_powerup_module + powerup_modules
 
-    for k, v in powerup_kwargs.items():
-        for module_name in powerup_modules:
-            try:
-                module = import_module(module_name)
-                powerup = getattr(module, k)
-                original_wf = powerup(original_wf, **v)
-                break
-            except Exception:
-                pass
+    for pd in powerup_dicts:
+        name = pd["powerup_name"]
+        kwargs = pd["kwargs"]
+        found = False
+        if "." in name:
+            module_name, method_name = name.rsplit(".", 1)
+            module = import_module(module_name)
+            powerup = getattr(module, method_name)
+            original_wf = powerup(original_wf, **kwargs)
+            found = True
+        else:
+            for module_name in powerup_modules:
+                try:
+                    module = import_module(module_name)
+                    powerup = getattr(module, name)
+                    original_wf = powerup(original_wf, **kwargs)
+                    found = True
+                    break
+                except Exception:
+                    pass
+        if not found:
+            raise RuntimeError("Could not find powerup {}.".format(name))
     return original_wf

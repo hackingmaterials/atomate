@@ -247,8 +247,13 @@ class TestVaspPowerups(unittest.TestCase):
 
     def test_powerup_by_kwargs(self):
         my_wf = copy_wf(self.bs_wf)
-        my_wf = powerup_by_kwargs(my_wf, add_trackers={})
-        my_wf = powerup_by_kwargs(my_wf, add_tags={"tags_list": ["foo", "bar"]})
+        my_wf = powerup_by_kwargs(
+            my_wf, [{"powerup_name": "add_trackers", "kwargs": {}}]
+        )
+        my_wf = powerup_by_kwargs(
+            my_wf,
+            [{"powerup_name": "add_tags", "kwargs": {"tags_list": ["foo", "bar"]}}],
+        )
         for fw in my_wf.fws:
             self.assertEqual(len(fw.spec["_trackers"]), 2)
         self.assertEqual(my_wf.metadata["tags"], ["foo", "bar"])

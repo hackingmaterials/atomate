@@ -83,7 +83,16 @@ class TestPowerups(unittest.TestCase):
 
     def test_powerup_by_kwargs(self):
         my_wf = copy_wf(self.bs_wf)
-        my_wf = powerup_by_kwargs(my_wf, add_tags={"tags_list": ["foo", "bar"]})
+        my_wf = powerup_by_kwargs(
+            my_wf,
+            [
+                {"powerup_name": "add_tags", "kwargs": {"tags_list": ["foo", "bar"]}},
+                {
+                    "powerup_name": "atomate.common.powerups.add_priority",
+                    "kwargs": {"root_priority": 123},
+                },
+            ],
+        )
         self.assertEqual(my_wf.metadata["tags"], ["foo", "bar"])
 
     def test_set_queue_adapter(self):
