@@ -5,7 +5,12 @@ from atomate.vasp.workflows.base.core import get_wf
 from pymatgen.io.vasp.sets import MPRelaxSet
 from pymatgen.util.testing import PymatgenTest
 
-from atomate.common.powerups import set_queue_adapter, add_priority, add_tags
+from atomate.common.powerups import (
+    set_queue_adapter,
+    add_priority,
+    add_tags,
+    powerup_by_kwargs,
+)
 from fireworks import Firework, ScriptTask, Workflow
 
 __author__ = "Janine George, Guido Petretto"
@@ -75,6 +80,20 @@ class TestPowerups(unittest.TestCase):
                     v_found += 1
         self.assertEqual(b_found, 1)
         self.assertEqual(v_found, 4)
+
+    def test_powerup_by_kwargs(self):
+        my_wf = copy_wf(self.bs_wf)
+        my_wf = powerup_by_kwargs(
+            my_wf,
+            [
+                {"powerup_name": "add_tags", "kwargs": {"tags_list": ["foo", "bar"]}},
+                {
+                    "powerup_name": "atomate.common.powerups.add_priority",
+                    "kwargs": {"root_priority": 123},
+                },
+            ],
+        )
+        self.assertEqual(my_wf.metadata["tags"], ["foo", "bar"])
 
     def test_set_queue_adapter(self):
         # test fw_name_constraint

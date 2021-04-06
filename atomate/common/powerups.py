@@ -3,11 +3,12 @@
 """
 This module defines general powerups that can be used for all workflows
 """
+from importlib import import_module
+from typing import List
 
 from atomate.utils.utils import get_fws_and_tasks
 from fireworks import Workflow, FileWriteTask
 from fireworks.utilities.fw_utilities import get_slug
-
 
 __author__ = "Janine George, Guido Petretto, Ryan Kingsbury"
 __email__ = (
@@ -218,4 +219,61 @@ def set_queue_adapter(
         q.update(queueadapter)
         original_wf.fws[idx_fw].spec["_queueadapter"] = q
 
+    return original_wf
+
+
+def powerup_by_kwargs(
+    original_wf: Workflow,
+    powerup_dicts: List[dict],
+):
+    """
+    apply powerups in the form using a list of dictionaries
+    [
+        {"powerup_name" : powerup_function1, "kwargs": {parameter1 : value1, parameter2: value2}},
+        {"powerup_name" : powerup_function2, "kwargs": {parameter1 : value1, parameter2: value2}},
+    ]
+
+    As an example:
+        power_up_by_kwargs([
+            {"powerup_name" : "add_additional_fields_to_taskdocs",
+             "kwargs: {"update_dict" : {"foo" : "bar"}}}
+             ]
+        )
+
+    Args:
+        original_wf: workflow that will be changed
+        powerup_dicts: dictionary containing the powerup_name and kwarg.
+            if "." is present in the name it will be imported as a full path
+            if not we will use standard atomate modules where the powerups are kept
+
+    """
+    # a list of possible powerups in atomate (most specific first)
+    powerup_modules = [
+        "atomate.vasp.powerups",
+        "atomate.qchem.powerups",
+        "atomate.common.powerups",
+    ]
+
+    for pd in powerup_dicts:
+        name = pd["powerup_name"]
+        kwargs = pd["kwargs"]
+        found = False
+        if "." in name:
+            module_name, method_name = name.rsplit(".", 1)
+            module = import_module(module_name)
+            powerup = getattr(module, method_name)
+            original_wf = powerup(original_wf, **kwargs)
+            found = True
+        else:
+            for module_name in powerup_modules:
+                try:
+                    module = import_module(module_name)
+                    powerup = getattr(module, name)
+                    original_wf = powerup(original_wf, **kwargs)
+                    found = True
+                    break
+                except Exception:
+                    pass
+        if not found:
+            raise RuntimeError("Could not find powerup {}.".format(name))
     return original_wf

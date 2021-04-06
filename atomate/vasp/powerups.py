@@ -33,8 +33,6 @@ from fireworks.core.firework import Tracker
 __author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
 
-POWERUP_NAMES = []
-
 
 @deprecated(replacement=common_add_priority)
 def add_priority(original_wf, root_priority, child_priority=None):
@@ -829,35 +827,3 @@ def use_fake_lobster(original_wf, ref_dirs, params_to_check=None):
                         )
 
     return original_wf
-
-
-local_names = dict(locals())  # locals() changes as the program runs, make a copy here
-
-for k, v in local_names.items():
-    if (
-        hasattr(v, "__module__")
-        and v.__module__ == "atomate.vasp.powerups"
-        and k != "power_up_by_kwargs"
-    ):
-        POWERUP_NAMES.append(k)
-
-local_names = {k: v for k, v in local_names.items() if k in POWERUP_NAMES}
-
-
-def powerup_by_kwargs(wf, **kwargs):
-    """
-    apply powerups in the form using a kwargs dictionary of the form:
-    {
-        powerup_function_name1 : {parameter1 : value1, parameter2: value2},
-        powerup_function_name2 : {parameter1 : value1, parameter2: value2},
-    }
-
-    As an example:
-        power_up_by_kwargs( "add_additional_fields_to_taskdocs" : {
-                                                                "update_dict" : {"foo" : "bar"}
-                                                                }
-        )
-    """
-    for k, v in kwargs.items():
-        wf = local_names[k](wf, **v)
-    return wf

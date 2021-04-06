@@ -1,3 +1,5 @@
+from typing import List
+
 from fireworks import Workflow
 from pymatgen.core import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher
@@ -9,7 +11,7 @@ __author__ = "Jimmy Shen"
 __email__ = "jmmshn@lbl.gov"
 
 from atomate.vasp.fireworks import Firework, OptimizeFW, StaticFW, pass_vasp_result
-from atomate.vasp.powerups import powerup_by_kwargs
+from atomate.common.powerups import powerup_by_kwargs
 
 """
 Define workflow related to battery material simulation --- they all have a working ion
@@ -23,7 +25,7 @@ def get_ion_insertion_wf(
     db_file: str = DB_FILE,
     vasptodb_kwargs: dict = None,
     volumetric_data_type: str = "CHGCAR",
-    vasp_powerups: dict = None,
+    vasp_powerups: List[dict] = None,
     max_insertions: int = 4,
     allow_fizzled_parents: bool = True,
     optimizefw_kwargs: dict = None,
@@ -106,7 +108,7 @@ def get_ion_insertion_wf(
 
     # Apply the vasp powerup if present
     if vasp_powerups is not None:
-        wf = powerup_by_kwargs(wf, **vasp_powerups)
+        wf = powerup_by_kwargs(wf, vasp_powerups)
         for fw in wf.fws:
             fw.spec["vasp_powerups"] = vasp_powerups
 

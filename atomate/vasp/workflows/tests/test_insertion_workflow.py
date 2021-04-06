@@ -21,6 +21,9 @@ ref_dir = module_dir / "../../test_files"
 wf_dir = ref_dir / "insertion_wf"
 
 VASP_CMD = None  # for fake VASP
+DEBUG_MODE = (
+    False  # If true, retains the database and output dirs at the end of the test
+)
 
 
 class TestInsertionWorkflow(AtomateTest):
@@ -38,19 +41,23 @@ class TestInsertionWorkflow(AtomateTest):
             working_ion="Mg",
             volumetric_data_type="AECCAR",
             db_file=db_dir / "db.json",
-            vasp_powerups={
-                "add_modify_incar": {
-                    "modify_incar_params": {"incar_update": {"KPAR": 8}}
+            vasp_powerups=[
+                {
+                    "powerup_name": "add_modify_incar",
+                    "kwargs": {"modify_incar_params": {"incar_update": {"KPAR": 8}}},
                 },
-                "use_fake_vasp": {
-                    "ref_dirs": calc_dirs,
-                    "check_incar": False,
-                    "check_kpoints": False,
-                    "check_poscar": False,
-                    "check_potcar": False,
+                {
+                    "powerup_name": "use_fake_vasp",
+                    "kwargs": {
+                        "ref_dirs": calc_dirs,
+                        "check_incar": False,
+                        "check_kpoints": False,
+                        "check_poscar": False,
+                        "check_potcar": False,
+                    },
                 },
-                "use_potcar_spec": {},
-            },
+                {"powerup_name": "use_potcar_spec", "kwargs": {}},
+            ],
             optimizefw_kwargs={"ediffg": -0.05},
         )
         wf = use_fake_vasp(
