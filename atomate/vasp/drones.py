@@ -38,7 +38,7 @@ from atomate.utils.utils import get_uri
 
 from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
-from atomate.vasp.config import STORE_VOLUMETRIC_DATA, STORE_ADDITIONAL_JSON
+from atomate.vasp.config import STORE_VOLUMETRIC_DATA, STORE_ADDITIONAL_JSON, STORE_BADER
 
 __author__ = "Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath, Anubhav Jain"
 __email__ = "kmathew@lbl.gov"
@@ -47,7 +47,8 @@ __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
-BADER_EXE_EXISTS = which("bader") or which("bader.exe")
+STORE_BADER = STORE_BADER and (which("bader") or which("bader.exe"))
+
 
 
 class VaspDrone(AbstractDrone):
@@ -138,7 +139,7 @@ class VaspDrone(AbstractDrone):
         parse_locpot=True,
         additional_fields=None,
         use_full_uri=True,
-        parse_bader=BADER_EXE_EXISTS,
+        parse_bader=STORE_BADER,
         parse_chgcar=False,
         parse_aeccar=False,
         parse_potcar_file=True,
