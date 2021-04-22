@@ -70,6 +70,10 @@ class LammpsMDToDB(FiretaskBase):
 
         mmdb.db.trajectories.insert_one(traj_doc)
 
+        query = {'run_label': traj_doc['run_label']}
+        update = {'$set': {'trajectory': traj_doc}}
+        mmdb.db.tasks.update_one(query, update)
+
 
 def insert_gridfs(d, db, collection="fs", compress=True, oid=None, task_id=None):
     """

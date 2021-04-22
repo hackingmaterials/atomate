@@ -13,7 +13,7 @@ from uuid import uuid4
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.lammps.firetasks.dbtasks import LammpsMDToDB
-from atomate.lammps.firetasks.glue_tasks import CopyDeepMDModel
+from atomate.lammps.firetasks.glue_tasks import CopyDeepMDModel, DeepMDModelFromDB
 from atomate.lammps.firetasks.parse_outputs import LammpsToDB
 from atomate.lammps.firetasks.run_calc import RunLammpsDirect, RunPackmol
 from atomate.lammps.firetasks.write_inputs import WriteInputFromTemplate
@@ -152,48 +152,57 @@ class LammpsFW(Firework):
 
 
 class LammpsDeepMDFW(Firework):
-    def __init__(self, lammps_data, template_string, settings, model_path, input_filename="lammps.in",
+    def __init__(self, lammps_data, template_string, settings, model_path=None, model_query=None, input_filename="lammps.in",
                  lammps_cmd="lammps", db_file=None, parents=None, name="LammpsFW", comments=None, run_label=None,
                  **kwargs):
         """
         write lammps inputset, run, and store the output.
 
         Args:
-            lammps_input_set (DictLammpsInput): lammps input set
+            lammps_data (LammpsData): pymatgen.io.lammps.inputs.LammpsData object specifying the starting structure
+            template_string(dict): template string for the lammps input writing
+            settings(dict): dictionary specifying fields to be replaced in template_string
+
+            model_path(str): Specify a deepmd model by path. Must have access to the directory at runtime
+            model_query(dict): Specify a deepmd model stored within the mongodb
+
             input_filename (str): input file name
-            data_filename (str): data file name
             lammps_cmd (str): command to run lammps (skip the input file).
                 e.g. 'mpirun -n 8 lmp_mpi'
             db_file (str): path to file specifying db credentials to place output parsing.
             parents ([Fireworks)]: parents of this particular Firework.
             name (str): descriptive name for lammps simulation
-            log_filename (str)
-            dump_filename (str)
             \*\*kwargs: other kwargs that are passed to Firework.__init__.
         """
         tasks = []
 
         tasks.append(WriteInputFromTemplate(settings=settings, lammps_data=lammps_data,
                                             script_template=template_string, input_filename=input_filename))
-
-        tasks.append(CopyDeepMDModel(model_path=model_path))
+        if model_path is not None:
+            tasks.append(CopyDeepMDModel(model_path=model_path))
+        elif model_query is not None:
+            tasks.append(DeepMDModelFromDB(query=model_query, db_file=db_file))
+        else:
+            return ValueError('Invalid Input: Must specify model_path or model_query')
 
         tasks.append(RunLammpsDirect(lammps_cmd=lammps_cmd, input_filename=input_filename))
 
-        # if run_label is None:
-        #     run_label = uuid4()
-        # tasks.append(LammpsMDToDB(db_file=db_file, input_filename=input_filename,
-        #                           comments=comments, run_label=run_label))
+        if run_label is None:
+            run_label = uuid4()
 
         data_filename = re.search(r"read_data\s+(.*)\n", template_string).group(1)
         log_filename = re.search(r"log\s+(.*)\n", template_string).group(1)
 
-        # TODO: deal with dump files. FOr now, just assume none. In future, search for all instances of dump in the input string and extract file names
+        # TODO: deal with dump files. For now, just assume none. In future, search for all instances of dump in the input string and extract file names
         # dump_filenames = re.search(r"dump\s+(.*)\n", template_string)
         dump_filenames = []
         tasks.append(LammpsToDB(input_filename=input_filename, data_filename=data_filename,
                                 log_filename=log_filename, dump_filenames=dump_filenames,
-                                db_file=db_file, additional_fields={"task_label": name}))
+                                db_file=db_file, additional_fields={"task_label": name, 'run_label': run_label}))
+
+        # Store Trajectory in database and add link to the taskdoc
+        tasks.append(LammpsMDToDB(db_file=db_file, input_filename=input_filename,
+                                  comments=comments, run_label=run_label))
 
         super(LammpsDeepMDFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
