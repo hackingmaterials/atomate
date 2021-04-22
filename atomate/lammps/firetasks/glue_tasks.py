@@ -6,6 +6,7 @@ import os
 from atomate.common.firetasks.glue_tasks import get_calc_loc, CopyFiles
 from atomate.utils.utils import env_chk, get_logger
 from atomate.lammps.database import LammpsCalcDb
+from bson import ObjectId
 
 __author__ = 'Kiran Mathew, Eric Sivonxay'
 __email__ = 'kmathew@lbl.gov, esivonxay@lbl.gov'
@@ -69,6 +70,8 @@ class DeepMDModelFromDB(FiretaskBase):
         mmdb = LammpsCalcDb.from_db_file(db_file, admin=True)
 
         query = self["query"]
+        if '_id' in query.keys():
+            query['_id'] = ObjectId(query['_id'])
 
         model_doc = mmdb.db.deepmd_models.find_one(query)
 
