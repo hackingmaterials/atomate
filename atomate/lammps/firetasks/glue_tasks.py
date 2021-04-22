@@ -70,7 +70,7 @@ class DeepMDModelFromDB(FiretaskBase):
 
         query = self["query"]
 
-        model_doc = mmdb.deepmd_models.find_one(query)
+        model_doc = mmdb.db.deepmd_models.find_one(query)
 
         with open('graph.pb', 'wb') as f:
             f.write(model_doc['model'])
