@@ -1,53 +1,44 @@
-from fireworks import Workflow, FileWriteTask
-from fireworks.core.firework import Tracker
-from fireworks.utilities.fw_utilities import get_slug
-
-from pymatgen import Structure
-
-from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
 from atomate.common.firetasks.glue_tasks import DeleteFiles
-from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
-from atomate.vasp.firetasks.run_calc import (
-    RunVaspCustodian,
-    RunVaspFake,
-    RunVaspDirect,
-    RunNoVasp,
+from atomate.common.powerups import add_priority as common_add_priority
+from atomate.common.powerups import preserve_fworker as common_preserve_fworker
+from atomate.common.powerups import (
+    set_execution_options as common_set_execution_options,
 )
-from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
-from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyPotcar
-from atomate.vasp.firetasks.parse_outputs import JsonToDb
+from atomate.common.powerups import add_namefile as common_add_namefile
+from atomate.common.powerups import (
+    add_additional_fields_to_taskdocs as common_add_additional_fields_to_taskdocs,
+)
+from atomate.common.powerups import add_tags as common_add_tags
+from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
 from atomate.vasp.config import (
     ADD_NAMEFILE,
     SCRATCH_DIR,
     ADD_MODIFY_INCAR,
     GAMMA_VASP_CMD,
 )
+from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
+from atomate.vasp.firetasks.lobster_tasks import RunLobsterFake
+from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
+from atomate.vasp.firetasks.parse_outputs import JsonToDb
+from atomate.vasp.firetasks.run_calc import (
+    RunVaspCustodian,
+    RunVaspFake,
+    RunVaspDirect,
+    RunNoVasp,
+)
+from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyPotcar, ModifyKpoints
+from monty.dev import deprecated
+from fireworks.core.firework import Tracker
 
 __author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
 
 
+@deprecated(replacement=common_add_priority)
 def add_priority(original_wf, root_priority, child_priority=None):
-    """
-    Adds priority to a workflow
-
-    Args:
-        original_wf (Workflow): original WF
-        root_priority (int): priority of first (root) job(s)
-        child_priority(int): priority of all child jobs. Defaults to
-            root_priority
-
-    Returns:
-       Workflow: priority-decorated workflow
-    """
-    child_priority = child_priority or root_priority
-    root_fw_ids = original_wf.root_fw_ids
-    for fw in original_wf.fws:
-        if fw.fw_id in root_fw_ids:
-            fw.spec["_priority"] = root_priority
-        else:
-            fw.spec["_priority"] = child_priority
-    return original_wf
+    return common_add_priority(
+        original_wf, root_priority, child_priority=child_priority
+    )
 
 
 def remove_custodian(original_wf, fw_name_constraint=None):
@@ -100,12 +91,10 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
     )
     for idx_fw, idx_t in vasp_fws_and_tasks:
         if "vasp_cmd" not in custodian_params:
-            custodian_params["vasp_cmd"] = original_wf.fws[idx_fw].tasks[
-                idx_t
-            ]["vasp_cmd"]
-        original_wf.fws[idx_fw].tasks[idx_t] = RunVaspCustodian(
-            **custodian_params
-        )
+            custodian_params["vasp_cmd"] = original_wf.fws[idx_fw].tasks[idx_t][
+                "vasp_cmd"
+            ]
+        original_wf.fws[idx_fw].tasks[idx_t] = RunVaspCustodian(**custodian_params)
     return original_wf
 
 
@@ -205,27 +194,9 @@ def use_fake_vasp(
     return original_wf
 
 
+@deprecated(replacement=common_add_namefile)
 def add_namefile(original_wf, use_slug=True):
-    """
-    Every FireWork begins by writing an empty file with the name
-    "FW--<fw.name>". This makes it easy to figure out what jobs are in what
-    launcher directories, e.g. "ls -l launch*/FW--*" from within a "block" dir.
-
-    Args:
-        original_wf (Workflow)
-        use_slug (bool): whether to replace whitespace-type chars with a slug
-
-    Returns:
-       Workflow
-    """
-    for idx, fw in enumerate(original_wf.fws):
-        fname = "FW--{}".format(fw.name)
-        if use_slug:
-            fname = get_slug(fname)
-
-        t = FileWriteTask(files_to_write=[{"filename": fname, "contents": ""}])
-        original_wf.fws[idx].tasks.insert(0, t)
-    return original_wf
+    return common_add_namefile(original_wf, use_slug=use_slug)
 
 
 def add_trackers(original_wf, tracked_files=None, nlines=25):
@@ -243,9 +214,7 @@ def add_trackers(original_wf, tracked_files=None, nlines=25):
     """
     if tracked_files is None:
         tracked_files = ["OUTCAR", "OSZICAR"]
-    trackers = [
-        Tracker(f, nlines=nlines, allow_zipped=True) for f in tracked_files
-    ]
+    trackers = [Tracker(f, nlines=nlines, allow_zipped=True) for f in tracked_files]
 
     idx_list = get_fws_and_tasks(original_wf, task_name_constraint="RunVasp")
     for idx_fw, idx_t in idx_list:
@@ -256,9 +225,7 @@ def add_trackers(original_wf, tracked_files=None, nlines=25):
     return original_wf
 
 
-def add_modify_incar(
-    original_wf, modify_incar_params=None, fw_name_constraint=None
-):
+def add_modify_incar(original_wf, modify_incar_params=None, fw_name_constraint=None):
     """
     Every FireWork that runs VASP has a ModifyIncar task just beforehand. For
     example, allows you to modify the INCAR based on the Worker using env_chk or
@@ -273,8 +240,36 @@ def add_modify_incar(
     Returns:
        Workflow
     """
-    modify_incar_params = modify_incar_params or {
-        "incar_update": ">>incar_update<<"
+    modify_incar_params = modify_incar_params or {"incar_update": ">>incar_update<<"}
+    idx_list = get_fws_and_tasks(
+        original_wf,
+        fw_name_constraint=fw_name_constraint,
+        task_name_constraint="RunVasp",
+    )
+    for idx_fw, idx_t in idx_list:
+        original_wf.fws[idx_fw].tasks.insert(idx_t, ModifyIncar(**modify_incar_params))
+    return original_wf
+
+
+def add_modify_kpoints(
+    original_wf, modify_kpoints_params=None, fw_name_constraint=None
+):
+    """
+    Every FireWork that runs VASP has a ModifyKpoints task just beforehand. For
+    example, allows you to modify the KPOINTS based on the Worker using env_chk
+    or using hard-coded changes.
+
+    Args:
+        original_wf (Workflow)
+        modify_kpoints_params (dict): dict of parameters for ModifyKpoints.
+        fw_name_constraint (str): Only apply changes to FWs where fw_name
+        contains this substring.
+
+    Returns:
+       Workflow
+    """
+    modify_kpoints_params = modify_kpoints_params or {
+        "kpoints_update": ">>kpoints_update<<"
     }
     idx_list = get_fws_and_tasks(
         original_wf,
@@ -283,14 +278,12 @@ def add_modify_incar(
     )
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks.insert(
-            idx_t, ModifyIncar(**modify_incar_params)
+            idx_t, ModifyKpoints(**modify_kpoints_params)
         )
     return original_wf
 
 
-def add_modify_potcar(
-    original_wf, modify_potcar_params=None, fw_name_constraint=None
-):
+def add_modify_potcar(original_wf, modify_potcar_params=None, fw_name_constraint=None):
     """
     Every FireWork that runs VASP has a ModifyIncar task just beforehand. For
     example, allows you to modify the INCAR based on the Worker using env_chk or
@@ -356,11 +349,9 @@ def modify_to_soc(
             fw_id = sid[0][0]
             task_id = sid[0][1]
             structure = (
-                original_wf.fws[fw_id]
-                .tasks[task_id]["vasp_input_set"]
-                .structure
+                original_wf.fws[fw_id].tasks[task_id]["vasp_input_set"].structure
             )
-        except:
+        except Exception:
             raise ValueError(
                 "modify_to_soc powerup requires the structure in vasp_input_set"
             )
@@ -387,9 +378,7 @@ def modify_to_soc(
     )
     for idx_fw, idx_t in run_vasp_list:
         original_wf.fws[idx_fw].tasks[idx_t]["vasp_cmd"] = ">>vasp_ncl<<"
-        original_wf.fws[idx_fw].tasks.insert(
-            idx_t, ModifyIncar(**modify_incar_params)
-        )
+        original_wf.fws[idx_fw].tasks.insert(idx_t, ModifyIncar(**modify_incar_params))
 
         original_wf.fws[idx_fw].name += " soc"
 
@@ -477,6 +466,7 @@ def set_queue_options(
     return original_wf
 
 
+@deprecated(replacement=common_set_execution_options)
 def set_execution_options(
     original_wf,
     fworker_name=None,
@@ -484,59 +474,18 @@ def set_execution_options(
     fw_name_constraint=None,
     task_name_constraint=None,
 ):
-    """
-    set _fworker spec of Fireworker(s) of a Workflow. It can be used to specify
-    a queue; e.g. run large-memory jobs on a separate queue.
-
-    Args:
-        original_wf (Workflow):
-        fworker_name (str): user-defined tag to be added under fw.spec._fworker
-            e.g. "large memory", "big", etc
-        category (str): category of FWorker that should pul job
-        fw_name_constraint (str): name of the Fireworks to be tagged (all if
-            None is passed)
-        task_name_constraint (str): name of the Firetasks to be tagged (e.g.
-            None or 'RunVasp')
-
-    Returns:
-        Workflow: modified workflow with specified Fireworkers tagged
-    """
-    idx_list = get_fws_and_tasks(
+    return common_set_execution_options(
         original_wf,
+        fworker_name=fworker_name,
+        category=category,
         fw_name_constraint=fw_name_constraint,
         task_name_constraint=task_name_constraint,
     )
 
-    for idx_fw, idx_t in idx_list:
-        if fworker_name:
-            original_wf.fws[idx_fw].spec["_fworker"] = fworker_name
-        if category:
-            original_wf.fws[idx_fw].spec["_category"] = category
-    return original_wf
 
-
+@deprecated(replacement=common_preserve_fworker)
 def preserve_fworker(original_wf, fw_name_constraint=None):
-    """
-    set _preserve_fworker spec of Fireworker(s) of a Workflow. Can be used to
-    pin a workflow to the first fworker it is run with. Very useful when running
-    on multiple machines that can't share files. fw_name_constraint can be used
-    to only preserve fworker after a certain point where file passing becomes
-    important
-
-    Args:
-        original_wf (Workflow):
-        fw_name_constraint (str): name of the Fireworks to be tagged (all if
-        None is passed)
-
-    Returns:
-        Workflow: modified workflow with specified Fireworkers tagged
-    """
-    idx_list = get_fws_and_tasks(
-        original_wf, fw_name_constraint=fw_name_constraint
-    )
-    for idx_fw, idx_t in idx_list:
-        original_wf.fws[idx_fw].spec["_preserve_fworker"] = True
-    return original_wf
+    return common_preserve_fworker(original_wf, fw_name_constraint=fw_name_constraint)
 
 
 def add_wf_metadata(original_wf, structure):
@@ -580,15 +529,11 @@ def add_stability_check(
         task_name_constraint="VaspToDb",
     )
     for idx_fw, idx_t in idx_list:
-        original_wf.fws[idx_fw].tasks.append(
-            CheckStability(**check_stability_params)
-        )
+        original_wf.fws[idx_fw].tasks.append(CheckStability(**check_stability_params))
     return original_wf
 
 
-def add_bandgap_check(
-    original_wf, check_bandgap_params=None, fw_name_constraint=None
-):
+def add_bandgap_check(original_wf, check_bandgap_params=None, fw_name_constraint=None):
     """
     Every FireWork that enters into the Db has a band gap check afterwards,
     e.g. min_gap and max_gap
@@ -610,9 +555,7 @@ def add_bandgap_check(
         task_name_constraint="VaspToDb",
     )
     for idx_fw, idx_t in idx_list:
-        original_wf.fws[idx_fw].tasks.append(
-            CheckBandgap(**check_bandgap_params)
-        )
+        original_wf.fws[idx_fw].tasks.append(CheckBandgap(**check_bandgap_params))
     return original_wf
 
 
@@ -683,9 +626,7 @@ def use_scratch_dir(original_wf, scratch_dir):
     Returns:
        Workflow
     """
-    idx_list = get_fws_and_tasks(
-        original_wf, task_name_constraint="RunVaspCustodian"
-    )
+    idx_list = get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian")
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["scratch_dir"] = scratch_dir
     return original_wf
@@ -716,81 +657,22 @@ def clean_up_files(
         task_name_constraint=task_name_constraint,
     )
     for idx_fw, idx_t in idx_list:
-        original_wf.fws[idx_fw].tasks.insert(
-            idx_t + 1, DeleteFiles(files=files)
-        )
+        original_wf.fws[idx_fw].tasks.insert(idx_t + 1, DeleteFiles(files=files))
     return original_wf
 
 
+@deprecated(replacement=common_add_additional_fields_to_taskdocs)
 def add_additional_fields_to_taskdocs(
     original_wf, update_dict=None, task_name_constraint="VaspToDb"
 ):
-    """
-    For all VaspToDbTasks in a given workflow, add information  to
-    "additional_fields" to be placed in the task doc.
-
-    Args:
-        original_wf (Workflow)
-        update_dict (Dict): dictionary to add additional_fields
-        task_name_constraint (str): name of the Firetasks to be modified.
-
-    Returns:
-       Workflow
-    """
-    idx_list = get_fws_and_tasks(
-        original_wf, task_name_constraint=task_name_constraint
+    return common_add_additional_fields_to_taskdocs(
+        original_wf, update_dict=update_dict, task_name_constraint=task_name_constraint
     )
-    for idx_fw, idx_t in idx_list:
-        original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"].update(
-            update_dict
-        )
-    return original_wf
 
 
+@deprecated(replacement=common_add_tags)
 def add_tags(original_wf, tags_list):
-    """
-    Adds tags to all Fireworks in the Workflow, WF metadata, as well as
-    additional_fields for the VaspDrone to track them later (e.g. all fireworks
-    and vasp tasks related to a research project)
-
-    Args:
-        original_wf (Workflow)
-        tags_list: list of tags parameters (list of strings)
-
-    Returns:
-       Workflow
-    """
-
-    # WF metadata
-    if "tags" in original_wf.metadata:
-        original_wf.metadata["tags"].extend(tags_list)
-    else:
-        original_wf.metadata["tags"] = tags_list
-
-    # FW metadata
-    for idx_fw in range(len(original_wf.fws)):
-        if "tags" in original_wf.fws[idx_fw].spec:
-            original_wf.fws[idx_fw].spec["tags"].extend(tags_list)
-        else:
-            original_wf.fws[idx_fw].spec["tags"] = tags_list
-
-    # DB insertion tasks
-    for constraint in ["VaspToDb", "BoltztrapToDb"]:
-        idxs = get_fws_and_tasks(original_wf, task_name_constraint=constraint)
-        for idx_fw, idx_t in idxs:
-            if (
-                "tags"
-                in original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"]
-            ):
-                original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
-                    "tags"
-                ].extend(tags_list)
-            else:
-                original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
-                    "tags"
-                ] = tags_list
-
-    return original_wf
+    return common_add_tags(original_wf, tags_list)
 
 
 def add_common_powerups(wf, c=None):
@@ -808,7 +690,7 @@ def add_common_powerups(wf, c=None):
     c = c or {}
 
     if c.get("ADD_NAMEFILE", ADD_NAMEFILE):
-        wf = add_namefile(wf)
+        wf = common_add_namefile(wf)
 
     if c.get("SCRATCH_DIR", SCRATCH_DIR):
         wf = use_scratch_dir(wf, c.get("SCRATCH_DIR", SCRATCH_DIR))
@@ -833,9 +715,7 @@ def use_gamma_vasp(original_wf, gamma_vasp_cmd):
     Returns:
        Workflow
     """
-    idx_list = get_fws_and_tasks(
-        original_wf, task_name_constraint="RunVaspCustodian"
-    )
+    idx_list = get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian")
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["gamma_vasp_cmd"] = gamma_vasp_cmd
     return original_wf
@@ -850,19 +730,13 @@ def modify_gzip_vasp(original_wf, gzip_output):
     Returns:
        Workflow
     """
-    idx_list = get_fws_and_tasks(
-        original_wf, task_name_constraint="RunVaspCustodian"
-    )
+    idx_list = get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian")
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["gzip_output"] = gzip_output
     return original_wf
 
 
-def use_potcar_spec(
-    original_wf,
-    fw_name_constraint=None,
-    vasp_to_db_kwargs=None
-):
+def use_potcar_spec(original_wf, fw_name_constraint=None, vasp_to_db_kwargs=None):
     """
     In all WriteVasp tasks, enable the potcar_spec option. In this mode,
     POTCAR files will be written as POTCAR.spec files, containing only the
@@ -893,6 +767,23 @@ def use_potcar_spec(
         fw_name_constraint=fw_name_constraint,
         task_name_constraint="WriteVasp",
     )
+
+    idx_list.extend(
+        get_fws_and_tasks(
+            original_wf,
+            fw_name_constraint=fw_name_constraint,
+            task_name_constraint="WriteScanRelaxFromPrev",
+        )
+    )
+
+    idx_list.extend(
+        get_fws_and_tasks(
+            original_wf,
+            fw_name_constraint=fw_name_constraint,
+            task_name_constraint="CopyVaspOutputs",
+        )
+    )
+
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["potcar_spec"] = True
 
@@ -906,5 +797,33 @@ def use_potcar_spec(
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["parse_potcar_file"] = False
         original_wf.fws[idx_fw].tasks[idx_t].update(vasp_to_db_kwargs)
+
+    return original_wf
+
+
+def use_fake_lobster(original_wf, ref_dirs, params_to_check=None):
+    """
+    Replaces all tasks with "RunLobster" to be RunLobsterFake. Thus, we do not
+    actually run Lobster but copy pre-determined inputs and outputs.
+    Args:
+        original_wf (Workflow)
+        ref_dirs (dict): key=firework name, value=path to the reference lobster calculation directory
+        params_to_check (list): optional list of lobsterin parameters that are checked
+        gzipped_output (bool): if true, everything except WAVECAR will be gzipped
+        gzipped_WAVECAR (bool): if true, WAVECAR will be gzipped
+        backup (bool): if true, lobsterin will be saved to lobsterin.orig
+    Returns:
+        Workflow
+    """
+    if not params_to_check:
+        params_to_check = ["basisSet", "cohpGenerator", "basisfunctions"]
+    for idx_fw, fw in enumerate(original_wf.fws):
+        for job_type in ref_dirs.keys():
+            if job_type in fw.name:
+                for idx_t, t in enumerate(fw.tasks):
+                    if "RunLobster" in str(t):
+                        original_wf.fws[idx_fw].tasks[idx_t] = RunLobsterFake(
+                            ref_dir=ref_dirs[job_type], params_to_check=params_to_check
+                        )
 
     return original_wf

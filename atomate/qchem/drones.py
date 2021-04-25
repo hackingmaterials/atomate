@@ -9,9 +9,11 @@ import json
 import glob
 import traceback
 from itertools import chain
+import copy
 
 from monty.io import zopen
 from monty.json import jsanitize
+from pymatgen.core import Molecule
 from pymatgen.io.qchem.outputs import QCOutput, check_for_structure_changes
 from pymatgen.io.qchem.inputs import QCInput
 from pymatgen.apps.borg.hive import AbstractDrone
@@ -218,13 +220,33 @@ class QChemDrone(AbstractDrone):
                     d["output"]["final_energy"] = d["calcs_reversed"][1][
                         "final_energy"]
 
+            opt_trajectory = []
+            calcs = copy.deepcopy(d["calcs_reversed"])
+            calcs.reverse()
+            for calc in calcs:
+                job_type = calc["input"]["rem"]["job_type"]
+                if job_type == "opt" or job_type == "optimization":
+                    for ii,geom in enumerate(calc["geometries"]):
+                        site_properties = {"Mulliken":calc["Mulliken"][ii]}
+                        if "RESP" in calc:
+                            site_properties["RESP"] = calc["RESP"][ii]
+                        mol = Molecule(
+                            species=calc["species"],
+                            coords=geom,
+                            charge=calc["charge"],
+                            spin_multiplicity=calc["multiplicity"],
+                            site_properties=site_properties)
+                        traj_entry = {"molecule":mol}
+                        traj_entry["energy"] = calc["energy_trajectory"][ii]
+                        opt_trajectory.append(traj_entry)
+            if opt_trajectory != []:
+                d["opt_trajectory"] = opt_trajectory
+
             if "final_energy" not in d["output"]:
                 if d_calc_final["final_energy"] != None:
                     d["output"]["final_energy"] = d_calc_final["final_energy"]
                 else:
                     d["output"]["final_energy"] = d_calc_final["SCF"][-1][-1][0]
-                # else:
-                #     print(d_calc_final)
 
             if d_calc_final["completion"]:
                 total_cputime = 0.0
@@ -261,44 +283,6 @@ class QChemDrone(AbstractDrone):
             d["state"] = "successful" if d_calc_final["completion"] else "unsuccessful"
             if "special_run_type" in d:
                 if d["special_run_type"] == "frequency_flattener":
-                    opt_traj = []
-                    for entry in d["calcs_reversed"]:
-                        if entry["input"]["rem"]["job_type"] == "opt" or entry["input"]["rem"]["job_type"] == "optimization":
-                            doc = {"initial": {}, "final": {}}
-                            doc["initial"]["molecule"] = entry["initial_molecule"]
-                            doc["final"]["molecule"] = entry["molecule_from_last_geometry"]
-                            doc["initial"]["total_energy"] = entry["energy_trajectory"][0]
-                            doc["final"]["total_energy"] = entry["energy_trajectory"][-1]
-                            doc["initial"]["scf_energy"] = entry["SCF"][0][-1][0]
-                            doc["final"]["scf_energy"] = entry["SCF"][-1][-1][0]
-                            doc["structure_change"] = entry["structure_change"]
-                            opt_traj.append(doc)
-                    opt_traj.reverse()
-                    opt_trajectory = {"trajectory": opt_traj, "structure_change": [[ii, entry["structure_change"]] for ii,entry in enumerate(opt_traj)], "energy_increase": []}
-                    for ii, entry in enumerate(opt_traj):
-                        if entry["final"]["total_energy"] > entry["initial"]["total_energy"]:
-                            opt_trajectory["energy_increase"].append([ii, entry["final"]["total_energy"]-entry["initial"]["total_energy"]])
-                        if ii != 0:
-                            if entry["final"]["total_energy"] > opt_traj[ii-1]["final"]["total_energy"]:
-                                opt_trajectory["energy_increase"].append([ii-1, ii, entry["final"]["total_energy"]-opt_traj[ii-1]["final"]["total_energy"]])
-                            struct_change = check_for_structure_changes(opt_traj[ii-1]["final"]["molecule"], entry["final"]["molecule"])
-                            if struct_change != entry["structure_change"]:
-                                opt_trajectory["structure_change"].append([ii-1, ii, struct_change])
-                                d["warnings"]["between_iteration_structure_change"] = True
-                    if "linked" in d:
-                        if d["linked"] == True:
-                            opt_trajectory["discontinuity"] = {"structure": [], "scf_energy": [], "total_energy": []}
-                            for ii, entry in enumerate(opt_traj):
-                                if ii != 0:
-                                    if entry["initial"]["molecule"] != opt_traj[ii-1]["final"]["molecule"]:
-                                        opt_trajectory["discontinuity"]["structure"].append([ii-1,ii])
-                                        d["warnings"]["linked_structure_discontinuity"] = True
-                                    if entry["initial"]["total_energy"] != opt_traj[ii-1]["final"]["total_energy"]:
-                                        opt_trajectory["discontinuity"]["total_energy"].append([ii-1,ii])
-                                    if entry["initial"]["scf_energy"] != opt_traj[ii-1]["final"]["scf_energy"]:
-                                        opt_trajectory["discontinuity"]["scf_energy"].append([ii-1,ii])
-                    d["opt_trajectory"] = opt_trajectory
-
                     if d["state"] == "successful":
                         orig_num_neg_freq = sum(1 for freq in d["calcs_reversed"][-2]["frequencies"] if freq < 0)
                         orig_energy = d_calc_init["final_energy"]
@@ -387,6 +371,23 @@ class QChemDrone(AbstractDrone):
         if len(filenames) >= 1:
             with zopen(filenames[0], "rt") as f:
                 d["custom_smd"] = f.readlines()[0]
+        filenames = glob.glob(os.path.join(fullpath, "processed_critic2.json*"))
+        if len(filenames) >= 1:
+            with zopen(filenames[0], "rt") as f:
+                d["critic2"] = {}
+                d["critic2"]["processed"] = json.load(f)
+            filenames = glob.glob(os.path.join(fullpath, "cpreport.json*"))
+            if len(filenames) >= 1:
+                with zopen(filenames[0], "rt") as f:
+                    d["critic2"]["CP"] = json.load(f)
+            filenames = glob.glob(os.path.join(fullpath, "yt.json*"))
+            if len(filenames) >= 1:
+                with zopen(filenames[0], "rt") as f:
+                    d["critic2"]["YT"] = json.load(f)
+            filenames = glob.glob(os.path.join(fullpath, "bonding.json*"))
+            if len(filenames) >= 1:
+                with zopen(filenames[0], "rt") as f:
+                    d["critic2"]["bonding"] = json.load(f)
 
     def validate_doc(self, d):
         """

@@ -15,7 +15,7 @@ from atomate.vasp.powerups import use_fake_vasp, use_no_vasp
 from atomate.vasp.workflows.presets.core import wf_bulk_modulus
 from atomate.utils.testing import AtomateTest
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.util.testing import PymatgenTest
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 

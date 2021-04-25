@@ -40,21 +40,13 @@ class RunQChemDirect(FiretaskBase):
         qchem_cmd (str): The name of the full command line call to run. This should include any
                          flags for parallelization, saving scratch, and input / output files.
                          Does NOT support env_chk.
-    Optional params:
-        scratch_dir (str): Path to the scratch directory. Defaults to "/dev/shm/qcscratch/".
-                           Supports env_chk.
-
     """
 
     required_params = ["qchem_cmd"]
-    optional_params = ["scratch_dir"]
 
     def run_task(self, fw_spec):
         cmd = self.get("qchem_cmd")
-        scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
-        if scratch_dir == None:
-            scratch_dir = "/dev/shm/qcscratch/"
-        os.putenv("QCSCRATCH", scratch_dir)
+        os.putenv("QCSCRATCH", os.getcwd())
 
         logger.info("Running command: {}".format(cmd))
         return_code = subprocess.call(cmd, shell=True)
@@ -82,17 +74,20 @@ class RunQChemCustodian(FiretaskBase):
         qclog_file (str): Name of the file to redirect the standard output to. None means
                           not to record the standard output. Defaults to None.
         suffix (str): String to append to the file in postprocess.
-        scratch_dir (str): QCSCRATCH directory. Defaults to "/dev/shm/qcscratch/".
-                           Supports env_chk.
+        calc_loc (str): Path where Q-Chem should run. Will env_chk by default. If not in
+                        environment, will be set to None, in which case Q-Chem will run in
+                        the system-defined QCLOCALSCR.
         save_scratch (bool): Whether to save scratch directory contents. Defaults to False.
-        save_name (str): Name of the saved scratch directory. Defaults to "default_save_name".
         max_errors (int): Maximum # of errors to fix before giving up (default=5)
         job_type (str): Choose from "normal" (default) and "opt_with_frequency_flattener"
         handler_group (str): Group of handlers to use. See handler_groups dict in the code
                              for the groups and complete list of handlers in each group.
-        gzip_output (bool): gzip output (default=T)
+        gzip_output (bool): gzip output, defaults to True.
+        backup (bool): Whether to backup the initial input file. If True, the input will
+                       be copied with a ".orig" appended. Defaults to True.
 
         *** Just for opt_with_frequency_flattener ***
+        linked (bool): Whether or not to use the linked flattener. Defaults to True.
         max_iterations (int): Number of perturbation -> optimization -> frequency iterations
                               to perform. Defaults to 10.
         max_molecule_perturb_scale (float): The maximum scaled perturbation that can be
@@ -102,9 +97,9 @@ class RunQChemCustodian(FiretaskBase):
     required_params = ["qchem_cmd"]
     optional_params = [
         "multimode", "input_file", "output_file", "max_cores", "qclog_file",
-        "suffix", "scratch_dir", "save_scratch", "save_name", "max_errors",
-        "max_iterations", "max_molecule_perturb_scale", "linked",
-        "job_type", "handler_group", "gzipped_output"
+        "suffix", "calc_loc", "save_scratch", "max_errors", "job_type",
+        "handler_group", "gzipped_output", "backup", "linked",
+        "max_iterations", "max_molecule_perturb_scale"
     ]
 
     def run_task(self, fw_spec):
@@ -114,19 +109,22 @@ class RunQChemCustodian(FiretaskBase):
         multimode = env_chk(self.get("multimode"), fw_spec)
         if multimode == None:
             multimode = "openmp"
+        """
+        Note that I'm considering hardcoding openmp in the future
+        because there is basically no reason anyone should ever run
+        QChem on multiple nodes, aka with multimode = mpi.
+        """ 
         input_file = self.get("input_file", "mol.qin")
         output_file = self.get("output_file", "mol.qout")
         max_cores = env_chk(self["max_cores"], fw_spec)
         qclog_file = self.get("qclog_file", "mol.qclog")
         suffix = self.get("suffix", "")
-        scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
-        if scratch_dir == None:
-            scratch_dir = "/dev/shm/qcscratch/"
+        calc_loc = env_chk(self.get("calc_loc"), fw_spec)
         save_scratch = self.get("save_scratch", False)
-        save_name = self.get("save_name", "saved_scratch")
         max_errors = self.get("max_errors", 5)
         max_iterations = self.get("max_iterations", 10)
-        linked = self.get("linked", False)
+        linked = self.get("linked", True)
+        backup = self.get("backup", True)
         max_molecule_perturb_scale = self.get("max_molecule_perturb_scale",
                                               0.3)
         job_type = self.get("job_type", "normal")
@@ -151,9 +149,9 @@ class RunQChemCustodian(FiretaskBase):
                     output_file=output_file,
                     qclog_file=qclog_file,
                     suffix=suffix,
-                    scratch_dir=scratch_dir,
+                    calc_loc=calc_loc,
                     save_scratch=save_scratch,
-                    save_name=save_name)
+                    backup=backup)
             ]
         elif job_type == "opt_with_frequency_flattener":
             if linked:
@@ -165,7 +163,9 @@ class RunQChemCustodian(FiretaskBase):
                     qclog_file=qclog_file,
                     max_iterations=max_iterations,
                     linked=linked,
-                    max_cores=max_cores)
+                    save_final_scratch=save_scratch,
+                    max_cores=max_cores,
+                    calc_loc=calc_loc)
             else:
                 jobs = QCJob.opt_with_frequency_flattener(
                     qchem_command=qchem_cmd,
@@ -174,12 +174,11 @@ class RunQChemCustodian(FiretaskBase):
                     output_file=output_file,
                     qclog_file=qclog_file,
                     max_iterations=max_iterations,
-                    linked=linked,
                     max_molecule_perturb_scale=max_molecule_perturb_scale,
-                    scratch_dir=scratch_dir,
-                    save_scratch=save_scratch,
-                    save_name=save_name,
-                    max_cores=max_cores)
+                    linked=linked,
+                    save_final_scratch=save_scratch,
+                    max_cores=max_cores,
+                    calc_loc=calc_loc)
 
         else:
             raise ValueError("Unsupported job type: {}".format(job_type))

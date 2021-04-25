@@ -1,4 +1,6 @@
-pytest==5.3.5
-pytest-cov==2.7.1
-coverage==5.0.3
-coveralls==1.11.0
+pytest==6.2.3
+pytest-cov==2.11.1
+coverage==5.5
+coveralls==3.0.1
+moto==2.0.5
+boto3==1.17.49

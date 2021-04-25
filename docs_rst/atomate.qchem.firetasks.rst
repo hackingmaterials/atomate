@@ -5,11 +5,20 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomate.qchem.firetasks.tests
 
 Submodules
 ----------
+
+atomate.qchem.firetasks.critic2 module
+--------------------------------------
+
+.. automodule:: atomate.qchem.firetasks.critic2
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 atomate.qchem.firetasks.fragmenter module
 -----------------------------------------
@@ -50,7 +59,6 @@ atomate.qchem.firetasks.write\_inputs module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

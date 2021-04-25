@@ -4,7 +4,7 @@
 import os
 import unittest
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 from atomate.feff.workflows.core import get_wf_exafs_paths
 

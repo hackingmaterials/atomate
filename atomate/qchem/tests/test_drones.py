@@ -2,9 +2,10 @@
 # Copyright (c) Materials Virtual Lab.
 # Distributed under the terms of the BSD License.
 
-
+import shutil
 import os
 import unittest
+from monty.serialization import dumpfn, loadfn
 from atomate.qchem.drones import QChemDrone
 from pymatgen.core.structure import Molecule
 import numpy as np
@@ -12,7 +13,7 @@ from pymatgen.analysis.local_env import OpenBabelNN
 from pymatgen.analysis.graphs import MoleculeGraph
 
 __author__ = "Samuel Blau"
-__copyright__ = "Copyright 2018, The Materials Project"
+__copyright__ = "Copyright 2019, The Materials Project"
 __version__ = "0.1"
 __maintainer__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"
@@ -208,13 +209,9 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["orig"]["rem"], doc["calcs_reversed"][-1]["input"]["rem"])
         self.assertEqual(doc["orig"]["molecule"], doc["calcs_reversed"][-1]["input"]["molecule"])
         orig_molgraph = MoleculeGraph.with_local_env_strategy(Molecule.from_dict(doc["orig"]["molecule"]),
-                                                              OpenBabelNN(),
-                                                              reorder=False,
-                                                              extend_structure=False)
+                                                              OpenBabelNN())
         initial_molgraph = MoleculeGraph.with_local_env_strategy(Molecule.from_dict(doc["input"]["initial_molecule"]),
-                                                                 OpenBabelNN(),
-                                                                 reorder=False,
-                                                                 extend_structure=False)
+                                                                 OpenBabelNN())
         self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), True)
 
     def test_assimilate_opt_with_hidden_changes_from_handler(self):
@@ -238,13 +235,9 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["pointgroup"], "C1")
         self.assertEqual(doc["orig"]["rem"], doc["calcs_reversed"][-1]["input"]["rem"])
         orig_molgraph = MoleculeGraph.with_local_env_strategy(Molecule.from_dict(doc["orig"]["molecule"]),
-                                                              OpenBabelNN(),
-                                                              reorder=False,
-                                                              extend_structure=False)
+                                                              OpenBabelNN())
         initial_molgraph = MoleculeGraph.with_local_env_strategy(Molecule.from_dict(doc["input"]["initial_molecule"]),
-                                                                 OpenBabelNN(),
-                                                                 reorder=False,
-                                                                 extend_structure=False)
+                                                                 OpenBabelNN())
         self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), False)
 
     def test_assimilate_disconnected_opt(self):
@@ -339,10 +332,9 @@ class QChemDroneTest(unittest.TestCase):
             input_file="mol.qin",
             output_file="mol.qout",
             multirun=False)
-        self.assertEqual(doc["opt_trajectory"]["discontinuity"], {'structure': [[1, 2]], 'scf_energy': [[1, 2]], 'total_energy': [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]]})
-        self.assertEqual(doc["opt_trajectory"]["energy_increase"], [[1, 2, 0.00011567800004286255], [4, 2.779800001917465e-05], [3, 4, 2.8762000056303805e-05], [5, 2.2528000044985674e-05], [4, 5, 2.1631999970850302e-05]])
-        self.assertEqual(doc["opt_trajectory"]["structure_change"], [[0, 'no_change'], [1, 'no_change'], [2, 'no_change'], [3, 'no_change'], [4, 'no_change'], [5, 'no_change'], [6, 'no_change']])
-        self.assertEqual(doc["warnings"], {'missing_analytical_derivates': True, 'mkl': True, 'hessian_local_structure': True, 'internal_coordinates': True, 'diagonalizing_BBt': True, 'eigenvalue_magnitude': True, 'positive_definiteness_endangered': True, 'linked_structure_discontinuity': True, 'energy_increased': True})
+        self.assertEqual(doc["opt_trajectory"][0]["energy"],-784.934084124)
+        self.assertEqual(doc["opt_trajectory"][-1]["energy"],-784.934280182)
+        self.assertEqual(doc["warnings"], {'missing_analytical_derivates': True, 'mkl': True, 'hessian_local_structure': True, 'internal_coordinates': True, 'diagonalizing_BBt': True, 'eigenvalue_magnitude': True, 'positive_definiteness_endangered': True, 'energy_increased': True})
 
     def test_custom_smd(self):
         drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener", "linked": True})
@@ -352,6 +344,18 @@ class QChemDroneTest(unittest.TestCase):
             output_file="mol.qout",
             multirun=False)
         self.assertEqual(doc["custom_smd"],"18.5,1.415,0.00,0.735,20.2,0.00,0.00")
+
+    def test_assimilate_critic(self):
+        crit_ex_path = os.path.join(module_dir, "..", "test_files", "critic_test_files", "critic_example")
+        drone = QChemDrone()
+        doc = drone.assimilate(
+            path=crit_ex_path,
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False)
+        # dumpfn(doc["critic2"],os.path.join(crit_ex_path, "critic2_drone_ref.json"))
+        critic2_drone_ref = loadfn(os.path.join(crit_ex_path, "critic2_drone_ref.json"))
+        self.assertEqual(doc["critic2"],critic2_drone_ref)
 
 
 if __name__ == "__main__":

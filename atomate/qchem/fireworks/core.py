@@ -6,10 +6,12 @@
 
 from fireworks import Firework
 
+import copy
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
+from atomate.qchem.firetasks.critic2 import RunCritic2, ProcessCritic2
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -252,7 +254,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                  qchem_input_params=None,
                  max_iterations=10,
                  max_molecule_perturb_scale=0.3,
-                 linked=False,
+                 linked=True,
                  db_file=None,
                  parents=None,
                  **kwargs):
@@ -398,6 +400,89 @@ class FragmentFW(Firework):
                 db_file=db_file,
                 check_db=check_db))
         super(FragmentFW, self).__init__(
+            t,
+            parents=parents,
+            name=name,
+            **kwargs)
+
+
+class CubeAndCritic2FW(Firework):
+    def __init__(self,
+                 molecule=None,
+                 name="cube and critic2",
+                 qchem_cmd=">>qchem_cmd<<",
+                 multimode=">>multimode<<",
+                 max_cores=">>max_cores<<",
+                 qchem_input_params=None,
+                 db_file=None,
+                 parents=None,
+                 **kwargs):
+        """
+        Perform a Q-Chem single point calculation in order to generate a cube file of the electron density
+        and then analyze the electron density critical points with the Critic2 package.
+
+        Args:
+            molecule (Molecule): Input molecule.
+            name (str): Name for the Firework.
+            qchem_cmd (str): Command to run QChem. Supports env_chk.
+            multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
+            max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
+            qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
+                                       Basic uses would be to modify the default inputs of the set,
+                                       such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
+                                       or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
+                                       values of all input parameters. For instance, if a user wanted
+                                       to use a more advanced DFT functional, include a pcm with a
+                                       dielectric of 30, and use a larger basis, the user would set
+                                       qchem_input_params = {"dft_rung": 5, "pcm_dielectric": 30,
+                                       "basis_set": "6-311++g**"}. However, more advanced customization
+                                       of the input is also possible through the overwrite_inputs key
+                                       which allows the user to directly modify the rem, pcm, smd, and
+                                       solvent dictionaries that QChemDictSet passes to inputs.py to
+                                       print an actual input file. For instance, if a user wanted to
+                                       set the sym_ignore flag in the rem section of the input file
+                                       to true, then they would set qchem_input_params = {"overwrite_inputs":
+                                       "rem": {"sym_ignore": "true"}}. Of course, overwrite_inputs
+                                       could be used in conjuction with more typical modifications,
+                                       as seen in the test_double_FF_opt workflow test.
+            db_file (str): Path to file specifying db credentials to place output parsing.
+            parents ([Firework]): Parents of this particular Firework.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
+        qchem_input_params = copy.deepcopy(qchem_input_params) or {}
+        qchem_input_params["plot_cubes"] = True
+        input_file="mol.qin"
+        output_file="mol.qout"
+        t = []
+        t.append(
+            WriteInputFromIOSet(
+                molecule=molecule,
+                qchem_input_set="SinglePointSet",
+                input_file=input_file,
+                qchem_input_params=qchem_input_params))
+        t.append(
+            RunQChemCustodian(
+                qchem_cmd=qchem_cmd,
+                multimode=multimode,
+                input_file=input_file,
+                output_file=output_file,
+                max_cores=max_cores,
+                job_type="normal"))
+        t.append(
+            RunCritic2(
+                molecule=molecule,
+                cube_file="dens.0.cube.gz"))
+        t.append(
+            ProcessCritic2(
+                molecule=molecule))
+        t.append(
+            QChemToDb(
+                db_file=db_file,
+                input_file=input_file,
+                output_file=output_file,
+                additional_fields={"task_label": name}))
+        super(CubeAndCritic2FW, self).__init__(
             t,
             parents=parents,
             name=name,

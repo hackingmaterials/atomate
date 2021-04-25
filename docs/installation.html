@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Installing atomate &#8212; atomate 0.9.4 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Installing atomate &#8212; atomate 0.9.9 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Installing atomate in development mode" href="developer_installation.html" />
@@ -35,7 +36,8 @@
         <li class="right" >
           <a href="index.html" title="atomate"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.9 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Installing atomate</a></li> 
       </ul>
     </div>  
 
@@ -224,9 +226,11 @@ Next, we will download and install all of the atomate-related Python packages.</
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">atomate.vasp.database</span> <span class="kn">import</span> <span class="n">VaspCalcDb</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">VaspCalcDb</span><span class="o">.</span><span class="n">from_db_file</span><span class="p">(</span><span class="s2">&quot;db.json&quot;</span><span class="p">)</span>
 <span class="n">x</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;SUCCESS&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SUCCESS&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>If you would like to store data beyond the 16 Mb limit of MongoDB please read:
+<a class="reference internal" href="advanced_stores.html#advanced-storage"><span class="std std-ref">Advanced Storage Stratagies</span></a>.</p>
 </div>
 <div class="section" id="my-fworker-yaml">
 <h3>my_fworker.yaml<a class="headerlink" href="#my-fworker-yaml" title="Permalink to this headline">¶</a></h3>
@@ -315,7 +319,7 @@ It may be worth going through the FireWorks documentation to understand the diff
 <p>If you aren’t sure what queue system the cluster you are setting up uses, consult the documentation for that resource. If the queue system isn’t one of these preconfigured ones, consult the <a class="reference external" href="https://materialsproject.github.io/fireworks/qadapter_programming.html?highlight=qadapter">FireWorks documentation for writing queue adapters</a>. The FireWorks documentation also has tutorials on setting up your jobs to run on a queue in a way that is more interactive than the minimal details specified here.</p>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">nodes</span></code>, <code class="docutils literal notranslate"><span class="pre">walltime</span></code> are the default reservations made to the queue as you would expect. <code class="docutils literal notranslate"><span class="pre">queue</span></code> refers to the name of the queue you will submit to. Some clusters support this and appropriate values might be <code class="docutils literal notranslate"><span class="pre">regular</span></code>, <code class="docutils literal notranslate"><span class="pre">normal</span></code>, <code class="docutils literal notranslate"><span class="pre">knl</span></code>, etc. as defined by the compute resource you are using. The <code class="docutils literal notranslate"><span class="pre">account</span></code> option refers to which account to charge. Again, whether or not you need to set this depends on the resource. <code class="docutils literal notranslate"><span class="pre">pre_rocket</span></code> and <code class="docutils literal notranslate"><span class="pre">post_rocket</span></code> add lines to before and after you job launches in your queue submission script. One use of this would be to enter directives such as <code class="docutils literal notranslate"><span class="pre">#SBATCH</span> <span class="pre">-C</span> <span class="pre">knl,quad,cache</span></code> to configure SLURM to run on knl nodes. Any parameters left null will not be used to write the queue file.</p>
-<p>This is not at all required, but if you want to see what the queue templates look like, you can see them <a class="reference external" href="https://github.com/materialsproject/fireworks/tree/master/fireworks/user_objects/queue_adapters">here</a>. The values you put in your <code class="docutils literal notranslate"><span class="pre">my_qadapter.yaml</span></code> file above are used to fill in the unknown values of the template.</p>
+<p>This is not at all required, but if you want to see what the queue templates look like, you can see them <a class="reference external" href="https://github.com/materialsproject/fireworks/tree/main/fireworks/user_objects/queue_adapters">here</a>. The values you put in your <code class="docutils literal notranslate"><span class="pre">my_qadapter.yaml</span></code> file above are used to fill in the unknown values of the template.</p>
 </div>
 <div class="section" id="fw-config-yaml">
 <h3>FW_config.yaml<a class="headerlink" href="#fw-config-yaml" title="Permalink to this headline">¶</a></h3>
@@ -410,7 +414,7 @@ It may be worth going through the FireWorks documentation to understand the diff
 <p>All of these function specify (i) a type of workflow and (ii) the structure to feed into that workflow.</p>
 <ul class="simple">
 <li><p>The <code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">vasp</span></code> option states to use the <code class="docutils literal notranslate"><span class="pre">vasp</span></code> library of workflows.</p></li>
-<li><p>The <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">optimize_only.yaml</span></code> sets the specification of the workflow using the <code class="docutils literal notranslate"><span class="pre">optimize_only.yaml</span></code> file in <a class="reference external" href="https://github.com/hackingmaterials/atomate/blob/master/atomate/vasp/workflows/base/library/">this directory</a>. Alternatively, the <code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">wf_structure_optimization</span></code> sets the workflow specification using the preset Python function located in <a class="reference external" href="https://github.com/hackingmaterials/atomate/blob/master/atomate/vasp/workflows/presets/core.py">this module</a>. For now, it’s probably best not to worry about the distinction but to know that both libraries of workflows are available to you.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">optimize_only.yaml</span></code> sets the specification of the workflow using the <code class="docutils literal notranslate"><span class="pre">optimize_only.yaml</span></code> file in <a class="reference external" href="https://github.com/hackingmaterials/atomate/blob/main/atomate/vasp/workflows/base/library/">this directory</a>. Alternatively, the <code class="docutils literal notranslate"><span class="pre">-p</span> <span class="pre">wf_structure_optimization</span></code> sets the workflow specification using the preset Python function located in <a class="reference external" href="https://github.com/hackingmaterials/atomate/blob/main/atomate/vasp/workflows/presets/core.py">this module</a>. For now, it’s probably best not to worry about the distinction but to know that both libraries of workflows are available to you.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">-c</span></code> option is used in file-based workflows to make sure that one uses the <code class="docutils literal notranslate"><span class="pre">vasp_cmd</span></code> and <code class="docutils literal notranslate"><span class="pre">db_file</span></code> that are specified in <code class="docutils literal notranslate"><span class="pre">my_fworker.yaml</span></code> that you specified earlier. In the preset workflows, it is the default behavior to take these parameters from the <code class="docutils literal notranslate"><span class="pre">my_fworker.yaml</span></code> so this option is not needed.</p></li>
 </ul>
 </div>
@@ -543,6 +547,7 @@ located in: &lt;&lt;INSTALL_DIR&gt;&gt;/atomate_env/lib/python3.6/site-packages/
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -617,7 +622,7 @@ located in: &lt;&lt;INSTALL_DIR&gt;&gt;/atomate_env/lib/python3.6/site-packages/
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -637,13 +642,14 @@ located in: &lt;&lt;INSTALL_DIR&gt;&gt;/atomate_env/lib/python3.6/site-packages/
         <li class="right" >
           <a href="index.html" title="atomate"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.4 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.9 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Installing atomate</a></li> 
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2015, Anubhav Jain.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.1.2.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
     </div>
 
   </body>

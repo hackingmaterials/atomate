@@ -5,16 +5,41 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomate.vasp.firetasks.tests
 
 Submodules
 ----------
 
+atomate.vasp.firetasks.electrode\_tasks module
+----------------------------------------------
+
+.. automodule:: atomate.vasp.firetasks.electrode_tasks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+atomate.vasp.firetasks.exchange module
+--------------------------------------
+
+.. automodule:: atomate.vasp.firetasks.exchange
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.firetasks.glue\_tasks module
 -----------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.glue_tasks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+atomate.vasp.firetasks.lobster\_tasks module
+--------------------------------------------
+
+.. automodule:: atomate.vasp.firetasks.lobster_tasks
    :members:
    :undoc-members:
    :show-inheritance:
@@ -50,7 +75,6 @@ atomate.vasp.firetasks.write\_inputs module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Storage Stratagies &#8212; atomate 0.9.9 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+ 
+<link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.9 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Advanced Storage Stratagies</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="advanced-storage-stratagies">
+<span id="advanced-storage"></span><h1>Advanced Storage Stratagies<a class="headerlink" href="#advanced-storage-stratagies" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="storing-data-greater-than-16-mb">
+<h2>Storing data greater than 16 Mb<a class="headerlink" href="#storing-data-greater-than-16-mb" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="introduction">
+<h3>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h3>
+<p>As the analysis capabilities of the high-throughput computational material science grows, more and more data is required to perform the analysis.
+While the atomic structure and metadata about the calculations can be stored within the 16 Mb limit of MongoDB’s data framework the storage requirement for field data like the charge density is often orders of magnitude larger than that limit.
+As such, alternative methods are required to handle the storage of specific fields in the parsed task document.
+For these fields, with larger storage requirements, the data itself will be removed from the task document and replaced with and <code class="docutils literal notranslate"><span class="pre">fs_id</span></code> to reference where the data is stored.
+This results in a task document with a much smaller size, which will still be uploaded onto the MongoDB specified in your <code class="docutils literal notranslate"><span class="pre">DB_FILE</span></code></p>
+<p>Two approaches are currently available in atomate to handle the storage of large data chunk.
+The user can implement a GridFS-based chunking and storage procedure as we have done in <code class="docutils literal notranslate"><span class="pre">VaspCalcDb</span></code>.
+But the recommended method for large object storage is to use <code class="docutils literal notranslate"><span class="pre">maggma</span></code> stores implemented in the <code class="docutils literal notranslate"><span class="pre">CalcDb</span></code> class.
+Currently, only the Amazon S3 store is implemented.</p>
+<p>Please read the documentation for <code class="docutils literal notranslate"><span class="pre">maggma</span></code> for more details _maggma: <a class="reference external" href="https://materialsproject.github.io/maggma">https://materialsproject.github.io/maggma</a></p>
+</div>
+<div class="section" id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
+<p>To storing the larger items to an AWS S3 bucket via the <code class="docutils literal notranslate"><span class="pre">maggma</span></code> API, the user needs to have the <code class="docutils literal notranslate"><span class="pre">maggma_store</span></code> keyword in present in the <code class="docutils literal notranslate"><span class="pre">db.json</span></code> file used by atomate.</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
+    &quot;host&quot;: &quot;&lt;&lt;HOSTNAME&gt;&gt;&quot;,
+    &quot;port&quot;: &lt;&lt;PORT&gt;&gt;,
+    &quot;database&quot;: &quot;&lt;&lt;DB_NAME&gt;&gt;&quot;,
+    &quot;collection&quot;: &quot;tasks&quot;,
+    &quot;admin_user&quot;: &quot;&lt;&lt;ADMIN_USERNAME&gt;&gt;&quot;,
+    &quot;admin_password&quot;: &quot;&lt;&lt;ADMIN_PASSWORD&gt;&gt;&quot;,
+    &quot;readonly_user&quot;: &quot;&lt;&lt;READ_ONLY_PASSWORD&gt;&gt;&quot;,
+    &quot;readonly_password&quot;: &quot;&lt;&lt;READ_ONLY_PASSWORD&gt;&gt;&quot;,
+    &quot;aliases&quot;: {}
+    &quot;maggma_store&quot;: {
+            &quot;bucket&quot; : &quot;&lt;&lt;BUCKET_NAME&gt;&gt;&quot;,
+            &quot;s3_profile&quot; : &quot;&lt;&lt;S3_PROFILE_NAME&gt;&gt;&quot;,
+            &quot;compress&quot; : true,
+            &quot;endpoint_url&quot; : &quot;&lt;&lt;S3_URL&gt;&gt;&quot;
+    }
+}
+</pre></div>
+</div>
+<p>Where <code class="docutils literal notranslate"><span class="pre">&lt;&lt;BUCKET_NAME&gt;&gt;</span></code> is S3 bucket where the data will be stored, <code class="docutils literal notranslate"><span class="pre">&lt;&lt;S3_PROFILE_NAME&gt;&gt;</span></code> is the name of the S3 profile from the <code class="docutils literal notranslate"><span class="pre">$HOME/.aws</span></code> folder.
+Note, this AWS profile needs to be available anywhere the <code class="docutils literal notranslate"><span class="pre">VaspCalcDb.insert_task</span></code> is called (i.e. on the computing resource where the database upload of the tasks takes place).</p>
+</div>
+<div class="section" id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h3>
+<p>Example: store the charge density</p>
+<p>To parse a completed calculation directory.  We need to instantiate the <code class="docutils literal notranslate"><span class="pre">drone</span></code> with the <code class="docutils literal notranslate"><span class="pre">parse_aeccar</span></code> or <code class="docutils literal notranslate"><span class="pre">parse_chgcar</span></code> flag.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">calc_dir</span> <span class="o">=</span> <span class="s2">&quot;&lt;&lt;DIR&gt;&gt;/launcher_2019-09-03-11-46-20-683785&quot;</span>
+<span class="n">drone</span> <span class="o">=</span> <span class="n">VaspDrone</span><span class="p">(</span><span class="n">parse_chgcar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parse_aeccar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">drone</span><span class="o">.</span><span class="n">assimilate</span><span class="p">(</span><span class="n">calc_dir</span><span class="p">)</span>
+<span class="n">task_id</span> <span class="o">=</span> <span class="n">mmdb</span><span class="o">.</span><span class="n">insert_task</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Some workflows like the <code class="docutils literal notranslate"><span class="pre">StaticWF</span></code> will pass the parsing flags like <code class="docutils literal notranslate"><span class="pre">parse_chgcar</span></code> to the drone directly.</p>
+<p>To access the data using the task_id we can call</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">chgcar</span> <span class="o">=</span> <span class="n">mmdb</span><span class="o">.</span><span class="n">get_chgcar</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Similar functionalities exist for the band structure and DOS.
+Please refer to the documentation of <code class="docutils literal notranslate"><span class="pre">VaspCalcDb</span></code> for more details.</p>
+</div>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Advanced Storage Stratagies</a><ul>
+<li><a class="reference internal" href="#storing-data-greater-than-16-mb">Storing data greater than 16 Mb</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#configuration">Configuration</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/advanced_stores.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.9 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Advanced Storage Stratagies</a></li> 
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2015, Anubhav Jain.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.2.1.
+    </div>
+
+  </body>
+</html>

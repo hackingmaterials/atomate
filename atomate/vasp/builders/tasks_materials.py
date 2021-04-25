@@ -12,7 +12,7 @@ from atomate.vasp.builders.base import AbstractBuilder
 from atomate.vasp.builders.utils import dbid_to_str, dbid_to_int
 from atomate.utils.utils import get_database
 from monty.serialization import loadfn
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
 
 logger = get_logger(__name__)

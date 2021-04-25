@@ -46,7 +46,7 @@ class LammpsFW(Firework):
             name (str): descriptive name for lammps simulation
             log_filename (str)
             dump_filename (str)
-            \*\*kwargs: other kwargs that are passed to Firework.__init__.
+            **kwargs: other kwargs that are passed to Firework.__init__.
         """
         if run_label is None:
             run_label = uuid4()
@@ -206,6 +206,41 @@ class LammpsDeepMDFW(Firework):
 
         super(LammpsDeepMDFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
+class PackmolFW(Firework):
+
+    def __init__(self, molecules, packing_config, tolerance=2.0, filetype="xyz", control_params=None,
+                 output_file="packed.xyz", site_property=None, parents=None, name="PackmolFW",
+                 packmol_cmd="packmol", **kwargs):
+        """
+
+        Args:
+            molecules (list): list of constituent molecules(Molecule objects)
+            packing_config (list): list of dict config settings for each molecule in the
+                molecules list. eg: config settings for a single molecule
+                [{"number": 1, "inside box":[0,0,0,100,100,100]}]
+            tolerance (float): packmol tolerance
+            filetype (string): input/output structure file type
+            control_params (dict): packmol control parameters dictionary. Basically all parameters
+                other than structure/atoms.
+            output_file (str): output file name. The extension will be adjusted according to the filetype.
+            site_property (str): the specified site property will be restored for the final Molecule object.
+            parents ([Firework]): parent fireworks
+            name (str): firework name
+            packmol_cmd (str): path to packmol bin
+            **kwargs:
+        """
+        control_params = control_params or {'maxit': 20, 'nloop': 600}
+
+        tasks = [
+            RunPackmol(molecules=molecules, packing_config=packing_config, tolerance=tolerance,
+                       filetype=filetype, control_params=control_params,  output_file=output_file,
+                       site_property=site_property, packmol_cmd=packmol_cmd),
+
+            PassCalcLocs(name=name)
+
+             ]
+
+        super(PackmolFW, self).__init__(tasks, parents=parents, name=name, **kwargs)
 
 # class LammpsForceFieldFW(Firework):
 #

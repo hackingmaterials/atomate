@@ -24,7 +24,9 @@ logger = get_logger(__name__)
 
 def get_wf_thermal_expansion(structure, deformations, vasp_input_set=None, vasp_cmd="vasp",
                              db_file=None, user_kpoints_settings=None, t_step=10, t_min=0,
-                             t_max=1000, mesh=(20, 20, 20), eos="vinet", pressure=0.0, tag=None):
+                             t_max=1000, mesh=(20, 20, 20), eos="vinet", pressure=0.0,
+                             copy_vasp_outputs=False,
+                             tag=None):
     """
     Returns quasi-harmonic thermal expansion workflow.
     Note: phonopy package is required for the final analysis step.
@@ -43,6 +45,8 @@ def get_wf_thermal_expansion(structure, deformations, vasp_input_set=None, vasp_
         eos (str): equation of state used for fitting the energies and the volumes.
             options supported by phonopy: "vinet", "murnaghan", "birch_murnaghan".
             Note: pymatgen supports more options than phonopy. see pymatgen.analysis.eos.py
+        copy_vasp_outputs (bool): whether or not copy the outputs from the previous calc
+            (usually structure optimization) before the deformations are performed.
         pressure (float): in GPa
         tag (str): something unique to identify the tasks in this workflow. If None a random uuid
             will be assigned.
@@ -63,6 +67,7 @@ def get_wf_thermal_expansion(structure, deformations, vasp_input_set=None, vasp_
                                                user_kpoints_settings=user_kpoints_settings)
     wf_alpha = get_wf_deformations(structure, deformations, name="thermal_expansion deformation",
                                    vasp_cmd=vasp_cmd, db_file=db_file, tag=tag,
+                                   copy_vasp_outputs=copy_vasp_outputs,
                                    vasp_input_set=vis_static)
 
     fw_analysis = Firework(ThermalExpansionCoeffToDb(tag=tag, db_file=db_file, t_step=t_step,

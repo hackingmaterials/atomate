@@ -1,0 +1,6 @@
+COHPstartEnergy -15.0
+COHPendEnergy 10.0
+basisSet pbeVaspFit2015
+cohpGenerator from 0.1 to 6.0 orbitalwise
+saveProjectionToFile
+basisfunctions Si 3p 3s 

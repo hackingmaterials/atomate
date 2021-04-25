@@ -128,7 +128,7 @@ In the same directory as the POSCAR, create a Python script named ``mgo_bandstru
 
     # Create a bandstructure from the workflow from the atomate presets
     import numpy as np
-    from pymatgen import Structure
+    from pymatgen.core import Structure
     from fireworks import LaunchPad
     from atomate.vasp.workflows.presets.core import wf_bandstructure
     from atomate.vasp.powerups import add_modify_incar

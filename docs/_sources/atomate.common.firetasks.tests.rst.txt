@@ -20,7 +20,6 @@ atomate.common.firetasks.tests.test\_parse\_outputs module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 
