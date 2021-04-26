@@ -34,6 +34,10 @@ class RunLammpsDirect(FiretaskBase):
 
     def run_task(self, fw_spec):
         lammps_cmd = env_chk(self["lammps_cmd"], fw_spec)
+        if "-hosts=os.environ['SLURM_NODELIST']" in lammps_cmd:
+            parts = lammps_cmd.split("-hosts=os.environ['SLURM_NODELIST']")
+            lammps_cmd = f"-hosts={os.environ['SLURM_NODELIST']}".join(parts)
+
         input_filename = self["input_filename"]
         lmps_runner = LammpsRunner(input_filename, lammps_cmd)
         stdout, stderr = lmps_runner.run()
