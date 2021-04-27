@@ -23,7 +23,7 @@ class LammpsMDToDB(FiretaskBase):
     searching for a unique tag
     """
     required_params = ["db_file"]
-    optional_params = ["input_filename", "run_label"]
+    optional_params = ["input_filename", "run_label", "comments"]
 
     def run_task(self, fw_spec):
         db_file = env_chk(self["db_file"], fw_spec)
