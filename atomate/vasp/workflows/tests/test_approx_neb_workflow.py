@@ -20,13 +20,13 @@ class TestApproxNEBWorkflow(AtomateTest):
         super(TestApproxNEBWorkflow, self).setUp()
 
         # get base structure file
-        input_host_file = ref_dir / "approx_neb_wf/layered_TiS2_POSCAR"
+        input_host_file = ref_dir / "approx_neb_wf/spinel_MnO2_POSCAR"
         self.host_struct = Structure.from_file(input_host_file)
 
         self.wf = get_aneb_wf(
             structure=self.host_struct,
-            working_ion="Mg",
-            insert_coords=[[0.75, 0.75, 0.75], [0.746335, 0.875393, 0.49904]],
+            working_ion="Li",
+            insert_coords=[[0,0,0.5],[0.5,0.5,0]],
             insert_coords_combinations=["0+1"],
             n_images=3,
         )
@@ -35,7 +35,7 @@ class TestApproxNEBWorkflow(AtomateTest):
 
     def tearDown(self):
         super().tearDown()
-        delete_folder(ref_dir / "approx_neb_wf/scratch")
+        #delete_folder(ref_dir / "approx_neb_wf/scratch")
 
     def test_wf(self):
 
@@ -106,12 +106,12 @@ def get_simulated_wf(wf):
     f_dir = ref_dir / "approx_neb_wf/"
 
     ref_dirs = {
-        "TiS2 host": f_dir / "layered_TiS2_host",
-        "end point: insert Mg 0": f_dir / "layered_TiS2_ep0",
-        "end point: insert Mg 1": f_dir / "layered_TiS2_ep1",
-        "image 0+1: 0": f_dir / "layered_TiS2_im0",
-        "image 0+1: 1": f_dir / "layered_TiS2_im1",
-        "image 0+1: 2": f_dir / "layered_TiS2_im2",
+        "MnO2 host": f_dir / "host",
+        "end point: insert Li 0": f_dir / "ep0",
+        "end point: insert Li 1": f_dir / "ep1",
+        "image 0+1: 0": f_dir / "im0",
+        "image 0+1: 1": f_dir / "im1",
+        "image 0+1: 2": f_dir / "im2",
     }
 
     wf = use_fake_vasp(
