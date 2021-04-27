@@ -220,6 +220,13 @@ class QChemDrone(AbstractDrone):
                     d["output"]["final_energy"] = d["calcs_reversed"][1][
                         "final_energy"]
 
+            if d["output"]["job_type"] == "force":
+                d["output"]["gradients"] = d_calc_final["gradients"][0]
+                if d_calc_final["pcm_gradients"] is not None:
+                    d["output"]["pcm_gradients"] = d_calc_final["pcm_gradients"][0]
+                if d_calc_final["CDS_gradients"] is not None:
+                    d["output"]["CDS_gradients"] = d_calc_final["CDS_gradients"][0]
+
             opt_trajectory = []
             calcs = copy.deepcopy(d["calcs_reversed"])
             calcs.reverse()
