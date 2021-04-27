@@ -85,9 +85,10 @@ class HostToDb(FiretaskBase):
         # ensure tags and additional_fields are the same
         # in both the approx_neb and tasks collections
         additional_fields = self.get("additional_fields", {})
-        for key, value in additional_fields.items():
-            if key not in approx_neb_doc.keys():
-                approx_neb_doc[key] = value
+        if isinstance(additional_fields, dict):
+            for key, value in additional_fields.items():
+                if key not in approx_neb_doc.keys():
+                    approx_neb_doc[key] = value
 
         tags = self.get("tags")
         if tags:
