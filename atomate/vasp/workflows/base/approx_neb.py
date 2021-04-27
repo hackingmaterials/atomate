@@ -22,7 +22,7 @@ from atomate.vasp.fireworks.approx_neb import HostFW, EndPointFW
 from atomate.vasp.fireworks.approx_neb_dynamic import EvaluatePathFW
 
 
-def approx_neb_wf(
+def get_aneb_wf(
     structure,
     working_ion,
     insert_coords,
