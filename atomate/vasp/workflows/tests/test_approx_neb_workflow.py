@@ -2,10 +2,8 @@ from pathlib import Path
 from atomate.utils.testing import AtomateTest
 from pymatgen.core import Structure
 from atomate.vasp.workflows.base.approx_neb import get_aneb_wf
-from atomate.vasp.powerups import use_fake_vasp
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
-from atomate.vasp.workflows.tests.test_ferroelectric_workflow import delete_folder
 
 __author__ = "Ann Rutt"
 __email__ = "acrutt@lbl.gov"
@@ -23,28 +21,47 @@ class TestApproxNEBWorkflow(AtomateTest):
         input_host_file = ref_dir / "approx_neb_wf/spinel_MnO2_POSCAR"
         self.host_struct = Structure.from_file(input_host_file)
 
+        # get fake vasp powerup inputs
+        f_dir = ref_dir / "approx_neb_wf/"
+        ref_dirs = {
+            "MnO2 host": f_dir / "host",
+            "end point: insert Li 0": f_dir / "ep0",
+            "end point: insert Li 1": f_dir / "ep1",
+            "image 0+1: 0": f_dir / "im0",
+            "image 0+1: 1": f_dir / "im1",
+            "image 0+1: 2": f_dir / "im2",
+        }
+        powerup_dicts = [
+            {
+                "powerup_name": "atomate.vasp.powerups.use_fake_vasp",
+                "kwargs": {
+                    "ref_dirs": ref_dirs,
+                    "check_incar": False,
+                    "check_kpoints": False,
+                    "check_poscar": True,
+                    "check_potcar": False,
+                    "clear_inputs": False,
+                },
+            }
+        ]
+
+        # get workflow
         self.wf = get_aneb_wf(
             structure=self.host_struct,
             working_ion="Li",
-            insert_coords=[[0,0,0.5],[0.5,0.5,0]],
+            insert_coords=[[0, 0, 0.5], [0.5, 0.5, 0]],
             insert_coords_combinations=["0+1"],
             n_images=3,
+            powerup_dicts=powerup_dicts,
         )
 
         self.wf_id = self.wf.fws[0].tasks[-1]["approx_neb_wf_uuid"]
 
-    def tearDown(self):
-        super().tearDown()
-        #delete_folder(ref_dir / "approx_neb_wf/scratch")
-
     def test_wf(self):
-
-        wf = get_simulated_wf(self.wf)
-
         # 1 host + 2 end point + 1 pathfinder = 4
-        self.assertEqual(len(wf.fws), 4)
+        self.assertEqual(len(self.wf.fws), 4)
 
-        fw_ids = self.lp.add_wf(wf)
+        fw_ids = self.lp.add_wf(self.wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": db_dir / "db.json"}))
 
         # 3 images fws are added after running the workflow
@@ -100,28 +117,3 @@ class TestApproxNEBWorkflow(AtomateTest):
         # check workflow finished without error
         is_completed = [s == "COMPLETED" for s in run_wf.fw_states.values()]
         self.assertTrue(all(is_completed))
-
-
-def get_simulated_wf(wf):
-    f_dir = ref_dir / "approx_neb_wf/"
-
-    ref_dirs = {
-        "MnO2 host": f_dir / "host",
-        "end point: insert Li 0": f_dir / "ep0",
-        "end point: insert Li 1": f_dir / "ep1",
-        "image 0+1: 0": f_dir / "im0",
-        "image 0+1: 1": f_dir / "im1",
-        "image 0+1: 2": f_dir / "im2",
-    }
-
-    wf = use_fake_vasp(
-        wf,
-        ref_dirs,
-        check_incar=False,
-        check_kpoints=False,
-        check_poscar=True,
-        check_potcar=False,
-        clear_inputs=False,
-    )
-
-    return wf

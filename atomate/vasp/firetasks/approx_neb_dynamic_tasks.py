@@ -1,7 +1,8 @@
-from fireworks import FiretaskBase, FWAction, explicit_serialize
+from fireworks import FiretaskBase, FWAction, explicit_serialize, Workflow
 from atomate.utils.utils import env_chk
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.fireworks.approx_neb import ImageFW
+from atomate.common.powerups import powerup_by_kwargs
 
 
 @explicit_serialize
@@ -129,6 +130,14 @@ class GetImageFireworks(FiretaskBase):
                     relax_image_fws.extend(
                         self.get_screening_fws(sorted_paths=sorted_paths)
                     )
+
+        # place fws in temporary wf in order to use powerup_by_kwargs
+        # to apply powerups to image fireworks
+        if "vasp_powerups" in fw_spec.keys():
+            temp_wf = Workflow(relax_image_fws)
+            powerup_dicts = fw_spec["vasp_powerups"]
+            temp_wf = powerup_by_kwargs(temp_wf, powerup_dicts)
+            relax_image_fws = temp_wf.fws
 
         return FWAction(additions=relax_image_fws)
 

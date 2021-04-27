@@ -6,6 +6,7 @@ from atomate.vasp.powerups import (
     add_tags,
     add_additional_fields_to_taskdocs,
 )
+from atomate.common.powerups import powerup_by_kwargs
 from custodian.vasp.handlers import (
     VaspErrorHandler,
     MeshSymmetryErrorHandler,
@@ -38,6 +39,7 @@ def get_aneb_wf(
     wall_time=None,
     additional_fields=None,
     tags=None,
+    powerup_dicts=None,
     name="ApproxNEB",
 ):
     """
@@ -112,6 +114,8 @@ def get_aneb_wf(
     tags (list): list of strings to be stored in the
         approx_neb collection under the "tags" field to
         assist user record keeping.
+    powerup_dicts (list): additional powerups given to all the dynamically
+        created image fireworks
     name (str): name for the workflow returned
 
     Returns: Workflow
@@ -211,8 +215,12 @@ def get_aneb_wf(
     wf = use_custodian(wf, custodian_params={"handler_group": handler_group})
     if isinstance(tags, (list)):
         wf = add_tags(wf, tags)
-    if isinstance(additional_fields,(dict)):
+    if isinstance(additional_fields, (dict)):
         wf = add_additional_fields_to_taskdocs(wf, update_dict=additional_fields)
+    if powerup_dicts is not None:
+        wf = powerup_by_kwargs(wf, powerup_dicts)
+        for fw in wf.fws:
+            fw.spec["vasp_powerups"] = powerup_dicts
     wf.metadata.update({"approx_neb_wf_uuid": wf_uuid})
     wf.name = name
 
