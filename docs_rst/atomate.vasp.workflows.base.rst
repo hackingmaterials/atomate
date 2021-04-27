@@ -44,6 +44,14 @@ atomate.vasp.workflows.base.elastic module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.workflows.base.electrode module
+--------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.electrode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.workflows.base.exchange module
 -------------------------------------------
 

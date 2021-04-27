@@ -66,7 +66,7 @@ class QChemToDb(FiretaskBase):
         # parse the QChem directory
         logger.info("PARSING DIRECTORY: {}".format(calc_dir))
 
-        additional_fields = self.get("additional_fields", [])
+        additional_fields = self.get("additional_fields", {})
 
         drone = QChemDrone(additional_fields=additional_fields)
 
@@ -76,9 +76,6 @@ class QChemToDb(FiretaskBase):
             input_file=input_file,
             output_file=output_file,
             multirun=multirun)
-
-        if "tags" in fw_spec:
-            task_doc.update({"tags": fw_spec["tags"]})
 
         # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):

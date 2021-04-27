@@ -12,6 +12,14 @@ Subpackages
 Submodules
 ----------
 
+atomate.vasp.firetasks.electrode\_tasks module
+----------------------------------------------
+
+.. automodule:: atomate.vasp.firetasks.electrode_tasks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.firetasks.exchange module
 --------------------------------------
 
