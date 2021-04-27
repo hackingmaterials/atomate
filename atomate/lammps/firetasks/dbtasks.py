@@ -34,7 +34,7 @@ class LammpsMDToDB(FiretaskBase):
             input_string = f.read()
 
         timestep = float(re.search(r"timestep\s+(.*)\n", input_string).group(1).split()[0])
-        temp = float(re.search(r"variable\s+ mytemp(.*)\n", input_string).group(1).split()[1])
+        temp = float(re.search(r"variable\s+ diffusiontemp(.*)\n", input_string).group(1).split()[1])
 
         groups = re.findall(r"group\s+(.*)\n", input_string)
         atomic_map = {}
