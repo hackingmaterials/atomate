@@ -14,6 +14,9 @@ from atomate.vasp.firetasks.approx_neb_tasks import (
 )
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
+__author__ = "Ann Rutt"
+__email__ = "acrutt@lbl.gov"
+
 
 class HostFW(Firework):
     def __init__(

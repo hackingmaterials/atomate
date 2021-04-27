@@ -4,6 +4,9 @@ from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.fireworks.approx_neb import ImageFW
 from atomate.common.powerups import powerup_by_kwargs
 
+__author__ = "Ann Rutt"
+__email__ = "acrutt@lbl.gov"
+
 
 @explicit_serialize
 class GetImageFireworks(FiretaskBase):

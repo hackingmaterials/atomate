@@ -10,6 +10,9 @@ from monty.json import MontyEncoder
 from json import loads
 from datetime import datetime
 
+__author__ = "Ann Rutt"
+__email__ = "acrutt@lbl.gov"
+
 logger = get_logger(__name__)
 
 
@@ -191,7 +194,7 @@ class InsertSites(FiretaskBase):
         coords_are_cartesian (bool): Set to True if using
             cartesian coordinates for insert_coords.
             Otherwise assumes fractional coordinates.
-        """
+    """
 
     required_params = [
         "db_file",

@@ -3,6 +3,9 @@ from atomate.vasp.firetasks.approx_neb_tasks import PathfinderToDb, AddSelective
 from atomate.vasp.firetasks.approx_neb_dynamic_tasks import GetImageFireworks
 from atomate.vasp.config import VASP_CMD, DB_FILE
 
+__author__ = "Ann Rutt"
+__email__ = "acrutt@lbl.gov"
+
 
 class EvaluatePathFW(Firework):
     def __init__(

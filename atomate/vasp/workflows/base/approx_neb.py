@@ -22,6 +22,9 @@ from uuid import uuid4
 from atomate.vasp.fireworks.approx_neb import HostFW, EndPointFW
 from atomate.vasp.fireworks.approx_neb_dynamic import EvaluatePathFW
 
+__author__ = "Ann Rutt"
+__email__ = "acrutt@lbl.gov"
+
 
 def get_aneb_wf(
     structure,
