@@ -44,8 +44,8 @@ nosetests.xml
 
 # Pycharm
 .idea/*
-
 .eggs/*
+venv
 
 # VS Code
 settings.json
