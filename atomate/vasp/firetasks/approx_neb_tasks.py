@@ -313,10 +313,17 @@ class WriteVaspInput(FiretaskBase):
             Allows for easy modification of MPRelaxSet().
             For example, to set ISIF=2 in the INCAR use:
             {"user_incar_settings":{"ISIF":2}}
+        potcar_spec (bool): Instead of writing the POTCAR, write a
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
     """
 
     required_params = ["db_file", "approx_neb_wf_uuid", "vasp_input_set"]
-    optional_params = ["structure_path", "override_default_vasp_params"]
+    optional_params = [
+        "structure_path",
+        "override_default_vasp_params",
+        "potcar_spec",
+    ]
 
     def run_task(self, fw_spec):
 
@@ -346,7 +353,10 @@ class WriteVaspInput(FiretaskBase):
             vis = self["vasp_input_set"]
         else:
             raise TypeError("ApproxNEB: Error using vasp_input_set")
-        vis.write_input(".")
+
+        potcar_spec = self.get("potcar_spec", False)
+
+        vis.write_input(".", potcar_spec=potcar_spec)
 
 
 @explicit_serialize
