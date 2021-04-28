@@ -4,6 +4,7 @@ from pymatgen.core import Structure
 from atomate.vasp.workflows.base.approx_neb import get_aneb_wf
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from time import sleep
 
 __author__ = "Ann Rutt"
 __email__ = "acrutt@lbl.gov"
@@ -64,6 +65,8 @@ class TestApproxNEBWorkflow(AtomateTest):
         fw_ids = self.lp.add_wf(self.wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": db_dir / "db.json"}))
 
+        sleep(60)
+
         # 3 images fws are added after running the workflow
         run_wf = self.lp.get_wf_by_fw_id(list(fw_ids.values())[0])
         self.assertEqual(len(run_wf.fws), 7)
@@ -117,3 +120,8 @@ class TestApproxNEBWorkflow(AtomateTest):
         # check workflow finished without error
         is_completed = [s == "COMPLETED" for s in run_wf.fw_states.values()]
         self.assertTrue(all(is_completed))
+        self.assertEqual(len(is_completed), 7)
+
+        # 3 images fws are added after running the workflow
+        run_wf = self.lp.get_wf_by_fw_id(list(fw_ids.values())[0])
+        self.assertEqual(len(run_wf.fws), 7)
