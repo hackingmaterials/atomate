@@ -42,7 +42,8 @@ class TestApproxNEBWorkflow(AtomateTest):
                     "check_potcar": False,
                     "clear_inputs": False,
                 },
-            }
+            },
+            {"powerup_name": "atomate.vasp.powerups.use_potcar_spec", "kwargs": {}},
         ]
 
         # get workflow
@@ -63,6 +64,10 @@ class TestApproxNEBWorkflow(AtomateTest):
 
         fw_ids = self.lp.add_wf(self.wf)
         rapidfire(self.lp, fworker=FWorker(env={"db_file": db_dir / "db.json"}))
+
+        # 3 images fws are added after running the workflow
+        run_wf = self.lp.get_wf_by_fw_id(list(fw_ids.values())[0])
+        self.assertEqual(len(run_wf.fws), 7)
 
         # check task docs
         host_tds = list(
@@ -110,11 +115,11 @@ class TestApproxNEBWorkflow(AtomateTest):
         for i in aneb_doc["images"]["0+1"]:
             self.assertIn("output", i)
 
-        # 3 images fws are added after running the workflow
-        run_wf = self.lp.get_wf_by_fw_id(list(fw_ids.values())[0])
-        self.assertEqual(len(run_wf.fws), 7)
-
         # check workflow finished without error
         is_completed = [s == "COMPLETED" for s in run_wf.fw_states.values()]
         self.assertTrue(all(is_completed))
         self.assertEqual(len(is_completed), 7)
+
+        # 3 images fws are added after running the workflow
+        run_wf = self.lp.get_wf_by_fw_id(list(fw_ids.values())[0])
+        self.assertEqual(len(run_wf.fws), 7)
