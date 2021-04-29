@@ -15,7 +15,8 @@ from pymatgen.core import Structure
 from pymatgen.util.testing import PymatgenTest
 
 try:
-    from pymatgen_diffusion.neb.io import get_endpoints_from_index
+    from pymatgen.analysis.diffusion.neb.io import get_endpoints_from_index
+
     pmgd = True
 
 except ImportError:
