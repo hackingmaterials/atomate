@@ -226,6 +226,7 @@ class CollectInsertedCalcs(FiretaskBase):
 
     Optional keys in fw_spec:
     - "structure_matcher": as_dict of a pymatgen structure matcher
+    - "max_inserted_atoms": the maximum allowed number of inserted atoms
     - "staticfw_kwargs": as_dict of a pymatgen structure matcher
 
     """
