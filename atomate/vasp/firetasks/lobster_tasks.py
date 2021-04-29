@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 This module defines tasks that can be used to handle Lobster calculations that are based on VASP wavefunctions.
 """
@@ -213,7 +211,7 @@ class LobsterRunToDb(FiretaskBase):
         # override the original __init__ method to check the values of
         # "additional_outputs" and raise warnings in case of potentially
         # misspelled names.
-        super(LobsterRunToDb, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         additional_outputs = self.get("additional_outputs", [])
         if additional_outputs:
@@ -231,7 +229,7 @@ class LobsterRunToDb(FiretaskBase):
         elif os.path.exists(filename):
             return filename
         else:
-            raise ValueError("{}/{} does not exist".format(filename, gz_filename))
+            raise ValueError(f"{filename}/{gz_filename} does not exist")
 
     def run_task(self, fw_spec):
 
@@ -245,7 +243,7 @@ class LobsterRunToDb(FiretaskBase):
         # get the directory that contains the Lobster dir to parse
         current_dir = os.getcwd()
         # parse the Lobster directory
-        logger.info("PARSING DIRECTORY: {}".format(current_dir))
+        logger.info(f"PARSING DIRECTORY: {current_dir}")
         task_doc = {}
         struct = Structure.from_file(self._find_gz_file("POSCAR"))
         Lobsterout_here = Lobsterout(self._find_gz_file("lobsterout"))
@@ -318,14 +316,14 @@ class LobsterRunToDb(FiretaskBase):
 @explicit_serialize
 class RunLobsterFake(FiretaskBase):
     """
-     Lobster Emulator
-     Required params:
-         ref_dir (string): Path to reference lobster run directory with input files in the folder
-            named 'inputs' and output files in the folder named 'outputs'.
-     Optional params:
-         params_to_check (list): optional list of lobsterin parameters to check
-         check_lobsterin (bool): whether to confirm the lobsterin params (default: True)
-     """
+    Lobster Emulator
+    Required params:
+        ref_dir (string): Path to reference lobster run directory with input files in the folder
+           named 'inputs' and output files in the folder named 'outputs'.
+    Optional params:
+        params_to_check (list): optional list of lobsterin parameters to check
+        check_lobsterin (bool): whether to confirm the lobsterin params (default: True)
+    """
 
     required_params = ["ref_dir"]
     optional_params = ["params_to_check", "check_lobsterin"]
@@ -346,7 +344,7 @@ class RunLobsterFake(FiretaskBase):
             params_to_check = self.get("params_to_check", [])
             for p in params_to_check:
                 if user_lobsterin.get(p, None) != ref_lobsterin.get(p, None):
-                    raise ValueError("lobsterin value of {} is inconsistent!".format(p))
+                    raise ValueError(f"lobsterin value of {p} is inconsistent!")
 
         logger.info("RunLobsterFake: verified inputs successfully")
 

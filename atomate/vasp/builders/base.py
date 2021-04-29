@@ -1,5 +1,3 @@
-# coding: utf-8
-
 from abc import ABCMeta, abstractmethod
 
 __author__ = "Kiran Mathew"
@@ -16,14 +14,12 @@ class AbstractBuilder(metaclass=ABCMeta):
         """
         Run the builder.
         """
-        pass
 
     @abstractmethod
     def reset(self):
         """
         Unset the building.
         """
-        pass
 
     @classmethod
     @abstractmethod
@@ -31,4 +27,3 @@ class AbstractBuilder(metaclass=ABCMeta):
         """
         Set the builder from a config file, e.g., a db file
         """
-        pass

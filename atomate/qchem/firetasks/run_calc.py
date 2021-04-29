@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 # This module defines tasks that support running QChem in various ways.
 
 
@@ -48,10 +45,11 @@ class RunQChemDirect(FiretaskBase):
         cmd = self.get("qchem_cmd")
         os.putenv("QCSCRATCH", os.getcwd())
 
-        logger.info("Running command: {}".format(cmd))
+        logger.info(f"Running command: {cmd}")
         return_code = subprocess.call(cmd, shell=True)
-        logger.info("Command {} finished running with return code: {}".format(
-            cmd, return_code))
+        logger.info(
+            "Command {} finished running with return code: {}".format(cmd, return_code)
+        )
 
 
 @explicit_serialize
@@ -94,12 +92,25 @@ class RunQChemCustodian(FiretaskBase):
                                             applied to the molecule. Defaults to 0.3.
 
     """
+
     required_params = ["qchem_cmd"]
     optional_params = [
-        "multimode", "input_file", "output_file", "max_cores", "qclog_file",
-        "suffix", "calc_loc", "save_scratch", "max_errors", "job_type",
-        "handler_group", "gzipped_output", "backup", "linked",
-        "max_iterations", "max_molecule_perturb_scale"
+        "multimode",
+        "input_file",
+        "output_file",
+        "max_cores",
+        "qclog_file",
+        "suffix",
+        "calc_loc",
+        "save_scratch",
+        "max_errors",
+        "job_type",
+        "handler_group",
+        "gzipped_output",
+        "backup",
+        "linked",
+        "max_iterations",
+        "max_molecule_perturb_scale",
     ]
 
     def run_task(self, fw_spec):
@@ -113,7 +124,7 @@ class RunQChemCustodian(FiretaskBase):
         Note that I'm considering hardcoding openmp in the future
         because there is basically no reason anyone should ever run
         QChem on multiple nodes, aka with multimode = mpi.
-        """ 
+        """
         input_file = self.get("input_file", "mol.qin")
         output_file = self.get("output_file", "mol.qout")
         max_cores = env_chk(self["max_cores"], fw_spec)
@@ -125,17 +136,15 @@ class RunQChemCustodian(FiretaskBase):
         max_iterations = self.get("max_iterations", 10)
         linked = self.get("linked", True)
         backup = self.get("backup", True)
-        max_molecule_perturb_scale = self.get("max_molecule_perturb_scale",
-                                              0.3)
+        max_molecule_perturb_scale = self.get("max_molecule_perturb_scale", 0.3)
         job_type = self.get("job_type", "normal")
         gzipped_output = self.get("gzipped_output", True)
 
         handler_groups = {
             "default": [
-                QChemErrorHandler(
-                    input_file=input_file, output_file=output_file)
+                QChemErrorHandler(input_file=input_file, output_file=output_file)
             ],
-            "no_handler": []
+            "no_handler": [],
         }
 
         # construct jobs
@@ -151,7 +160,8 @@ class RunQChemCustodian(FiretaskBase):
                     suffix=suffix,
                     calc_loc=calc_loc,
                     save_scratch=save_scratch,
-                    backup=backup)
+                    backup=backup,
+                )
             ]
         elif job_type == "opt_with_frequency_flattener":
             if linked:
@@ -165,7 +175,8 @@ class RunQChemCustodian(FiretaskBase):
                     linked=linked,
                     save_final_scratch=save_scratch,
                     max_cores=max_cores,
-                    calc_loc=calc_loc)
+                    calc_loc=calc_loc,
+                )
             else:
                 jobs = QCJob.opt_with_frequency_flattener(
                     qchem_command=qchem_cmd,
@@ -178,19 +189,18 @@ class RunQChemCustodian(FiretaskBase):
                     linked=linked,
                     save_final_scratch=save_scratch,
                     max_cores=max_cores,
-                    calc_loc=calc_loc)
+                    calc_loc=calc_loc,
+                )
 
         else:
-            raise ValueError("Unsupported job type: {}".format(job_type))
+            raise ValueError(f"Unsupported job type: {job_type}")
 
         # construct handlers
         handlers = handler_groups[self.get("handler_group", "default")]
 
         c = Custodian(
-            handlers,
-            jobs,
-            max_errors=max_errors,
-            gzipped_output=gzipped_output)
+            handlers, jobs, max_errors=max_errors, gzipped_output=gzipped_output
+        )
 
         c.run()
 
@@ -208,13 +218,14 @@ class RunNoQChem(FiretaskBase):
 @explicit_serialize
 class RunQChemFake(FiretaskBase):
     """
-     QChem Emulator
+    QChem Emulator
 
-     Required params:
-         ref_dir (string): Path to reference qchem run directory with input file in the folder
-            named "mol.qin" and output file in the folder named "mol.qout".
+    Required params:
+        ref_dir (string): Path to reference qchem run directory with input file in the folder
+           named "mol.qin" and output file in the folder named "mol.qout".
 
-     """
+    """
+
     required_params = ["ref_dir"]
     optional_params = ["input_file"]
 
@@ -230,28 +241,25 @@ class RunQChemFake(FiretaskBase):
         # Check mol.qin
         ref_qin = QCInput.from_file(os.path.join(self["ref_dir"], input_file))
 
-        np.testing.assert_equal(ref_qin.molecule.species,
-                                user_qin.molecule.species)
+        np.testing.assert_equal(ref_qin.molecule.species, user_qin.molecule.species)
         np.testing.assert_allclose(
-            ref_qin.molecule.cart_coords,
-            user_qin.molecule.cart_coords,
-            atol=0.0001)
+            ref_qin.molecule.cart_coords, user_qin.molecule.cart_coords, atol=0.0001
+        )
         for key in ref_qin.rem:
             if user_qin.rem.get(key) != ref_qin.rem.get(key):
-                raise ValueError("Rem key {} is inconsistent!".format(key))
+                raise ValueError(f"Rem key {key} is inconsistent!")
         if ref_qin.opt is not None:
             for key in ref_qin.opt:
                 if user_qin.opt.get(key) != ref_qin.opt.get(key):
-                    raise ValueError("Opt key {} is inconsistent!".format(key))
+                    raise ValueError(f"Opt key {key} is inconsistent!")
         if ref_qin.pcm is not None:
             for key in ref_qin.pcm:
                 if user_qin.pcm.get(key) != ref_qin.pcm.get(key):
-                    raise ValueError("PCM key {} is inconsistent!".format(key))
+                    raise ValueError(f"PCM key {key} is inconsistent!")
         if ref_qin.solvent is not None:
             for key in ref_qin.solvent:
                 if user_qin.solvent.get(key) != ref_qin.solvent.get(key):
-                    raise ValueError(
-                        "Solvent key {} is inconsistent!".format(key))
+                    raise ValueError(f"Solvent key {key} is inconsistent!")
 
         logger.info("RunQChemFake: verified input successfully")
 

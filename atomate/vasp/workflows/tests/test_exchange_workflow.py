@@ -1,7 +1,3 @@
-# coding: utf-8
-
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import unittest
 import pandas as pd
@@ -12,15 +8,9 @@ from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 
 from atomate.vasp.workflows.base.exchange import ExchangeWF
-from atomate.vasp.firetasks.parse_outputs import (
-    MagneticDeformationToDb,
-    MagneticOrderingsToDb,
-)
-from atomate.vasp.database import VaspCalcDb
-from atomate.utils.testing import AtomateTest, DB_DIR
+from atomate.utils.testing import AtomateTest
 from atomate.utils.utils import get_a_unique_id
 
-from json import load
 from pymatgen.core import Structure
 
 __author__ = "Nathan C. Frey"
@@ -83,7 +73,7 @@ class TestExchangeWF(AtomateTest):
         fw_id = list(fw_ids.values())[0]
         wf = self.lp.get_wf_by_fw_id(fw_id)
         is_completed = [s == "COMPLETED" for s in wf.fw_states.values()]
-        
+
         self.assertTrue(all(is_completed))
 
     def _check_run(self, d, task_name):

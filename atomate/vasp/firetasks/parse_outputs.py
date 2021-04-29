@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 import json
 import os
 import re
@@ -23,9 +20,16 @@ from pymatgen.analysis.elasticity.stress import Stress
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_total_ionic_dipole, \
-    EnergyTrend
-from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering, magnetic_deformation
+from pymatgen.analysis.ferroelectricity.polarization import (
+    Polarization,
+    get_total_ionic_dipole,
+    EnergyTrend,
+)
+from pymatgen.analysis.magnetism import (
+    CollinearMagneticStructureAnalyzer,
+    Ordering,
+    magnetic_deformation,
+)
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
@@ -35,8 +39,8 @@ from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone, BADER_EXE_EXISTS
 from atomate.vasp.config import STORE_VOLUMETRIC_DATA
 
-__author__ = 'Anubhav Jain, Kiran Mathew, Shyam Dwaraknath'
-__email__ = 'ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov'
+__author__ = "Anubhav Jain, Kiran Mathew, Shyam Dwaraknath"
+__email__ = "ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov"
 
 logger = get_logger(__name__)
 
@@ -78,11 +82,23 @@ class VaspToDb(FiretaskBase):
             using dot notation and array keys can be referenced using the index.
             E.g "calcs_reversed.0.output.outar.run_stats"
     """
-    optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
-                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
-                       "task_fields_to_push", "parse_chgcar", "parse_aeccar",
-                       "parse_potcar_file", "parse_bader",
-                       "store_volumetric_data"]
+
+    optional_params = [
+        "calc_dir",
+        "calc_loc",
+        "parse_dos",
+        "bandstructure_mode",
+        "additional_fields",
+        "db_file",
+        "fw_spec_field",
+        "defuse_unsuccessful",
+        "task_fields_to_push",
+        "parse_chgcar",
+        "parse_aeccar",
+        "parse_potcar_file",
+        "parse_bader",
+        "store_volumetric_data",
+    ]
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -93,16 +109,20 @@ class VaspToDb(FiretaskBase):
             calc_dir = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])["path"]
 
         # parse the VASP directory
-        logger.info("PARSING DIRECTORY: {}".format(calc_dir))
+        logger.info(f"PARSING DIRECTORY: {calc_dir}")
 
-        drone = VaspDrone(additional_fields=self.get("additional_fields"),
-                          parse_dos=self.get("parse_dos", False),
-                          parse_potcar_file=self.get("parse_potcar_file", True),
-                          bandstructure_mode=self.get("bandstructure_mode", False),
-                          parse_bader=self.get("parse_bader", BADER_EXE_EXISTS),
-                          parse_chgcar=self.get("parse_chgcar", False),  # deprecated
-                          parse_aeccar=self.get("parse_aeccar", False),  # deprecated
-                          store_volumetric_data=self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA))
+        drone = VaspDrone(
+            additional_fields=self.get("additional_fields"),
+            parse_dos=self.get("parse_dos", False),
+            parse_potcar_file=self.get("parse_potcar_file", True),
+            bandstructure_mode=self.get("bandstructure_mode", False),
+            parse_bader=self.get("parse_bader", BADER_EXE_EXISTS),
+            parse_chgcar=self.get("parse_chgcar", False),  # deprecated
+            parse_aeccar=self.get("parse_aeccar", False),  # deprecated
+            store_volumetric_data=self.get(
+                "store_volumetric_data", STORE_VOLUMETRIC_DATA
+            ),
+        )
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
@@ -112,7 +132,7 @@ class VaspToDb(FiretaskBase):
             task_doc.update(fw_spec[self.get("fw_spec_field")])
 
         # get the database connection
-        db_file = env_chk(self.get('db_file'), fw_spec)
+        db_file = env_chk(self.get("db_file"), fw_spec)
 
         # db insertion or taskdoc dump
         if not db_file:
@@ -121,17 +141,18 @@ class VaspToDb(FiretaskBase):
         else:
             mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
             t_id = mmdb.insert_task(
-                task_doc, use_gridfs=self.get("parse_dos", False)
+                task_doc,
+                use_gridfs=self.get("parse_dos", False)
                 or bool(self.get("bandstructure_mode", False))
                 or self.get("parse_chgcar", False)  # deprecated
                 or self.get("parse_aeccar", False)  # deprecated
-                or bool(self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA)))
-            logger.info("Finished parsing with task_id: {}".format(t_id))
+                or bool(self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA)),
+            )
+            logger.info(f"Finished parsing with task_id: {t_id}")
 
         defuse_children = False
         if task_doc["state"] != "successful":
-            defuse_unsuccessful = self.get("defuse_unsuccessful",
-                                           DEFUSE_UNSUCCESSFUL)
+            defuse_unsuccessful = self.get("defuse_unsuccessful", DEFUSE_UNSUCCESSFUL)
             if defuse_unsuccessful is True:
                 defuse_children = True
             elif defuse_unsuccessful is False:
@@ -140,10 +161,13 @@ class VaspToDb(FiretaskBase):
                 raise RuntimeError(
                     "VaspToDb indicates that job is not successful "
                     "(perhaps your job did not converge within the "
-                    "limit of electronic/ionic iterations)!")
+                    "limit of electronic/ionic iterations)!"
+                )
             else:
-                raise RuntimeError("Unknown option for defuse_unsuccessful: "
-                                   "{}".format(defuse_unsuccessful))
+                raise RuntimeError(
+                    "Unknown option for defuse_unsuccessful: "
+                    "{}".format(defuse_unsuccessful)
+                )
 
         task_fields_to_push = self.get("task_fields_to_push", None)
         update_spec = {}
@@ -153,15 +177,22 @@ class VaspToDb(FiretaskBase):
                     if has(task_doc, path_in_task_doc):
                         update_spec[key] = get(task_doc, path_in_task_doc)
                     else:
-                        logger.warning("Could not find {} in task document. Unable to push to next firetask/firework".format(path_in_task_doc))
+                        logger.warning(
+                            f"Could not find {path_in_task_doc} in task document. Unable to push to next firetask/firework"
+                        )
             else:
-                raise RuntimeError("Inappropriate type {} for task_fields_to_push. It must be a "
-                                   "dictionary of format: {key: path} where key refers to a field "
-                                   "in the spec and path is a full mongo-style path to a "
-                                   "field in the task document".format(type(task_fields_to_push)))
+                raise RuntimeError(
+                    "Inappropriate type {} for task_fields_to_push. It must be a "
+                    "dictionary of format: {key: path} where key refers to a field "
+                    "in the spec and path is a full mongo-style path to a "
+                    "field in the task document".format(type(task_fields_to_push))
+                )
 
-        return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
-                        defuse_children=defuse_children, update_spec=update_spec)
+        return FWAction(
+            stored_data={"task_id": task_doc.get("task_id", None)},
+            defuse_children=defuse_children,
+            update_spec=update_spec,
+        )
 
 
 @explicit_serialize
@@ -177,16 +208,17 @@ class JsonToDb(FiretaskBase):
         calc_dir (str): path to dir (on current filesystem) that contains VASP output files.
             Default: use current working directory.
     """
+
     optional_params = ["json_filename", "db_file", "calc_dir"]
 
     def run_task(self, fw_spec):
 
         ref_file = self.get("json_filename", "task.json")
         calc_dir = self.get("calc_dir", os.getcwd())
-        with open(os.path.join(calc_dir, ref_file), "r") as fp:
+        with open(os.path.join(calc_dir, ref_file)) as fp:
             task_doc = json.load(fp)
 
-        db_file = env_chk(self.get('db_file'), fw_spec)
+        db_file = env_chk(self.get("db_file"), fw_spec)
         if not db_file:
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
@@ -225,7 +257,15 @@ class BoltztrapToDb(FiretaskBase):
         d["scissor"] = bta.intrans["scissor"]
 
         # trim the output
-        for x in ['cond', 'seebeck', 'kappa', 'hall', 'mu_steps', 'mu_doping', 'carrier_conc']:
+        for x in [
+            "cond",
+            "seebeck",
+            "kappa",
+            "hall",
+            "mu_steps",
+            "mu_doping",
+            "carrier_conc",
+        ]:
             del d[x]
 
         if not self.get("hall_doping"):
@@ -243,16 +283,18 @@ class BoltztrapToDb(FiretaskBase):
 
         # add the spacegroup
         sg = SpacegroupAnalyzer(Structure.from_dict(d["structure"]), 0.1)
-        d["spacegroup"] = {"symbol": sg.get_space_group_symbol(),
-                           "number": sg.get_space_group_number(),
-                           "point_group": sg.get_point_group_symbol(),
-                           "source": "spglib",
-                           "crystal_system": sg.get_crystal_system(),
-                           "hall": sg.get_hall()}
+        d["spacegroup"] = {
+            "symbol": sg.get_space_group_symbol(),
+            "number": sg.get_space_group_number(),
+            "point_group": sg.get_point_group_symbol(),
+            "source": "spglib",
+            "crystal_system": sg.get_crystal_system(),
+            "hall": sg.get_hall(),
+        }
 
         d["created_at"] = datetime.utcnow()
 
-        db_file = env_chk(self.get('db_file'), fw_spec)
+        db_file = env_chk(self.get("db_file"), fw_spec)
 
         if not db_file:
             del d["dos"]
@@ -263,8 +305,9 @@ class BoltztrapToDb(FiretaskBase):
 
             # dos gets inserted into GridFS
             dos = json.dumps(d["dos"], cls=MontyEncoder)
-            fsid, compression = mmdb.insert_gridfs(dos, collection="dos_boltztrap_fs",
-                                                   compress=True)
+            fsid, compression = mmdb.insert_gridfs(
+                dos, collection="dos_boltztrap_fs", compress=True
+            )
             d["dos_boltztrap_fs_id"] = fsid
             del d["dos"]
 
@@ -295,32 +338,37 @@ class ElasticTensorToDb(FiretaskBase):
             fitting, and will override.
     """
 
-    required_params = ['structure']
-    optional_params = ['db_file', 'order', 'fw_spec_field', 'fitting_method']
+    required_params = ["structure"]
+    optional_params = ["db_file", "order", "fw_spec_field", "fitting_method"]
 
     def run_task(self, fw_spec):
-        ref_struct = self['structure']
-        d = {
-            "analysis": {},
-            "initial_structure": self['structure'].as_dict()
-        }
+        ref_struct = self["structure"]
+        d = {"analysis": {}, "initial_structure": self["structure"].as_dict()}
 
         # Get optimized structure
-        calc_locs_opt = [cl for cl in fw_spec.get('calc_locs', []) if 'optimiz' in cl['name']]
+        calc_locs_opt = [
+            cl for cl in fw_spec.get("calc_locs", []) if "optimiz" in cl["name"]
+        ]
         if calc_locs_opt:
-            optimize_loc = calc_locs_opt[-1]['path']
-            logger.info("Parsing initial optimization directory: {}".format(optimize_loc))
+            optimize_loc = calc_locs_opt[-1]["path"]
+            logger.info(f"Parsing initial optimization directory: {optimize_loc}")
             drone = VaspDrone()
             optimize_doc = drone.assimilate(optimize_loc)
-            opt_struct = Structure.from_dict(optimize_doc["calcs_reversed"][0]["output"]["structure"])
+            opt_struct = Structure.from_dict(
+                optimize_doc["calcs_reversed"][0]["output"]["structure"]
+            )
             d.update({"optimized_structure": opt_struct.as_dict()})
             ref_struct = opt_struct
-            eq_stress = -0.1*Stress(optimize_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"])
+            eq_stress = -0.1 * Stress(
+                optimize_doc["calcs_reversed"][0]["output"]["ionic_steps"][-1]["stress"]
+            )
         else:
             eq_stress = None
 
         if self.get("fw_spec_field"):
-            d.update({self.get("fw_spec_field"): fw_spec.get(self.get("fw_spec_field"))})
+            d.update(
+                {self.get("fw_spec_field"): fw_spec.get(self.get("fw_spec_field"))}
+            )
 
         # Get the stresses, strains, deformations from deformation tasks
         defo_dicts = fw_spec["deformation_tasks"].values()
@@ -333,54 +381,63 @@ class ElasticTensorToDb(FiretaskBase):
             for symmop in defo_dict.get("symmops", []):
                 stresses.append(Stress(defo_dict["stress"]).transform(symmop))
                 strains.append(Strain(defo_dict["strain"]).transform(symmop))
-                deformations.append(Deformation(defo_dict["deformation_matrix"]).transform(symmop))
+                deformations.append(
+                    Deformation(defo_dict["deformation_matrix"]).transform(symmop)
+                )
 
-        stresses = [-0.1*s for s in stresses]
-        pk_stresses = [stress.piola_kirchoff_2(deformation)
-                       for stress, deformation in zip(stresses, deformations)]
+        stresses = [-0.1 * s for s in stresses]
+        pk_stresses = [
+            stress.piola_kirchoff_2(deformation)
+            for stress, deformation in zip(stresses, deformations)
+        ]
 
-        d['fitting_data'] = {'cauchy_stresses': stresses,
-                             'eq_stress': eq_stress,
-                             'strains': strains,
-                             'pk_stresses': pk_stresses,
-                             'deformations': deformations
-                             }
+        d["fitting_data"] = {
+            "cauchy_stresses": stresses,
+            "eq_stress": eq_stress,
+            "strains": strains,
+            "pk_stresses": pk_stresses,
+            "deformations": deformations,
+        }
 
         logger.info("Analyzing stress/strain data")
         # TODO: @montoyjh: what if it's a cubic system? don't need 6. -computron
         # TODO: Can add population method but want to think about how it should
         #           be done. -montoyjh
-        order = self.get('order', 2)
+        order = self.get("order", 2)
         if order > 2:
-            method = 'finite_difference'
+            method = "finite_difference"
         else:
-            method = self.get('fitting_method', 'finite_difference')
+            method = self.get("fitting_method", "finite_difference")
 
-        if method == 'finite_difference':
+        if method == "finite_difference":
             result = ElasticTensorExpansion.from_diff_fit(
-                    strains, pk_stresses, eq_stress=eq_stress, order=order)
+                strains, pk_stresses, eq_stress=eq_stress, order=order
+            )
             if order == 2:
                 result = ElasticTensor(result[0])
-        elif method == 'pseudoinverse':
+        elif method == "pseudoinverse":
             result = ElasticTensor.from_pseudoinverse(strains, pk_stresses)
-        elif method == 'independent':
-            result = ElasticTensor.from_independent_strains(strains, pk_stresses, eq_stress=eq_stress)
+        elif method == "independent":
+            result = ElasticTensor.from_independent_strains(
+                strains, pk_stresses, eq_stress=eq_stress
+            )
         else:
-            raise ValueError("Unsupported method, method must be finite_difference, "
-                             "pseudoinverse, or independent")
+            raise ValueError(
+                "Unsupported method, method must be finite_difference, "
+                "pseudoinverse, or independent"
+            )
 
         ieee = result.convert_to_ieee(ref_struct)
-        d.update({
-            "elastic_tensor": {
-                "raw": result.voigt,
-                "ieee_format": ieee.voigt
-            }
-        })
+        d.update({"elastic_tensor": {"raw": result.voigt, "ieee_format": ieee.voigt}})
         if order == 2:
-            d.update({"derived_properties": ieee.get_structure_property_dict(ref_struct)})
+            d.update(
+                {"derived_properties": ieee.get_structure_property_dict(ref_struct)}
+            )
         else:
             soec = ElasticTensor(ieee[0])
-            d.update({"derived_properties": soec.get_structure_property_dict(ref_struct)})
+            d.update(
+                {"derived_properties": soec.get_structure_property_dict(ref_struct)}
+            )
 
         d["formula_pretty"] = ref_struct.composition.reduced_formula
         d["fitting_method"] = method
@@ -389,7 +446,7 @@ class ElasticTensorToDb(FiretaskBase):
         d = jsanitize(d)
 
         # Save analysis results in json or db
-        db_file = env_chk(self.get('db_file'), fw_spec)
+        db_file = env_chk(self.get("db_file"), fw_spec)
         if not db_file:
             with open("elasticity.json", "w") as f:
                 f.write(json.dumps(d, default=DATETIME_HANDLER))
@@ -422,38 +479,48 @@ class RamanTensorToDb(FiretaskBase):
         nm_eigenvals = np.array(fw_spec["normalmodes"]["eigenvals"])
         nm_norms = np.linalg.norm(nm_eigenvecs, axis=2)
         structure = fw_spec["normalmodes"]["structure"]
-        masses = np.array([site.specie.data['Atomic mass'] for site in structure])
-        nm_norms = nm_norms / np.sqrt(masses)  # eigenvectors in vasprun.xml are not divided by sqrt(M_i)
+        masses = np.array([site.specie.data["Atomic mass"] for site in structure])
+        nm_norms = nm_norms / np.sqrt(
+            masses
+        )  # eigenvectors in vasprun.xml are not divided by sqrt(M_i)
         # To get the actual eigenvals, the values read from vasprun.xml must be multiplied by -1.
         # frequency_i = sqrt(-e_i)
         # To convert the frequency to THZ: multiply sqrt(-e_i) by 15.633
         # To convert the frequency to cm^-1: multiply sqrt(-e_i) by 82.995
         nm_frequencies = np.sqrt(np.abs(nm_eigenvals)) * 82.995  # cm^-1
 
-        d = {"structure": structure.as_dict(),
-             "formula_pretty": structure.composition.reduced_formula,
-             "normalmodes": {"eigenvals": fw_spec["normalmodes"]["eigenvals"],
-                             "eigenvecs": fw_spec["normalmodes"]["eigenvecs"]
-                             },
-             "frequencies": nm_frequencies.tolist()}
+        d = {
+            "structure": structure.as_dict(),
+            "formula_pretty": structure.composition.reduced_formula,
+            "normalmodes": {
+                "eigenvals": fw_spec["normalmodes"]["eigenvals"],
+                "eigenvecs": fw_spec["normalmodes"]["eigenvecs"],
+            },
+            "frequencies": nm_frequencies.tolist(),
+        }
 
         # store the displacement & epsilon for each mode in a dictionary
         mode_disps = fw_spec["raman_epsilon"].keys()
         modes_eps_dict = defaultdict(list)
         for md in mode_disps:
             modes_eps_dict[fw_spec["raman_epsilon"][md]["mode"]].append(
-                [fw_spec["raman_epsilon"][md]["displacement"],
-                 fw_spec["raman_epsilon"][md]["epsilon"]])
+                [
+                    fw_spec["raman_epsilon"][md]["displacement"],
+                    fw_spec["raman_epsilon"][md]["epsilon"],
+                ]
+            )
 
         # raman tensor = finite difference derivative of epsilon wrt displacement.
         raman_tensor_dict = {}
-        scale = np.sqrt(structure.volume/2.0) / 4.0 / np.pi
+        scale = np.sqrt(structure.volume / 2.0) / 4.0 / np.pi
         for k, v in modes_eps_dict.items():
             raman_tensor = (np.array(v[0][1]) - np.array(v[1][1])) / (v[0][0] - v[1][0])
             # frequency in cm^-1
             omega = nm_frequencies[k]
             if nm_eigenvals[k] > 0:
-                logger.warning("Mode: {} is UNSTABLE. Freq(cm^-1) = {}".format(k, -omega))
+                logger.warning(
+                    "Mode: {} is UNSTABLE. Freq(cm^-1) = {}".format(k, -omega)
+                )
             raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) / np.sqrt(omega)
             raman_tensor_dict[str(k)] = raman_tensor.tolist()
 
@@ -511,8 +578,18 @@ class GibbsAnalysisToDb(FiretaskBase):
     """
 
     required_params = ["tag", "db_file"]
-    optional_params = ["qha_type", "t_min", "t_step", "t_max", "mesh", "eos",
-                       "pressure", "poisson", "anharmonic_contribution", "metadata"]
+    optional_params = [
+        "qha_type",
+        "t_min",
+        "t_step",
+        "t_max",
+        "mesh",
+        "eos",
+        "pressure",
+        "poisson",
+        "anharmonic_contribution",
+        "metadata",
+    ]
 
     def run_task(self, fw_spec):
 
@@ -533,24 +610,31 @@ class GibbsAnalysisToDb(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         # get the optimized structure
-        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)},
-                                     {"calcs_reversed": 1})
-        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
+        d = mmdb.collection.find_one(
+            {"task_label": f"{tag} structure optimization"}, {"calcs_reversed": 1}
+        )
+        structure = Structure.from_dict(d["calcs_reversed"][-1]["output"]["structure"])
         gibbs_dict["structure"] = structure.as_dict()
         gibbs_dict["formula_pretty"] = structure.composition.reduced_formula
 
         # get the data(energy, volume, force constant) from the deformation runs
-        docs = mmdb.collection.find({"task_label": {"$regex": "{} gibbs*".format(tag)},
-                                     "formula_pretty": structure.composition.reduced_formula},
-                                    {"calcs_reversed": 1})
+        docs = mmdb.collection.find(
+            {
+                "task_label": {"$regex": f"{tag} gibbs*"},
+                "formula_pretty": structure.composition.reduced_formula,
+            },
+            {"calcs_reversed": 1},
+        )
         energies = []
         volumes = []
         force_constants = []
         for d in docs:
-            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
-            energies.append(d["calcs_reversed"][-1]["output"]['energy'])
+            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]["structure"])
+            energies.append(d["calcs_reversed"][-1]["output"]["energy"])
             if qha_type not in ["debye_model"]:
-                force_constants.append(d["calcs_reversed"][-1]["output"]['force_constants'])
+                force_constants.append(
+                    d["calcs_reversed"][-1]["output"]["force_constants"]
+                )
             volumes.append(s.volume)
         gibbs_dict["energies"] = energies
         gibbs_dict["volumes"] = volumes
@@ -563,9 +647,18 @@ class GibbsAnalysisToDb(FiretaskBase):
 
                 from pymatgen.analysis.quasiharmonic import QuasiharmonicDebyeApprox
 
-                qhda = QuasiharmonicDebyeApprox(energies, volumes, structure, t_min, t_step, t_max,
-                                                eos, pressure=pressure, poisson=poisson,
-                                                anharmonic_contribution=anharmonic_contribution)
+                qhda = QuasiharmonicDebyeApprox(
+                    energies,
+                    volumes,
+                    structure,
+                    t_min,
+                    t_step,
+                    t_max,
+                    eos,
+                    pressure=pressure,
+                    poisson=poisson,
+                    anharmonic_contribution=anharmonic_contribution,
+                )
                 gibbs_dict.update(qhda.get_summary_dict())
                 gibbs_dict["anharmonic_contribution"] = anharmonic_contribution
                 gibbs_dict["success"] = True
@@ -575,8 +668,18 @@ class GibbsAnalysisToDb(FiretaskBase):
 
                 from atomate.vasp.analysis.phonopy import get_phonopy_gibbs
 
-                G, T = get_phonopy_gibbs(energies, volumes, force_constants, structure, t_min,
-                                         t_step, t_max, mesh, eos, pressure)
+                G, T = get_phonopy_gibbs(
+                    energies,
+                    volumes,
+                    force_constants,
+                    structure,
+                    t_min,
+                    t_step,
+                    t_max,
+                    mesh,
+                    eos,
+                    pressure,
+                )
                 gibbs_dict["gibbs_free_energy"] = G
                 gibbs_dict["temperatures"] = T
                 gibbs_dict["success"] = True
@@ -588,7 +691,7 @@ class GibbsAnalysisToDb(FiretaskBase):
             logger.warning("Quasi-harmonic analysis failed!")
             gibbs_dict["success"] = False
             gibbs_dict["traceback"] = traceback.format_exc()
-            gibbs_dict['metadata'].update({"task_label_tag": tag})
+            gibbs_dict["metadata"].update({"task_label_tag": tag})
             gibbs_dict["created_at"] = datetime.utcnow()
 
         gibbs_dict = jsanitize(gibbs_dict)
@@ -597,7 +700,7 @@ class GibbsAnalysisToDb(FiretaskBase):
         # -computron
         if not db_file:
             dump_file = "gibbs.json"
-            logger.info("Dumping the analysis summary to {}".format(dump_file))
+            logger.info(f"Dumping the analysis summary to {dump_file}")
             with open(dump_file, "w") as f:
                 f.write(json.dumps(gibbs_dict, default=DATETIME_HANDLER))
         else:
@@ -648,13 +751,13 @@ class FitEOSToDb(FiretaskBase):
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
-        d = mmdb.collection.find_one({"task_label": "{} structure optimization".format(tag)})
-        docs = mmdb.collection.find({"task_label": {"$regex": "{} bulk_modulus*".format(tag)}})
+        d = mmdb.collection.find_one({"task_label": f"{tag} structure optimization"})
+        docs = mmdb.collection.find({"task_label": {"$regex": f"{tag} bulk_modulus*"}})
 
         if d:
             # get the optimized structure and optimization task_id
             all_task_ids.append(d["task_id"])
-            structure_dict = d["calcs_reversed"][-1]["output"]['structure']
+            structure_dict = d["calcs_reversed"][-1]["output"]["structure"]
         else:
             # no structure optimization in the workflow
             # get the original structure from the transformation information
@@ -668,8 +771,8 @@ class FitEOSToDb(FiretaskBase):
         energies = []
         volumes = []
         for d in docs:
-            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
-            energies.append(d["calcs_reversed"][-1]["output"]['energy'])
+            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]["structure"])
+            energies.append(d["calcs_reversed"][-1]["output"]["energy"])
             volumes.append(s.volume)
             all_task_ids.append(d["task_id"])
         summary_dict["energies"] = energies
@@ -741,7 +844,9 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
-        docs = mmdb.collection.find({"task_label": {"$regex": "{} thermal_expansion*".format(tag)}})
+        docs = mmdb.collection.find(
+            {"task_label": {"$regex": f"{tag} thermal_expansion*"}}
+        )
 
         # get the original structure from the transformation information
         structure_dict = docs[0]["transformations"]["history"][0]["input_structure"]
@@ -754,16 +859,26 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
         volumes = []
         force_constants = []
         for d in docs:
-            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]['structure'])
-            energies.append(d["calcs_reversed"][-1]["output"]['energy'])
+            s = Structure.from_dict(d["calcs_reversed"][-1]["output"]["structure"])
+            energies.append(d["calcs_reversed"][-1]["output"]["energy"])
             volumes.append(s.volume)
-            force_constants.append(d["calcs_reversed"][-1]["output"]['force_constants'])
+            force_constants.append(d["calcs_reversed"][-1]["output"]["force_constants"])
         summary_dict["energies"] = energies
         summary_dict["volumes"] = volumes
         summary_dict["force_constants"] = force_constants
 
-        alpha, T = get_phonopy_thermal_expansion(energies, volumes, force_constants, structure,
-                                                 t_min, t_step, t_max, mesh, eos, pressure)
+        alpha, T = get_phonopy_thermal_expansion(
+            energies,
+            volumes,
+            force_constants,
+            structure,
+            t_min,
+            t_step,
+            t_max,
+            mesh,
+            eos,
+            pressure,
+        )
 
         summary_dict["alpha"] = alpha
         summary_dict["T"] = T
@@ -808,8 +923,13 @@ class MagneticOrderingsToDb(FiretaskBase):
 
     """
 
-    required_params = ["db_file", "wf_uuid", "parent_structure",
-                       "perform_bader", "scan"]
+    required_params = [
+        "db_file",
+        "wf_uuid",
+        "parent_structure",
+        "perform_bader",
+        "scan",
+    ]
     optional_params = ["origins", "input_index", "to_db", "additional_fields"]
 
     def run_task(self, fw_spec):
@@ -817,7 +937,7 @@ class MagneticOrderingsToDb(FiretaskBase):
 
         uuid = self["wf_uuid"]
         db_file = env_chk(self.get("db_file"), fw_spec)
-        to_db = self.get("to_db", True)
+        self.get("to_db", True)
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
@@ -825,24 +945,30 @@ class MagneticOrderingsToDb(FiretaskBase):
         formula_pretty = self["parent_structure"].composition.reduced_formula
 
         # get ground state energy
-        task_label_regex = 'static' if not self['scan'] else 'optimize'
-        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid,
-                                          "task_label": {"$regex": task_label_regex}},
-                                         ["task_id", "output.energy_per_atom"]))
+        task_label_regex = "static" if not self["scan"] else "optimize"
+        docs = list(
+            mmdb.collection.find(
+                {"wf_meta.wf_uuid": uuid, "task_label": {"$regex": task_label_regex}},
+                ["task_id", "output.energy_per_atom"],
+            )
+        )
 
         energies = [d["output"]["energy_per_atom"] for d in docs]
         ground_state_energy = min(energies)
         idx = energies.index(ground_state_energy)
         ground_state_task_id = docs[idx]["task_id"]
         if energies.count(ground_state_energy) > 1:
-            logger.warning("Multiple identical energies exist, "
-                        "duplicate calculations for {}?".format(formula))
+            logger.warning(
+                "Multiple identical energies exist, "
+                "duplicate calculations for {}?".format(formula)
+            )
 
         # get results for different orderings
-        docs = list(mmdb.collection.find({
-            "task_label": {"$regex": task_label_regex},
-            "wf_meta.wf_uuid": uuid
-        }))
+        docs = list(
+            mmdb.collection.find(
+                {"task_label": {"$regex": task_label_regex}, "wf_meta.wf_uuid": uuid}
+            )
+        )
 
         summaries = []
 
@@ -851,30 +977,35 @@ class MagneticOrderingsToDb(FiretaskBase):
             # Check if optimizations were done
             if additional_fields.get("relax", True):
                 optimize_task_label = d["task_label"].replace("static", "optimize")
-                optimize_task = dict(mmdb.collection.find_one({
-                            "wf_meta.wf_uuid": uuid,
-                            "task_label": optimize_task_label
-                        }))
+                optimize_task = dict(
+                    mmdb.collection.find_one(
+                        {"wf_meta.wf_uuid": uuid, "task_label": optimize_task_label}
+                    )
+                )
                 # used to determine if ordering changed during relaxation
-                original_task = optimize_task
                 # stored for checking suitable convergence is reached
-                energy_diff_relax_static = optimize_task["output"]["energy_per_atom"] \
-                                                       - d["output"]["energy_per_atom"]
+                energy_diff_relax_static = (
+                    optimize_task["output"]["energy_per_atom"]
+                    - d["output"]["energy_per_atom"]
+                )
             else:
-                original_task = d
                 energy_diff_relax_static = None
 
-            input_structure = Structure.from_dict(optimize_task['input']['structure'])
-            input_magmoms = optimize_task['input']['incar']['MAGMOM']
-            input_structure.add_site_property('magmom', input_magmoms)
+            input_structure = Structure.from_dict(optimize_task["input"]["structure"])
+            input_magmoms = optimize_task["input"]["incar"]["MAGMOM"]
+            input_structure.add_site_property("magmom", input_magmoms)
 
             final_structure = Structure.from_dict(d["output"]["structure"])
 
             # picking a fairly large threshold so that default 0.6 µB magmoms don't
             # cause problems with analysis, this is obviously not approriate for
             # some magnetic structures with small magnetic moments (e.g. CuO)
-            input_analyzer = CollinearMagneticStructureAnalyzer(input_structure, threshold=0.61)
-            final_analyzer = CollinearMagneticStructureAnalyzer(final_structure, threshold=0.61)
+            input_analyzer = CollinearMagneticStructureAnalyzer(
+                input_structure, threshold=0.61
+            )
+            final_analyzer = CollinearMagneticStructureAnalyzer(
+                final_structure, threshold=0.61
+            )
 
             if d["task_id"] == ground_state_task_id:
                 stable = True
@@ -882,15 +1013,16 @@ class MagneticOrderingsToDb(FiretaskBase):
             else:
                 stable = False
                 decomposes_to = ground_state_task_id
-            energy_above_ground_state_per_atom = d["output"]["energy_per_atom"] \
-                                                 - ground_state_energy
+            energy_above_ground_state_per_atom = (
+                d["output"]["energy_per_atom"] - ground_state_energy
+            )
 
             # tells us the order in which structure was guessed
             # 1 is FM, then AFM..., -1 means it was entered manually
             # useful to give us statistics about how many orderings
             # we actually need to calculate
-            task_label = d["task_label"].split(' ')
-            ordering_index = task_label.index('ordering')
+            task_label = d["task_label"].split(" ")
+            ordering_index = task_label.index("ordering")
             ordering_index = int(task_label[ordering_index + 1])
             if self.get("origins", None):
                 ordering_origin = self["origins"][ordering_index]
@@ -916,21 +1048,31 @@ class MagneticOrderingsToDb(FiretaskBase):
                         # prefer bader magmoms if we have them
                         final_magmoms = magmoms["bader"]
                     except Exception as e:
-                        magmoms["bader"] = "Bader analysis failed: {}".format(e)
+                        magmoms["bader"] = f"Bader analysis failed: {e}"
 
             input_order_check = [0 if abs(m) < 0.61 else m for m in input_magmoms]
             final_order_check = [0 if abs(m) < 0.61 else m for m in final_magmoms]
-            ordering_changed = not np.array_equal(np.sign(input_order_check),
-                                                  np.sign(final_order_check))
+            ordering_changed = not np.array_equal(
+                np.sign(input_order_check), np.sign(final_order_check)
+            )
 
-            symmetry_changed = (final_structure.get_space_group_info()[0]
-                                != input_structure.get_space_group_info()[0])
+            symmetry_changed = (
+                final_structure.get_space_group_info()[0]
+                != input_structure.get_space_group_info()[0]
+            )
 
-            total_magnetization = abs(d["calcs_reversed"][0]["output"]["outcar"]["total_magnetization"])
-            num_formula_units = sum(d["calcs_reversed"][0]["composition_reduced"].values())/\
-                                sum(d["calcs_reversed"][0]["composition_unit_cell"].values())
-            total_magnetization_per_formula_unit = total_magnetization/num_formula_units
-            total_magnetization_per_unit_volume = total_magnetization/final_structure.volume
+            total_magnetization = abs(
+                d["calcs_reversed"][0]["output"]["outcar"]["total_magnetization"]
+            )
+            num_formula_units = sum(
+                d["calcs_reversed"][0]["composition_reduced"].values()
+            ) / sum(d["calcs_reversed"][0]["composition_unit_cell"].values())
+            total_magnetization_per_formula_unit = (
+                total_magnetization / num_formula_units
+            )
+            total_magnetization_per_unit_volume = (
+                total_magnetization / final_structure.volume
+            )
 
             summary = {
                 "formula": formula,
@@ -946,7 +1088,7 @@ class MagneticOrderingsToDb(FiretaskBase):
                     "symmetry": input_structure.get_space_group_info()[0],
                     "index": ordering_index,
                     "origin": ordering_origin,
-                    "input_index": self.get("input_index", None)
+                    "input_index": self.get("input_index", None),
                 },
                 "total_magnetization": total_magnetization,
                 "total_magnetization_per_formula_unit": total_magnetization_per_formula_unit,
@@ -960,7 +1102,7 @@ class MagneticOrderingsToDb(FiretaskBase):
                 "decomposes_to": decomposes_to,
                 "energy_above_ground_state_per_atom": energy_above_ground_state_per_atom,
                 "energy_diff_relax_static": energy_diff_relax_static,
-                "created_at": datetime.utcnow()
+                "created_at": datetime.utcnow(),
             }
 
             if fw_spec.get("tags", None):
@@ -1009,18 +1151,22 @@ class MagneticDeformationToDb(FiretaskBase):
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         # get the non-magnetic structure
-        d_nm = mmdb.collection.find_one({
-            "task_label": "magnetic deformation optimize non-magnetic",
-            "wf_meta.wf_uuid": uuid
-        })
+        d_nm = mmdb.collection.find_one(
+            {
+                "task_label": "magnetic deformation optimize non-magnetic",
+                "wf_meta.wf_uuid": uuid,
+            }
+        )
         nm_structure = Structure.from_dict(d_nm["output"]["structure"])
         nm_run_stats = d_nm["run_stats"]["overall"]
 
         # get the magnetic structure
-        d_m = mmdb.collection.find_one({
-            "task_label": "magnetic deformation optimize magnetic",
-            "wf_meta.wf_uuid": uuid
-        })
+        d_m = mmdb.collection.find_one(
+            {
+                "task_label": "magnetic deformation optimize magnetic",
+                "wf_meta.wf_uuid": uuid,
+            }
+        )
         m_structure = Structure.from_dict(d_m["output"]["structure"])
         m_run_stats = d_m["run_stats"]["overall"]
 
@@ -1033,13 +1179,17 @@ class MagneticDeformationToDb(FiretaskBase):
         # get run stats (mostly used for benchmarking)
         # using same approach as VaspDrone
         try:
-            run_stats = {'nm': nm_run_stats, 'm': m_run_stats}
+            run_stats = {"nm": nm_run_stats, "m": m_run_stats}
             overall_run_stats = {}
-            for key in ["Total CPU time used (sec)", "User time (sec)", "System time (sec)",
-                        "Elapsed time (sec)"]:
+            for key in [
+                "Total CPU time used (sec)",
+                "User time (sec)",
+                "System time (sec)",
+                "Elapsed time (sec)",
+            ]:
                 overall_run_stats[key] = sum([v[key] for v in run_stats.values()])
         except:
-            logger.error("Bad run stats for {}.".format(uuid))
+            logger.error(f"Bad run stats for {uuid}.")
             overall_run_stats = "Bad run stats"
 
         summary = {
@@ -1051,7 +1201,7 @@ class MagneticDeformationToDb(FiretaskBase):
             "magnetic_task_id": d_m["task_id"],
             "magnetic_structure": m_structure.as_dict(),
             "run_stats": overall_run_stats,
-            "created_at": datetime.utcnow()
+            "created_at": datetime.utcnow(),
         }
 
         if fw_spec.get("tags", None):
@@ -1079,12 +1229,14 @@ class PolarizationToDb(FiretaskBase):
 
     def run_task(self, fw_spec):
 
-        wfid = list(filter(lambda x: 'wfid' in x, fw_spec['tags'])).pop()
+        wfid = list(filter(lambda x: "wfid" in x, fw_spec["tags"])).pop()
         db_file = env_chk(self.get("db_file"), fw_spec)
         vaspdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
         # ferroelectric workflow groups calculations by generated wfid tag
-        polarization_tasks = vaspdb.collection.find({"tags": wfid, "task_label": {"$regex": ".*polarization"}})
+        polarization_tasks = vaspdb.collection.find(
+            {"tags": wfid, "task_label": {"$regex": ".*polarization"}}
+        )
 
         tasks = []
         outcars = []
@@ -1096,12 +1248,14 @@ class PolarizationToDb(FiretaskBase):
 
         for p in polarization_tasks:
             # Grab data from each polarization task
-            energies_per_atom.append(p['calcs_reversed'][0]['output']['energy_per_atom'])
-            energies.append(p['calcs_reversed'][0]['output']['energy'])
-            tasks.append(p['task_label'])
-            outcars.append(p['calcs_reversed'][0]['output']['outcar'])
-            structure_dicts.append(p['calcs_reversed'][0]['input']['structure'])
-            zval_dicts.append(p['calcs_reversed'][0]['output']['outcar']['zval_dict'])
+            energies_per_atom.append(
+                p["calcs_reversed"][0]["output"]["energy_per_atom"]
+            )
+            energies.append(p["calcs_reversed"][0]["output"]["energy"])
+            tasks.append(p["task_label"])
+            outcars.append(p["calcs_reversed"][0]["output"]["outcar"])
+            structure_dicts.append(p["calcs_reversed"][0]["input"]["structure"])
+            zval_dicts.append(p["calcs_reversed"][0]["output"]["outcar"]["zval_dict"])
 
             # Add weight for sorting
             # Want polarization calculations in order of nonpolar to polar for Polarization object
@@ -1109,26 +1263,30 @@ class PolarizationToDb(FiretaskBase):
             # This number needs to be bigger than the number of calculations
             max_sort_weight = 1000000
 
-            if 'nonpolar_polarization' in p['task_label']:
+            if "nonpolar_polarization" in p["task_label"]:
                 sort_weight.append(0)
-            elif "polar_polarization" in p['task_label']:
+            elif "polar_polarization" in p["task_label"]:
                 sort_weight.append(max_sort_weight)
-            elif "interpolation_" in p['task_label']:
+            elif "interpolation_" in p["task_label"]:
                 num = 0
-                part = re.findall(r'interpolation_[0-9]+_polarization', p['task_label'])
+                part = re.findall(r"interpolation_[0-9]+_polarization", p["task_label"])
                 if part != []:
-                    part2 = re.findall(r'[0-9]+', part.pop())
+                    part2 = re.findall(r"[0-9]+", part.pop())
                     if part2 != []:
                         num = part2.pop()
                 sort_weight.append(max_sort_weight - int(num))
 
         # Sort polarization tasks
         # nonpolar -> interpolation_n -> interpolation_n-1 -> ...  -> interpolation_1 -> polar
-        data = zip(tasks, structure_dicts, outcars, energies_per_atom, energies, sort_weight)
-        data = sorted(data,key=lambda x: x[-1])
+        data = zip(
+            tasks, structure_dicts, outcars, energies_per_atom, energies, sort_weight
+        )
+        data = sorted(data, key=lambda x: x[-1])
 
         # Get the tasks, structures, etc in sorted order from the zipped data.
-        tasks, structure_dicts, outcars, energies_per_atom, energies, sort_weight = zip(*data)
+        tasks, structure_dicts, outcars, energies_per_atom, energies, sort_weight = zip(
+            *data
+        )
 
         structures = [Structure.from_dict(structure) for structure in structure_dicts]
 
@@ -1138,15 +1296,19 @@ class PolarizationToDb(FiretaskBase):
         # Assumes that we want to calculate the ionic contribution to the dipole moment.
         # VASP's ionic contribution is sometimes strange.
         # See pymatgen.analysis.ferroelectricity.polarization.Polarization for details.
-        p_elecs = [outcar['p_elec'] for outcar in outcars]
-        p_ions = [get_total_ionic_dipole(structure, zval_dict) for structure in structures]
+        p_elecs = [outcar["p_elec"] for outcar in outcars]
+        p_ions = [
+            get_total_ionic_dipole(structure, zval_dict) for structure in structures
+        ]
 
         polarization = Polarization(p_elecs, p_ions, structures)
 
         p_change = np.ravel(polarization.get_polarization_change()).tolist()
         p_norm = polarization.get_polarization_change_norm()
         polarization_max_spline_jumps = polarization.max_spline_jumps()
-        same_branch = polarization.get_same_branch_polarization_data(convert_to_muC_per_cm2=True)
+        same_branch = polarization.get_same_branch_polarization_data(
+            convert_to_muC_per_cm2=True
+        )
         raw_elecs, raw_ions = polarization.get_pelecs_and_pions()
         quanta = polarization.get_lattice_quanta(convert_to_muC_per_cm2=True)
 
@@ -1157,22 +1319,26 @@ class PolarizationToDb(FiretaskBase):
 
         def split_abc(var, var_name):
             d = {}
-            for i, j in enumerate('abc'):
-                d.update({var_name + "_{}".format(j): np.ravel(var[:, i]).tolist()})
+            for i, j in enumerate("abc"):
+                d.update({var_name + f"_{j}": np.ravel(var[:, i]).tolist()})
             return d
 
         # Add some sort of id for the structures? Like cid but more general?
         # polarization_dict.update({'cid': cid})
 
         # General information
-        polarization_dict.update({'pretty_formula': structures[0].composition.reduced_formula})
-        polarization_dict.update({'wfid': wfid})
-        polarization_dict.update({'task_label_order': tasks})
+        polarization_dict.update(
+            {"pretty_formula": structures[0].composition.reduced_formula}
+        )
+        polarization_dict.update({"wfid": wfid})
+        polarization_dict.update({"task_label_order": tasks})
 
         # Polarization information
-        polarization_dict.update({'polarization_change': p_change})
-        polarization_dict.update({'polarization_change_norm': p_norm})
-        polarization_dict.update({'polarization_max_spline_jumps': polarization_max_spline_jumps})
+        polarization_dict.update({"polarization_change": p_change})
+        polarization_dict.update({"polarization_change_norm": p_norm})
+        polarization_dict.update(
+            {"polarization_max_spline_jumps": polarization_max_spline_jumps}
+        )
         polarization_dict.update(split_abc(same_branch, "same_branch_polarization"))
         polarization_dict.update(split_abc(raw_elecs, "raw_electron_polarization"))
         polarization_dict.update(split_abc(raw_ions, "raw_electron_polarization"))
@@ -1180,10 +1346,12 @@ class PolarizationToDb(FiretaskBase):
         polarization_dict.update({"zval_dict": zval_dict})
 
         # Energy information
-        polarization_dict.update({'energy_per_atom_max_spline_jumps': energy_max_spline_jumps})
+        polarization_dict.update(
+            {"energy_per_atom_max_spline_jumps": energy_max_spline_jumps}
+        )
         polarization_dict.update({"energies": energies})
         polarization_dict.update({"energies_per_atom": energies_per_atom})
-        polarization_dict.update({'outcars': outcars})
+        polarization_dict.update({"outcars": outcars})
         polarization_dict.update({"structures": structure_dicts})
 
         # Write all the info to db.

@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 import os
 import monty
 import shutil
@@ -72,7 +69,7 @@ def get_calc_loc(target_name, calc_locs):
         for doc in reversed(calc_locs):
             if doc["name"] == target_name:
                 return doc
-        raise ValueError("Could not find the target_name: {}".format(target_name))
+        raise ValueError(f"Could not find the target_name: {target_name}")
     else:
         return calc_locs[-1]
 

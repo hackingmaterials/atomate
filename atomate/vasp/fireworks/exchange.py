@@ -1,20 +1,15 @@
 from fireworks import Firework
 
-from pymatgen.analysis.magnetism.heisenberg import HeisenbergMapper
-
-from atomate.vasp.firetasks.parse_outputs import JsonToDb
 
 from atomate.vasp.firetasks.exchange import (
     HeisenbergModelMapping,
     HeisenbergModelToDb,
-    HeisenbergConvergence,
     VampireMC,
     VampireToDb,
 )
 
-from atomate.vasp.config import VASP_CMD, DB_FILE
+from atomate.vasp.config import DB_FILE
 
-import numpy as np
 
 __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"
@@ -36,7 +31,7 @@ class HeisenbergModelFW(Firework):
         Takes a set of low-energy magnetic orderings and energies and maps
         them to a Heisenberg Model to compute exchange params.
 
-        * heisenberg_settings: 
+        * heisenberg_settings:
             cutoff (float): Starting point for nearest neighbor search.
             tol (float): Tolerance for equivalent NN bonds.
 
@@ -45,7 +40,7 @@ class HeisenbergModelFW(Firework):
             parent_structure (Structure): Magnetic ground state.
             parents (FireWorks): Parent FWs.
             db_file (str): Path to file containing db credentials.
-            heisenberg_settings (dict): A config dict for Heisenberg model 
+            heisenberg_settings (dict): A config dict for Heisenberg model
                 mapping, detailed above.
             name (str): Labels the FW.
             structures (list): Magnetic structures.
@@ -58,7 +53,7 @@ class HeisenbergModelFW(Firework):
 
         heisenberg_settings = heisenberg_settings or {}
 
-        fw_name = "%s %s" % (parent_structure.composition.reduced_formula, name)
+        fw_name = f"{parent_structure.composition.reduced_formula} {name}"
 
         additional_fields = {
             "task_label": fw_name,
@@ -107,7 +102,7 @@ class VampireCallerFW(Firework):
 
         """
 
-        fw_name = "%s %s" % (parent_structure.composition.reduced_formula, name)
+        fw_name = f"{parent_structure.composition.reduced_formula} {name}"
 
         additional_fields = {
             "task_label": fw_name,

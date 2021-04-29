@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 import os
 import unittest
 import shutil
@@ -23,13 +20,14 @@ db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 class TestPowerups(AtomateTest):
     @classmethod
     def setUpClass(cls):
-        out_file = os.path.join(module_dir, "..", "test_files", "FF_working",
-                                "test.qout.opt_1")
+        out_file = os.path.join(
+            module_dir, "..", "test_files", "FF_working", "test.qout.opt_1"
+        )
         qc_out = QCOutput(filename=out_file)
         cls.act_mol = qc_out.data["molecule_from_optimized_geometry"]
 
     def setUp(self, lpad=False):
-        super(TestPowerups, self).setUp(lpad=False)
+        super().setUp(lpad=False)
 
     def tearDown(self):
         # this removes the scratch dir made by AtomateTest
@@ -49,10 +47,10 @@ class TestPowerups(AtomateTest):
             qchem_cmd="should not need this going to be replaced with fake run"
         )
         p_task = QChemToDb(
-            calc_dir=calc_dir, input_file=input_file, output_file=output_file)
+            calc_dir=calc_dir, input_file=input_file, output_file=output_file
+        )
         fw1 = Firework([run_task, p_task], name="test_fake_run")
-        w_task = WriteInputFromIOSet(
-            qchem_input_set="OptSet", write_to_dir=module_dir)
+        w_task = WriteInputFromIOSet(qchem_input_set="OptSet", write_to_dir=module_dir)
         fw2 = Firework([w_task], parents=fw1, name="test_write")
         wf = Workflow([fw1, fw2])
         ref_dirs = {"test_fake_run": os.path.join(calc_dir, output_file)}

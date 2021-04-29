@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 """
 This module defines a workflow for adsorption on surfaces
 """
@@ -18,14 +15,22 @@ from pymatgen.transformations.advanced_transformations import SlabTransformation
 from pymatgen.transformations.standard_transformations import SupercellTransformation
 from pymatgen.io.vasp.sets import MVLSlabSet
 
-__author__ = 'Joseph Montoya, Richard Tran'
-__email__ = 'montoyjh@lbl.gov'
+__author__ = "Joseph Montoya, Richard Tran"
+__email__ = "montoyjh@lbl.gov"
 
 
 # TODO: Add functionality for reconstructions
 # TODO: Add framework for including vibrations and free energy
-def get_slab_fw(slab, transmuter=False, db_file=None, vasp_input_set=None,
-                parents=None, vasp_cmd="vasp", name="", add_slab_metadata=True):
+def get_slab_fw(
+    slab,
+    transmuter=False,
+    db_file=None,
+    vasp_input_set=None,
+    parents=None,
+    vasp_cmd="vasp",
+    name="",
+    add_slab_metadata=True,
+):
     """
     Function to generate a a slab firework.  Returns a TransmuterFW if
     bulk_structure is specified, constructing the necessary transformations
@@ -66,45 +71,70 @@ def get_slab_fw(slab, transmuter=False, db_file=None, vasp_input_set=None,
         # Ensures supercell construction
         supercell_trans = SupercellTransformation.from_scaling_factors(
             round(slab.lattice.a / slab_from_bulk.lattice.a),
-            round(slab.lattice.b / slab_from_bulk.lattice.b))
+            round(slab.lattice.b / slab_from_bulk.lattice.b),
+        )
 
         # Get site properties, set velocities to zero if not set to avoid
         # custodian issue
         site_props = slab.site_properties
-        if 'velocities' not in site_props:
-            site_props['velocities'] = [0. for s in slab]
+        if "velocities" not in site_props:
+            site_props["velocities"] = [0.0 for s in slab]
 
         # Get adsorbates for InsertSitesTransformation
         if "adsorbate" in slab.site_properties.get("surface_properties", ""):
-            ads_sites = [site for site in slab
-                         if site.properties["surface_properties"] == "adsorbate"]
+            ads_sites = [
+                site
+                for site in slab
+                if site.properties["surface_properties"] == "adsorbate"
+            ]
         else:
             ads_sites = []
         transformations = [
-            "SlabTransformation", "SupercellTransformation",
-            "InsertSitesTransformation", "AddSitePropertyTransformation"]
-        trans_params = [slab_trans_params,
-                        {"scaling_matrix": supercell_trans.scaling_matrix},
-                        {"species": [site.species_string for site in ads_sites],
-                         "coords": [site.frac_coords for site in ads_sites]},
-                        {"site_properties": site_props}]
-        fw = TransmuterFW(name=name, structure=oriented_bulk,
-                          transformations=transformations,
-                          transformation_params=trans_params,
-                          copy_vasp_outputs=True, db_file=db_file,
-                          vasp_cmd=vasp_cmd, parents=parents,
-                          vasp_input_set=vasp_input_set)
+            "SlabTransformation",
+            "SupercellTransformation",
+            "InsertSitesTransformation",
+            "AddSitePropertyTransformation",
+        ]
+        trans_params = [
+            slab_trans_params,
+            {"scaling_matrix": supercell_trans.scaling_matrix},
+            {
+                "species": [site.species_string for site in ads_sites],
+                "coords": [site.frac_coords for site in ads_sites],
+            },
+            {"site_properties": site_props},
+        ]
+        fw = TransmuterFW(
+            name=name,
+            structure=oriented_bulk,
+            transformations=transformations,
+            transformation_params=trans_params,
+            copy_vasp_outputs=True,
+            db_file=db_file,
+            vasp_cmd=vasp_cmd,
+            parents=parents,
+            vasp_input_set=vasp_input_set,
+        )
     else:
-        fw = OptimizeFW(name=name, structure=slab,
-                        vasp_input_set=vasp_input_set, vasp_cmd=vasp_cmd,
-                        db_file=db_file, parents=parents, job_type="normal")
+        fw = OptimizeFW(
+            name=name,
+            structure=slab,
+            vasp_input_set=vasp_input_set,
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+            parents=parents,
+            job_type="normal",
+        )
     # Add slab metadata
     if add_slab_metadata:
-        parent_structure_metadata = get_meta_from_structure(
-            slab.oriented_unit_cell)
+        parent_structure_metadata = get_meta_from_structure(slab.oriented_unit_cell)
         fw.tasks[-1]["additional_fields"].update(
-            {"slab": slab, "parent_structure": slab.oriented_unit_cell,
-             "parent_structure_metadata": parent_structure_metadata})
+            {
+                "slab": slab,
+                "parent_structure": slab.oriented_unit_cell,
+                "parent_structure_metadata": parent_structure_metadata,
+            }
+        )
     return fw
 
 
@@ -121,8 +151,11 @@ def get_slab_trans_params(slab):
     """
     slab = slab.copy()
     if slab.site_properties.get("surface_properties"):
-        adsorbate_indices = [slab.index(s) for s in slab if
-                             s.properties['surface_properties'] == 'adsorbate']
+        adsorbate_indices = [
+            slab.index(s)
+            for s in slab
+            if s.properties["surface_properties"] == "adsorbate"
+        ]
         slab.remove_sites(adsorbate_indices)
 
     # Note: this could fail if the slab is non-contiguous in the c direction,
@@ -150,13 +183,23 @@ def get_slab_trans_params(slab):
     # if slab.composition.reduced_formula == "Si":
     #     import nose; nose.tools.set_trace()
 
-    return {"miller_index": [0, 0, 1], "shift": slab.shift,
-            "min_slab_size": min_slab_size, "min_vacuum_size": min_vac_size}
+    return {
+        "miller_index": [0, 0, 1],
+        "shift": slab.shift,
+        "min_slab_size": min_slab_size,
+        "min_vacuum_size": min_vac_size,
+    }
 
 
-def get_wf_slab(slab, include_bulk_opt=False, adsorbates=None,
-                ads_structures_params=None, vasp_cmd="vasp",
-                db_file=None, add_molecules_in_box=False):
+def get_wf_slab(
+    slab,
+    include_bulk_opt=False,
+    adsorbates=None,
+    ads_structures_params=None,
+    vasp_cmd="vasp",
+    db_file=None,
+    add_molecules_in_box=False,
+):
     """
     Gets a workflow corresponding to a slab calculation along with optional
     adsorbate calcs and precursor oriented unit cell optimization
@@ -189,50 +232,69 @@ def get_wf_slab(slab, include_bulk_opt=False, adsorbates=None,
     if include_bulk_opt:
         oriented_bulk = slab.oriented_unit_cell
         vis = MPSurfaceSet(oriented_bulk, bulk=True)
-        fws.append(OptimizeFW(structure=oriented_bulk, vasp_input_set=vis,
-                              vasp_cmd=vasp_cmd, db_file=db_file))
+        fws.append(
+            OptimizeFW(
+                structure=oriented_bulk,
+                vasp_input_set=vis,
+                vasp_cmd=vasp_cmd,
+                db_file=db_file,
+            )
+        )
         parents = fws[-1]
 
     name = slab.composition.reduced_formula
     if getattr(slab, "miller_index", None):
-        name += "_{}".format(slab.miller_index)
+        name += f"_{slab.miller_index}"
     # Create slab fw and add it to list of fws
-    slab_fw = get_slab_fw(slab, include_bulk_opt, db_file=db_file,
-                          vasp_cmd=vasp_cmd, parents=parents,
-                          name="{} slab optimization".format(name))
+    slab_fw = get_slab_fw(
+        slab,
+        include_bulk_opt,
+        db_file=db_file,
+        vasp_cmd=vasp_cmd,
+        parents=parents,
+        name=f"{name} slab optimization",
+    )
     fws.append(slab_fw)
 
     for adsorbate in adsorbates:
         ads_slabs = AdsorbateSiteFinder(slab).generate_adsorption_structures(
-            adsorbate, **ads_structures_params)
+            adsorbate, **ads_structures_params
+        )
         for n, ads_slab in enumerate(ads_slabs):
             # Create adsorbate fw
             ads_name = "{}-{} adsorbate optimization {}".format(
-                adsorbate.composition.formula, name, n)
+                adsorbate.composition.formula, name, n
+            )
             adsorbate_fw = get_slab_fw(
-                ads_slab, include_bulk_opt, db_file=db_file, vasp_cmd=vasp_cmd,
-                parents=parents, name=ads_name)
+                ads_slab,
+                include_bulk_opt,
+                db_file=db_file,
+                vasp_cmd=vasp_cmd,
+                parents=parents,
+                name=ads_name,
+            )
             fws.append(adsorbate_fw)
 
     if isinstance(slab, Slab):
         name = "{}_{} slab workflow".format(
-            slab.composition.reduced_composition, slab.miller_index)
+            slab.composition.reduced_composition, slab.miller_index
+        )
     else:
-        name = "{} slab workflow".format(slab.composition.reduced_composition)
+        name = f"{slab.composition.reduced_composition} slab workflow"
 
     wf = Workflow(fws, name=name)
 
     # Add optional molecules workflow
     if add_molecules_in_box:
-        molecule_wf = get_wf_molecules(adsorbates, db_file=db_file,
-                                       vasp_cmd=vasp_cmd)
+        molecule_wf = get_wf_molecules(adsorbates, db_file=db_file, vasp_cmd=vasp_cmd)
         wf.append_wf(molecule_wf)
 
     return wf
 
 
-def get_wf_molecules(molecules, vasp_input_set=None, db_file=None,
-                     vasp_cmd="vasp", name=""):
+def get_wf_molecules(
+    molecules, vasp_input_set=None, db_file=None, vasp_cmd="vasp", name=""
+):
     """
     Args:
         molecules (Molecules): list of molecules to calculate
@@ -248,22 +310,34 @@ def get_wf_molecules(molecules, vasp_input_set=None, db_file=None,
 
     for molecule in molecules:
         # molecule in box
-        m_struct = molecule.get_boxed_structure(10, 10, 10,
-                                                offset=np.array([5, 5, 5]))
+        m_struct = molecule.get_boxed_structure(10, 10, 10, offset=np.array([5, 5, 5]))
         vis = vasp_input_set or MPSurfaceSet(m_struct)
-        fws.append(OptimizeFW(structure=molecule, job_type="normal",
-                              vasp_input_set=vis, db_file=db_file,
-                              vasp_cmd=vasp_cmd))
+        fws.append(
+            OptimizeFW(
+                structure=molecule,
+                job_type="normal",
+                vasp_input_set=vis,
+                db_file=db_file,
+                vasp_cmd=vasp_cmd,
+            )
+        )
     name = name or "molecules workflow"
     return Workflow(fws, name=name)
 
 
 # TODO: this will duplicate a precursor optimization for slabs with
 #       the same miller index, but different shift
-def get_wfs_all_slabs(bulk_structure, include_bulk_opt=False,
-                      adsorbates=None, max_index=1, slab_gen_params=None,
-                      ads_structures_params=None, vasp_cmd="vasp",
-                      db_file=None, add_molecules_in_box=False):
+def get_wfs_all_slabs(
+    bulk_structure,
+    include_bulk_opt=False,
+    adsorbates=None,
+    max_index=1,
+    slab_gen_params=None,
+    ads_structures_params=None,
+    vasp_cmd="vasp",
+    db_file=None,
+    add_molecules_in_box=False,
+):
     """
     Convenience constructor that allows a user to construct a workflow
     that finds all adsorption configurations (or slabs) for a given
@@ -291,13 +365,13 @@ def get_wfs_all_slabs(bulk_structure, include_bulk_opt=False,
     slabs = generate_all_slabs(bulk_structure, max_index=max_index, **sgp)
     wfs = []
     for slab in slabs:
-        slab_wf = get_wf_slab(slab, include_bulk_opt, adsorbates,
-                              ads_structures_params, vasp_cmd, db_file)
+        slab_wf = get_wf_slab(
+            slab, include_bulk_opt, adsorbates, ads_structures_params, vasp_cmd, db_file
+        )
         wfs.append(slab_wf)
 
     if add_molecules_in_box:
-        wfs.append(get_wf_molecules(adsorbates, db_file=db_file,
-                                    vasp_cmd=vasp_cmd))
+        wfs.append(get_wf_molecules(adsorbates, db_file=db_file, vasp_cmd=vasp_cmd))
     return wfs
 
 
@@ -308,35 +382,44 @@ class MPSurfaceSet(MVLSlabSet):
     Input class for MP slab calcs, mostly to change parameters
     and defaults slightly
     """
+
     def __init__(self, structure, bulk=False, auto_dipole=None, **kwargs):
 
         # If not a bulk calc, turn get_locpot/auto_dipole on by default
         auto_dipole = auto_dipole or not bulk
-        super(MPSurfaceSet, self).__init__(
-            structure, bulk=bulk, auto_dipole=False, **kwargs)
+        super().__init__(structure, bulk=bulk, auto_dipole=False, **kwargs)
         # This is a hack, but should be fixed when this is ported over to
         # pymatgen to account for vasp native dipole fix
         if auto_dipole:
-            self._config_dict['INCAR'].update({"LDIPOL": True, "IDIPOL": 3})
+            self._config_dict["INCAR"].update({"LDIPOL": True, "IDIPOL": 3})
             self.auto_dipole = True
 
     @property
     def incar(self):
-        incar = super(MPSurfaceSet, self).incar
+        incar = super().incar
 
         # Determine LDAU based on slab chemistry without adsorbates
-        ldau_elts = {'O', 'F'}
+        ldau_elts = {"O", "F"}
         if self.structure.site_properties.get("surface_properties"):
             non_adsorbate_elts = {
-                s.specie.symbol for s in self.structure
-                if not s.properties['surface_properties'] == 'adsorbate'}
+                s.specie.symbol
+                for s in self.structure
+                if not s.properties["surface_properties"] == "adsorbate"
+            }
         else:
             non_adsorbate_elts = {s.specie.symbol for s in self.structure}
         ldau = bool(non_adsorbate_elts & ldau_elts)
 
         # Should give better forces for optimization
-        incar_config = {"EDIFFG": -0.05, "ENAUG": 4000, "IBRION": 1,
-                        "POTIM": 1.0, "LDAU": ldau, "EDIFF": 1e-5, "ISYM": 0}
+        incar_config = {
+            "EDIFFG": -0.05,
+            "ENAUG": 4000,
+            "IBRION": 1,
+            "POTIM": 1.0,
+            "LDAU": ldau,
+            "EDIFF": 1e-5,
+            "ISYM": 0,
+        }
         incar.update(incar_config)
         incar.update(self.user_incar_settings)
         return incar

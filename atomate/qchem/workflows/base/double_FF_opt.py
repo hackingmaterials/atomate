@@ -1,5 +1,3 @@
-# coding: utf-8
-
 # This module defines a workflow for optimizing a molecule first in vacuum and then
 # in PCM. Both optimizations will include automatic frequency flattening.
 
@@ -19,13 +17,15 @@ __credits__ = "Brandon Wood, Shyam Dwaraknath"
 logger = get_logger(__name__)
 
 
-def get_wf_double_FF_opt(molecule,
-                         pcm_dielectric,
-                         linked=False,
-                         qchem_input_params=None,
-                         name="douple_FF_opt",
-                         db_file=">>db_file<<",
-                         **kwargs):
+def get_wf_double_FF_opt(
+    molecule,
+    pcm_dielectric,
+    linked=False,
+    qchem_input_params=None,
+    name="douple_FF_opt",
+    db_file=">>db_file<<",
+    **kwargs,
+):
     """
 
     Firework 1 : write QChem input for an FF optimization,
@@ -80,7 +80,8 @@ def get_wf_double_FF_opt(molecule,
         max_cores=">>max_cores<<",
         qchem_input_params=first_qchem_input_params,
         linked=linked,
-        db_file=db_file)
+        db_file=db_file,
+    )
 
     # Optimize the molecule in PCM
     second_qchem_input_params = {"pcm_dielectric": pcm_dielectric}
@@ -93,9 +94,10 @@ def get_wf_double_FF_opt(molecule,
         qchem_input_params=second_qchem_input_params,
         linked=linked,
         db_file=db_file,
-        parents=fw1)
+        parents=fw1,
+    )
     fws = [fw1, fw2]
 
-    wfname = "{}:{}".format(molecule.composition.reduced_formula, name)
+    wfname = f"{molecule.composition.reduced_formula}:{name}"
 
     return Workflow(fws, name=wfname, **kwargs)

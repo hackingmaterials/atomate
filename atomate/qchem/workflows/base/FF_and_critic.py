@@ -1,6 +1,4 @@
-# coding: utf-8
-
-# This module defines a workflow for FFopting a molecule and then analyzing its 
+# This module defines a workflow for FFopting a molecule and then analyzing its
 # electron density critical points with Critic2.
 
 from fireworks import Workflow
@@ -18,11 +16,9 @@ __date__ = "11/20/19"
 logger = get_logger(__name__)
 
 
-def get_wf_FFopt_and_critic(molecule,
-                            suffix,
-                            qchem_input_params=None,
-                            db_file=">>db_file<<",
-                            **kwargs):
+def get_wf_FFopt_and_critic(
+    molecule, suffix, qchem_input_params=None, db_file=">>db_file<<", **kwargs
+):
     """
 
     Firework 1 : write QChem input for an FF optimization,
@@ -67,25 +63,30 @@ def get_wf_FFopt_and_critic(molecule,
 
     # FFopt
     fw1 = FrequencyFlatteningOptimizeFW(
-         molecule=molecule,
-         name="{}:{}".format(molecule.composition.alphabetical_formula, "FFopt_" + suffix),
-         qchem_cmd=">>qchem_cmd<<",
-         max_cores=">>max_cores<<",
-         qchem_input_params=qchem_input_params,
-         linked=True,
-         db_file=">>db_file<<"
+        molecule=molecule,
+        name="{}:{}".format(
+            molecule.composition.alphabetical_formula, "FFopt_" + suffix
+        ),
+        qchem_cmd=">>qchem_cmd<<",
+        max_cores=">>max_cores<<",
+        qchem_input_params=qchem_input_params,
+        linked=True,
+        db_file=">>db_file<<",
     )
 
     # Critic
     fw2 = CubeAndCritic2FW(
-         name="{}:{}".format(molecule.composition.alphabetical_formula, "CC2_" + suffix),
-         qchem_cmd=">>qchem_cmd<<",
-         max_cores=">>max_cores<<",
-         qchem_input_params=qchem_input_params,
-         db_file=">>db_file<<",
-         parents=fw1)
+        name="{}:{}".format(molecule.composition.alphabetical_formula, "CC2_" + suffix),
+        qchem_cmd=">>qchem_cmd<<",
+        max_cores=">>max_cores<<",
+        qchem_input_params=qchem_input_params,
+        db_file=">>db_file<<",
+        parents=fw1,
+    )
     fws = [fw1, fw2]
 
-    wfname = "{}:{}".format(molecule.composition.alphabetical_formula, "FFopt_CC2_WF_" + suffix)
+    wfname = "{}:{}".format(
+        molecule.composition.alphabetical_formula, "FFopt_CC2_WF_" + suffix
+    )
 
     return Workflow(fws, name=wfname, **kwargs)

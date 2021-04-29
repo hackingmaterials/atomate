@@ -1,11 +1,9 @@
-# coding: utf-8
 # Copyright (c) Materials Virtual Lab.
 # Distributed under the terms of the BSD License.
 
-import shutil
 import os
 import unittest
-from monty.serialization import dumpfn, loadfn
+from monty.serialization import loadfn
 from atomate.qchem.drones import QChemDrone
 from pymatgen.core.structure import Molecule
 import numpy as np
@@ -31,7 +29,8 @@ class QChemDroneTest(unittest.TestCase):
             path=os.path.join(module_dir, "..", "test_files", "FF_working"),
             input_file="test.qin.opt_1",
             output_file="test.qout.opt_1",
-            multirun=False)
+            multirun=False,
+        )
         self.assertEqual(doc["input"]["job_type"], "opt")
         self.assertEqual(doc["output"]["job_type"], "opt")
         self.assertEqual(doc["output"]["final_energy"], -348.652462579636)
@@ -57,14 +56,35 @@ class QChemDroneTest(unittest.TestCase):
             path=os.path.join(module_dir, "..", "test_files", "FF_working"),
             input_file="test.qin.freq_1",
             output_file="test.qout.freq_1",
-            multirun=False)
+            multirun=False,
+        )
         self.assertEqual(doc["input"]["job_type"], "freq")
         self.assertEqual(doc["output"]["job_type"], "freq")
-        test_freqs = np.array([
-            12.52, 45.28, 260.96, 329.08, 531.01, 582.11, 744.91, 779.2,
-            800.47, 863.15, 928.68, 969., 1092.86, 1124., 1147.64, 1209.1,
-            1387.39, 1693.97, 1913.05, 3316.2, 3341.73
-        ])
+        test_freqs = np.array(
+            [
+                12.52,
+                45.28,
+                260.96,
+                329.08,
+                531.01,
+                582.11,
+                744.91,
+                779.2,
+                800.47,
+                863.15,
+                928.68,
+                969.0,
+                1092.86,
+                1124.0,
+                1147.64,
+                1209.1,
+                1387.39,
+                1693.97,
+                1913.05,
+                3316.2,
+                3341.73,
+            ]
+        )
         for ii in enumerate(test_freqs):
             self.assertEqual(test_freqs[ii[0]], doc["output"]["frequencies"][ii[0]])
         self.assertEqual(doc["output"]["enthalpy"], 37.547)
@@ -83,32 +103,62 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("last_updated", doc)
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 1)
-        self.assertEqual(doc["output"]["final_energy"],-348.6524625796)
+        self.assertEqual(doc["output"]["final_energy"], -348.6524625796)
 
     def test_assimilate_FF(self):
         drone = QChemDrone(
             runs=[
-                "opt_0", "freq_0", "opt_1", "freq_1", "opt_2", "freq_2",
-                "opt_3", "freq_3"
+                "opt_0",
+                "freq_0",
+                "opt_1",
+                "freq_1",
+                "opt_2",
+                "freq_2",
+                "opt_3",
+                "freq_3",
             ],
-            additional_fields={"special_run_type": "frequency_flattener"})
+            additional_fields={"special_run_type": "frequency_flattener"},
+        )
         doc = drone.assimilate(
             path=os.path.join(module_dir, "..", "test_files", "FF_working"),
             input_file="test.qin",
             output_file="test.qout",
-            multirun=False)
+            multirun=False,
+        )
         self.assertEqual(doc["special_run_type"], "frequency_flattener")
         self.assertEqual(doc["input"]["job_type"], "opt")
         self.assertEqual(doc["output"]["job_type"], "freq")
-        test_freqs = np.array([
-            12.52, 45.28, 260.96, 329.08, 531.01, 582.11, 744.91, 779.2,
-            800.47, 863.15, 928.68, 969., 1092.86, 1124., 1147.64, 1209.1,
-            1387.39, 1693.97, 1913.05, 3316.2, 3341.73
-        ])
+        test_freqs = np.array(
+            [
+                12.52,
+                45.28,
+                260.96,
+                329.08,
+                531.01,
+                582.11,
+                744.91,
+                779.2,
+                800.47,
+                863.15,
+                928.68,
+                969.0,
+                1092.86,
+                1124.0,
+                1147.64,
+                1209.1,
+                1387.39,
+                1693.97,
+                1913.05,
+                3316.2,
+                3341.73,
+            ]
+        )
         for ii in enumerate(test_freqs):
             self.assertEqual(test_freqs[ii[0]], doc["output"]["frequencies"][ii[0]])
-            self.assertEqual(doc["output"]["frequencies"][ii[0]],
-                             doc["calcs_reversed"][0]["frequencies"][ii[0]])
+            self.assertEqual(
+                doc["output"]["frequencies"][ii[0]],
+                doc["calcs_reversed"][0]["frequencies"][ii[0]],
+            )
         self.assertEqual(doc["output"]["enthalpy"], 37.547)
         self.assertEqual(doc["output"]["entropy"], 83.81)
         self.assertEqual(doc["num_frequencies_flattened"], 1)
@@ -128,19 +178,22 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 4)
         self.assertEqual(
-            list(doc["calcs_reversed"][0].keys()),
-            list(doc["calcs_reversed"][2].keys()))
+            list(doc["calcs_reversed"][0].keys()), list(doc["calcs_reversed"][2].keys())
+        )
         self.assertEqual(
-            list(doc["calcs_reversed"][1].keys()),
-            list(doc["calcs_reversed"][3].keys()))
+            list(doc["calcs_reversed"][1].keys()), list(doc["calcs_reversed"][3].keys())
+        )
 
     def test_assimilate_bad_FF(self):
-        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})
+        drone = QChemDrone(
+            additional_fields={"special_run_type": "frequency_flattener"}
+        )
         doc = drone.assimilate(
             path=os.path.join(module_dir, "..", "test_files", "launcher_bad_FF"),
             input_file="mol.qin",
             output_file="mol.qout",
-            multirun=False)
+            multirun=False,
+        )
         self.assertEqual(doc["special_run_type"], "frequency_flattener")
         self.assertEqual(doc["input"]["job_type"], "opt")
         self.assertEqual(doc["output"]["job_type"], "freq")
@@ -152,18 +205,40 @@ class QChemDroneTest(unittest.TestCase):
             path=os.path.join(module_dir, "..", "test_files", "julian_nt"),
             input_file="julian.qin",
             output_file="julian.qout",
-            multirun=True)
+            multirun=True,
+        )
         self.assertEqual(doc["input"]["job_type"], "optimization")
         self.assertEqual(doc["output"]["job_type"], "frequency")
-        test_freqs = np.array([
-            -69.17, 117.81, 244.67, 257.93, 530., 579.64, 737.42, 771.1,
-            787.32, 869.29, 924.77, 962.67, 1084.55, 1117.49, 1143.1, 1196.27,
-            1378.76, 1696.26, 1860.75, 3321.43
-        ])
+        test_freqs = np.array(
+            [
+                -69.17,
+                117.81,
+                244.67,
+                257.93,
+                530.0,
+                579.64,
+                737.42,
+                771.1,
+                787.32,
+                869.29,
+                924.77,
+                962.67,
+                1084.55,
+                1117.49,
+                1143.1,
+                1196.27,
+                1378.76,
+                1696.26,
+                1860.75,
+                3321.43,
+            ]
+        )
         for ii in enumerate(test_freqs):
             self.assertEqual(test_freqs[ii[0]], doc["output"]["frequencies"][ii[0]])
-            self.assertEqual(doc["output"]["frequencies"][ii[0]],
-                             doc["calcs_reversed"][0]["frequencies"][ii[0]])
+            self.assertEqual(
+                doc["output"]["frequencies"][ii[0]],
+                doc["calcs_reversed"][0]["frequencies"][ii[0]],
+            )
         self.assertEqual(doc["output"]["enthalpy"], 36.755)
         self.assertEqual(doc["output"]["entropy"], 74.989)
         self.assertEqual(doc["walltime"], 684.6300000000001)
@@ -186,15 +261,23 @@ class QChemDroneTest(unittest.TestCase):
     def test_assimilate_unstable_opt(self):
         drone = QChemDrone(
             runs=[
-                "opt_0", "freq_0", "opt_1", "freq_1", "opt_2", "freq_2",
-                "opt_3", "freq_3"
+                "opt_0",
+                "freq_0",
+                "opt_1",
+                "freq_1",
+                "opt_2",
+                "freq_2",
+                "opt_3",
+                "freq_3",
             ],
-            additional_fields={"special_run_type": "frequency_flattener"})
+            additional_fields={"special_run_type": "frequency_flattener"},
+        )
         doc = drone.assimilate(
             path=os.path.join(module_dir, "..", "test_files", "2620_complete"),
             input_file="mol.qin",
             output_file="mol.qout",
-            multirun=False)
+            multirun=False,
+        )
         self.assertEqual(doc["input"]["job_type"], "opt")
         self.assertEqual(doc["output"]["job_type"], "opt")
         self.assertEqual(doc["output"]["final_energy"], "unstable")
@@ -207,20 +290,27 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["chemsys"], "C-N-O-S")
         self.assertEqual(doc["pointgroup"], "C1")
         self.assertEqual(doc["orig"]["rem"], doc["calcs_reversed"][-1]["input"]["rem"])
-        self.assertEqual(doc["orig"]["molecule"], doc["calcs_reversed"][-1]["input"]["molecule"])
-        orig_molgraph = MoleculeGraph.with_local_env_strategy(Molecule.from_dict(doc["orig"]["molecule"]),
-                                                              OpenBabelNN())
-        initial_molgraph = MoleculeGraph.with_local_env_strategy(Molecule.from_dict(doc["input"]["initial_molecule"]),
-                                                                 OpenBabelNN())
+        self.assertEqual(
+            doc["orig"]["molecule"], doc["calcs_reversed"][-1]["input"]["molecule"]
+        )
+        orig_molgraph = MoleculeGraph.with_local_env_strategy(
+            Molecule.from_dict(doc["orig"]["molecule"]), OpenBabelNN()
+        )
+        initial_molgraph = MoleculeGraph.with_local_env_strategy(
+            Molecule.from_dict(doc["input"]["initial_molecule"]), OpenBabelNN()
+        )
         self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), True)
 
     def test_assimilate_opt_with_hidden_changes_from_handler(self):
-        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})
+        drone = QChemDrone(
+            additional_fields={"special_run_type": "frequency_flattener"}
+        )
         doc = drone.assimilate(
             path=os.path.join(module_dir, "..", "test_files", "1746_complete"),
             input_file="mol.qin",
             output_file="mol.qout",
-            multirun=False)
+            multirun=False,
+        )
         self.assertEqual(doc["input"]["job_type"], "opt")
         self.assertEqual(doc["output"]["job_type"], "freq")
         self.assertEqual(doc["output"]["final_energy"], -303.835532370106)
@@ -234,19 +324,26 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["chemsys"], "C-H-O")
         self.assertEqual(doc["pointgroup"], "C1")
         self.assertEqual(doc["orig"]["rem"], doc["calcs_reversed"][-1]["input"]["rem"])
-        orig_molgraph = MoleculeGraph.with_local_env_strategy(Molecule.from_dict(doc["orig"]["molecule"]),
-                                                              OpenBabelNN())
-        initial_molgraph = MoleculeGraph.with_local_env_strategy(Molecule.from_dict(doc["input"]["initial_molecule"]),
-                                                                 OpenBabelNN())
+        orig_molgraph = MoleculeGraph.with_local_env_strategy(
+            Molecule.from_dict(doc["orig"]["molecule"]), OpenBabelNN()
+        )
+        initial_molgraph = MoleculeGraph.with_local_env_strategy(
+            Molecule.from_dict(doc["input"]["initial_molecule"]), OpenBabelNN()
+        )
         self.assertEqual(orig_molgraph.isomorphic_to(initial_molgraph), False)
 
     def test_assimilate_disconnected_opt(self):
-        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})
+        drone = QChemDrone(
+            additional_fields={"special_run_type": "frequency_flattener"}
+        )
         doc = drone.assimilate(
-            path=os.path.join(module_dir, "..", "test_files", "disconnected_but_converged"),
+            path=os.path.join(
+                module_dir, "..", "test_files", "disconnected_but_converged"
+            ),
             input_file="mol.qin",
             output_file="mol.qout",
-            multirun=False)
+            multirun=False,
+        )
         self.assertEqual(doc["input"]["job_type"], "opt")
         self.assertEqual(doc["output"]["job_type"], "freq")
         self.assertEqual(doc["output"]["final_energy"], -303.07602688705)
@@ -260,7 +357,9 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["chemsys"], "C-H-O")
         self.assertEqual(doc["pointgroup"], "C1")
         self.assertEqual(doc["orig"]["rem"], doc["calcs_reversed"][-1]["input"]["rem"])
-        self.assertEqual(doc["calcs_reversed"][-1]["structure_change"], "unconnected_fragments")
+        self.assertEqual(
+            doc["calcs_reversed"][-1]["structure_change"], "unconnected_fragments"
+        )
 
     def test_assimilate_sp(self):
         drone = QChemDrone()
@@ -268,7 +367,8 @@ class QChemDroneTest(unittest.TestCase):
             path=os.path.join(module_dir, "..", "test_files", "launcher_sp"),
             input_file="mol.qin",
             output_file="mol.qout",
-            multirun=False)
+            multirun=False,
+        )
         self.assertEqual(doc["input"]["job_type"], "sp")
         self.assertEqual(doc["output"]["job_type"], "sp")
         self.assertEqual(doc["output"]["final_energy"], -75.1151765884)
@@ -293,7 +393,8 @@ class QChemDroneTest(unittest.TestCase):
             path=os.path.join(module_dir, "..", "test_files", "launcher_bad_sp"),
             input_file="mol.qin",
             output_file="mol.qout",
-            multirun=False)
+            multirun=False,
+        )
         self.assertEqual(doc["input"]["job_type"], "sp")
         self.assertEqual(doc["output"]["job_type"], "sp")
         self.assertEqual(doc["output"]["final_energy"], -74.540726551)
@@ -313,12 +414,15 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(len(doc["calcs_reversed"]), 1)
 
     def test_FF_switching(self):
-        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener"})
+        drone = QChemDrone(
+            additional_fields={"special_run_type": "frequency_flattener"}
+        )
         doc = drone.assimilate(
             path=os.path.join(module_dir, "..", "test_files", "FF_switching"),
             input_file="mol.qin",
             output_file="mol.qout",
-            multirun=False)
+            multirun=False,
+        )
         self.assertEqual(doc["special_run_type"], "frequency_flattener")
         self.assertEqual(doc["input"]["job_type"], "opt")
         self.assertEqual(doc["output"]["job_type"], "freq")
@@ -326,36 +430,63 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["warnings"]["energy_increased"], True)
 
     def test_FF_with_error_correction(self):
-        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener", "linked": True})
+        drone = QChemDrone(
+            additional_fields={
+                "special_run_type": "frequency_flattener",
+                "linked": True,
+            }
+        )
         doc = drone.assimilate(
             path=os.path.join(module_dir, "..", "test_files", "LiH4C2SO4"),
             input_file="mol.qin",
             output_file="mol.qout",
-            multirun=False)
-        self.assertEqual(doc["opt_trajectory"][0]["energy"],-784.934084124)
-        self.assertEqual(doc["opt_trajectory"][-1]["energy"],-784.934280182)
-        self.assertEqual(doc["warnings"], {'missing_analytical_derivates': True, 'mkl': True, 'hessian_local_structure': True, 'internal_coordinates': True, 'diagonalizing_BBt': True, 'eigenvalue_magnitude': True, 'positive_definiteness_endangered': True, 'energy_increased': True})
+            multirun=False,
+        )
+        self.assertEqual(doc["opt_trajectory"][0]["energy"], -784.934084124)
+        self.assertEqual(doc["opt_trajectory"][-1]["energy"], -784.934280182)
+        self.assertEqual(
+            doc["warnings"],
+            {
+                "missing_analytical_derivates": True,
+                "mkl": True,
+                "hessian_local_structure": True,
+                "internal_coordinates": True,
+                "diagonalizing_BBt": True,
+                "eigenvalue_magnitude": True,
+                "positive_definiteness_endangered": True,
+                "energy_increased": True,
+            },
+        )
 
     def test_custom_smd(self):
-        drone = QChemDrone(additional_fields={"special_run_type": "frequency_flattener", "linked": True})
+        drone = QChemDrone(
+            additional_fields={
+                "special_run_type": "frequency_flattener",
+                "linked": True,
+            }
+        )
         doc = drone.assimilate(
             path=os.path.join(module_dir, "..", "test_files", "custom_smd"),
             input_file="mol.qin",
             output_file="mol.qout",
-            multirun=False)
-        self.assertEqual(doc["custom_smd"],"18.5,1.415,0.00,0.735,20.2,0.00,0.00")
+            multirun=False,
+        )
+        self.assertEqual(doc["custom_smd"], "18.5,1.415,0.00,0.735,20.2,0.00,0.00")
 
     def test_assimilate_critic(self):
-        crit_ex_path = os.path.join(module_dir, "..", "test_files", "critic_test_files", "critic_example")
+        crit_ex_path = os.path.join(
+            module_dir, "..", "test_files", "critic_test_files", "critic_example"
+        )
         drone = QChemDrone()
         doc = drone.assimilate(
             path=crit_ex_path,
             input_file="mol.qin",
             output_file="mol.qout",
-            multirun=False)
+            multirun=False,
+        )
         # dumpfn(doc["critic2"],os.path.join(crit_ex_path, "critic2_drone_ref.json"))
         critic2_drone_ref = loadfn(os.path.join(crit_ex_path, "critic2_drone_ref.json"))
-        self.assertEqual(doc["critic2"],critic2_drone_ref)
+        self.assertEqual(doc["critic2"], critic2_drone_ref)
 
 
 if __name__ == "__main__":

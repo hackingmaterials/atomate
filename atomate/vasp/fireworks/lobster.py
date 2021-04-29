@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 This module defines fireworks  that can be used to handle Lobster calculations that are based on VASP wavefunctions.
 """
@@ -176,4 +175,4 @@ class LobsterFW(Firework):
         # passes information to next firetask
         t.append(PassCalcLocs(name=name))
 
-        super(LobsterFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)

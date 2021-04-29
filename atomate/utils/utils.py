@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 import logging
 import os
 import sys
@@ -16,8 +13,8 @@ from pymatgen.core import Composition
 from fireworks import Workflow
 from pymatgen.alchemy.materials import TransformedStructure
 
-__author__ = 'Anubhav Jain, Kiran Mathew'
-__email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
+__author__ = "Anubhav Jain, Kiran Mathew"
+__email__ = "ajain@lbl.gov, kmathew@lbl.gov"
 
 
 def env_chk(val, fw_spec, strict=True, default=None):
@@ -54,8 +51,8 @@ def env_chk(val, fw_spec, strict=True, default=None):
 
     if isinstance(val, str) and val.startswith(">>") and val.endswith("<<"):
         if strict:
-            return fw_spec['_fw_env'][val[2:-2]]
-        return fw_spec.get('_fw_env', {}).get(val[2:-2], default)
+            return fw_spec["_fw_env"][val[2:-2]]
+        return fw_spec.get("_fw_env", {}).get(val[2:-2], default)
     return val
 
 
@@ -125,7 +122,12 @@ def recursive_get_result(d, result):
         return d
 
 
-def get_logger(name, level=logging.DEBUG, log_format='%(asctime)s %(levelname)s %(name)s %(message)s', stream=sys.stdout):
+def get_logger(
+    name,
+    level=logging.DEBUG,
+    log_format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    stream=sys.stdout,
+):
     logger = logging.getLogger(name)
     logger.setLevel(level)
     formatter = logging.Formatter(log_format)
@@ -140,18 +142,19 @@ def get_meta_from_structure(structure):
         structure = structure.final_structure
 
     comp = structure.composition
-    elsyms = sorted(set([e.symbol for e in comp.elements]))
-    meta = {'nsites': structure.num_sites,
-            'elements': elsyms,
-            'nelements': len(elsyms),
-            'formula': comp.formula,
-            'formula_pretty': comp.reduced_formula,
-            'formula_reduced_abc': Composition(comp.reduced_formula)
-            .alphabetical_formula,
-            'formula_anonymous': comp.anonymized_formula,
-            'chemsys': '-'.join(elsyms),
-            'is_ordered': structure.is_ordered,
-            'is_valid': structure.is_valid()}
+    elsyms = sorted({e.symbol for e in comp.elements})
+    meta = {
+        "nsites": structure.num_sites,
+        "elements": elsyms,
+        "nelements": len(elsyms),
+        "formula": comp.formula,
+        "formula_pretty": comp.reduced_formula,
+        "formula_reduced_abc": Composition(comp.reduced_formula).alphabetical_formula,
+        "formula_anonymous": comp.anonymized_formula,
+        "chemsys": "-".join(elsyms),
+        "is_ordered": structure.is_ordered,
+        "is_valid": structure.is_valid(),
+    }
     return meta
 
 
@@ -270,8 +273,11 @@ def get_wf_from_spec_dict(structure, wfspec, common_param_updates=None):
                 params["parents"] = p
         fws.append(cls_(structure=structure, **params))
 
-    wfname = "{}:{}".format(structure.composition.reduced_formula, wfspec["name"]) if \
-        wfspec.get("name") else structure.composition.reduced_formula
+    wfname = (
+        "{}:{}".format(structure.composition.reduced_formula, wfspec["name"])
+        if wfspec.get("name")
+        else structure.composition.reduced_formula
+    )
 
     return Workflow(fws, name=wfname, metadata=wfspec.get("metadata"))
 
@@ -310,7 +316,7 @@ def recursive_update(d, u):
 
 
 def get_a_unique_id():
-    ts = "{:.4f}".format(time())
+    ts = f"{time():.4f}"
     ts += str(randint(0, 9999)).zfill(4)
     return ts
 
@@ -330,7 +336,7 @@ def get_uri(dir_name):
         hostname = socket.gethostbyaddr(socket.gethostname())[0]
     except:
         hostname = socket.gethostname()
-    return "{}:{}".format(hostname, fullpath)
+    return f"{hostname}:{fullpath}"
 
 
 def get_database(config_file=None, settings=None, admin=False, **kwargs):
@@ -340,16 +346,19 @@ def get_database(config_file=None, settings=None, admin=False, **kwargs):
         user = d["admin_user"] if admin else d["readonly_user"]
         passwd = d["admin_password"] if admin else d["readonly_password"]
     except (KeyError, TypeError, ValueError):
-        logger.warning("No {admin,readonly}_user/password found in config. file, "
-            "accessing DB without authentication")
+        logger.warning(
+            "No {admin,readonly}_user/password found in config. file, "
+            "accessing DB without authentication"
+        )
         user = None
         passwd = None
 
     if "authsource" in d and "authsource" not in kwargs:
         kwargs["authsource"] = d["authsource"]
 
-    conn = MongoClient(host=d["host"], port=d["port"], username=user,
-                       password=passwd, **kwargs)
+    conn = MongoClient(
+        host=d["host"], port=d["port"], username=user, password=passwd, **kwargs
+    )
     db = conn[d["database"]]
 
     return db
