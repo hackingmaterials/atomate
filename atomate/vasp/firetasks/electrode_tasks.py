@@ -52,7 +52,8 @@ def update_wf_keys(wf, fw_spec):
         "db_file",
         "vasp_powerups",
         "base_task_id",
-        "max_insertions",
+        "attempt_insertions",
+        "max_inserted_atoms",
         "base_structure",
         "vasptodb_kwargs",
         "staticfw_kwargs",
@@ -76,11 +77,11 @@ class AnalyzeChgcar(FiretaskBase):
     - "ChargeInsertionAnalyzer_kwargs": The kwargs to overwrite default values in the ChargeInsertionAnalyzer
     - "volumetric_data_type": the type of Charge density file to be used for analysis "CHGCAR"/"AECCAR"
     fw_spec optional:
-    - "max_insertions": Restrict the number of insertion sites based on charge density (default 5)
+    - "attempt_insertions": Restrict the number of insertion sites based on charge density (default 4)
     """
 
     def run_task(self, fw_spec):
-        max_insertions = fw_spec.get("max_insertions", 5)
+        attempt_insertions = fw_spec.get("attempt_insertions", 4)
         volumetric_data_type = fw_spec.get("volumetric_data_type")
         base_task_id = fw_spec.get("base_task_id")
 
@@ -106,7 +107,7 @@ class AnalyzeChgcar(FiretaskBase):
 
         cia._extrema_df.sort_values(by=["avg_charge_den"], inplace=True)
         for itr, li_site in cia._extrema_df.iterrows():
-            if len(insert_sites) >= max_insertions:
+            if len(insert_sites) >= attempt_insertions:
                 break
             li_site = cia._extrema_df.iloc[itr]
             lab = li_site["site_label"]
@@ -225,6 +226,7 @@ class CollectInsertedCalcs(FiretaskBase):
 
     Optional keys in fw_spec:
     - "structure_matcher": as_dict of a pymatgen structure matcher
+    - "max_inserted_atoms": the maximum allowed number of inserted atoms
     - "staticfw_kwargs": as_dict of a pymatgen structure matcher
 
     """
@@ -234,6 +236,7 @@ class CollectInsertedCalcs(FiretaskBase):
     def run_task(self, fw_spec):
         reference_struct = fw_spec.get("base_structure")
         results = fw_spec.get("inserted_results", [])
+        max_inserted_atoms = fw_spec.get("max_inserted_atoms", None)
         working_ion = fw_spec.get("working_ion")
 
         sm_dict = fw_spec.get("structure_matcher", SM_DICT)
@@ -245,6 +248,11 @@ class CollectInsertedCalcs(FiretaskBase):
         if len(results) == 0:
             # can happen if all parents fizzled
             raise RuntimeError("No insertion calculation completed")
+
+        tmp_struct_ = results[0]["structure"]  # type: Structure
+        n_ions = int(tmp_struct_.composition.as_dict()[working_ion])
+        if max_inserted_atoms is not None and n_ions >= max_inserted_atoms:
+            return FWAction(defuse_children=True)
 
         best_res = {"energy": math.inf}
 
