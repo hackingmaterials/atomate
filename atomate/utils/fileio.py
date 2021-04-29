@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 import glob
 import os
 import shutil
@@ -9,12 +6,12 @@ import shutil
 This module defines the wrapper class for remote file io using paramiko.
 """
 
-__author__ = 'Kiran Mathew'
-__credits__ = 'Anubhav Jain <ajain@lbl.gov>'
-__email__ = 'kmathew@lbl.gov'
+__author__ = "Kiran Mathew"
+__credits__ = "Anubhav Jain <ajain@lbl.gov>"
+__email__ = "kmathew@lbl.gov"
 
 
-class FileClient(object):
+class FileClient:
     """
     A client for performing many file operations while being agnostic
     of whether those operations are happening locally or via SSH
@@ -31,8 +28,8 @@ class FileClient(object):
         self.ssh = None
 
         if filesystem:
-            if '@' in filesystem:
-                username, host = filesystem.split('@', 1)
+            if "@" in filesystem:
+                username, host = filesystem.split("@", 1)
             else:
                 username = None  # paramiko sets default username
                 host = filesystem
@@ -57,9 +54,10 @@ class FileClient(object):
 
         """
         import paramiko
+
         private_key = os.path.expanduser(private_key)
         if not os.path.exists(private_key):
-            raise ValueError("Cannot locate private key file: {}".format(private_key))
+            raise ValueError(f"Cannot locate private key file: {private_key}")
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -76,7 +74,7 @@ class FileClient(object):
         """
         try:
             sftp.stat(path)
-        except IOError as e:
+        except OSError as e:
             if e[0] == 2:
                 return False
             raise
@@ -131,9 +129,9 @@ class FileClient(object):
             return os.path.abspath(path)
 
         else:
-            command = ". ./.bashrc; readlink -f {}".format(path)
+            command = f". ./.bashrc; readlink -f {path}"
             stdin, stdout, stderr = self.ssh.exec_command(command)
-            full_path = [l.split('\n')[0] for l in stdout]
+            full_path = [l.split("\n")[0] for l in stdout]
             return full_path[0]
 
     def glob(self, path):
@@ -146,6 +144,6 @@ class FileClient(object):
         if not self.ssh:
             return glob.glob(path)
         else:
-            command = ". ./.bashrc; for i in $(ls {}); do readlink -f $i; done".format(path)
+            command = f". ./.bashrc; for i in $(ls {path}); do readlink -f $i; done"
             stdin, stdout, stderr = self.ssh.exec_command(command)
-            return [l.split('\n')[0] for l in stdout]
+            return [l.split("\n")[0] for l in stdout]

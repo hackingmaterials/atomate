@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 This module defines general powerups that can be used for all workflows
 """
@@ -102,7 +100,7 @@ def add_namefile(original_wf, use_slug=True):
        Workflow
     """
     for idx, fw in enumerate(original_wf.fws):
-        fname = "FW--{}".format(fw.name)
+        fname = f"FW--{fw.name}"
         if use_slug:
             fname = get_slug(fname)
 
@@ -275,5 +273,5 @@ def powerup_by_kwargs(
                 except Exception:
                     pass
         if not found:
-            raise RuntimeError("Could not find powerup {}.".format(name))
+            raise RuntimeError(f"Could not find powerup {name}.")
     return original_wf

@@ -1,13 +1,14 @@
-# coding: utf-8
-
-
 import os
 import glob
 import shutil
 
 from pymatgen.core import Structure
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
-from pymatgen_diffusion.neb.io import MVLCINEBSet, get_endpoint_dist, get_endpoints_from_index
+from pymatgen_diffusion.neb.io import (
+    MVLCINEBSet,
+    get_endpoint_dist,
+    get_endpoints_from_index,
+)
 
 from fireworks.core.firework import FiretaskBase, FWAction
 from fireworks.utilities.fw_utilities import explicit_serialize
@@ -19,12 +20,26 @@ NEB workflow firetasks.
 """
 
 __author__ = "Hanmei Tang, Iek-Heng Chu"
-__email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
+__email__ = "hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu"
 
 
-VASP_NEB_OUTPUT_FILES = {'INCAR', 'KPOINTS', 'POTCAR', 'vasprun.xml'}
-VASP_NEB_OUTPUT_SUB_FILES = {'CHG', 'CHGCAR', 'CONTCAR', 'DOSCAR', 'EIGENVAL', 'IBZKPT', 'PCDAT',
-                             'POSCAR', 'PROCAR', 'OSZICAR', 'OUTCAR', 'REPORT', 'WAVECAR', 'XDATCAR'}
+VASP_NEB_OUTPUT_FILES = {"INCAR", "KPOINTS", "POTCAR", "vasprun.xml"}
+VASP_NEB_OUTPUT_SUB_FILES = {
+    "CHG",
+    "CHGCAR",
+    "CONTCAR",
+    "DOSCAR",
+    "EIGENVAL",
+    "IBZKPT",
+    "PCDAT",
+    "POSCAR",
+    "PROCAR",
+    "OSZICAR",
+    "OUTCAR",
+    "REPORT",
+    "WAVECAR",
+    "XDATCAR",
+}
 
 
 @explicit_serialize
@@ -41,6 +56,7 @@ class TransferNEBTask(FiretaskBase):
         d_img (float): Distance between neighbouring images, used to determine the number of images
             if "IMAGES" not provided in user_incar_settings, in Angstrom.
     """
+
     required_params = ["label"]
     optional_params = ["d_img"]
 
@@ -60,7 +76,7 @@ class TransferNEBTask(FiretaskBase):
             # Update all relaxed images.
             subs = glob.glob("[0-2][0-9]")
             nimages = len(subs)
-            concar_list = ["{:02}/CONTCAR".format(i) for i in range(nimages)[1:-1]]
+            concar_list = [f"{i:02}/CONTCAR" for i in range(nimages)[1:-1]]
             images = [Structure.from_file(contcar) for contcar in concar_list]
 
             # Update the two ending "images".
@@ -69,11 +85,18 @@ class TransferNEBTask(FiretaskBase):
             images = [s.as_dict() for s in images]
             neb = fw_spec.get("neb")
             neb.append(images)
-            update_spec = {"neb": neb, "_queueadapter": {"nnodes": str(len(images) - 2),
-                                                         "nodes": str(len(images) - 2)}}
+            update_spec = {
+                "neb": neb,
+                "_queueadapter": {
+                    "nnodes": str(len(images) - 2),
+                    "nodes": str(len(images) - 2),
+                },
+            }
             # Use neb walltime if it is in fw_spec
             if fw_spec["neb_walltime"] is not None:
-                update_spec["_queueadapter"].update({"walltime": fw_spec.get("neb_walltime")})
+                update_spec["_queueadapter"].update(
+                    {"walltime": fw_spec.get("neb_walltime")}
+                )
 
         elif label in ["ep0", "ep1"]:
             # Update relaxed endpoint structures.
@@ -81,9 +104,13 @@ class TransferNEBTask(FiretaskBase):
             ep = Structure.from_file(file, False)  # One endpoint
 
             if fw_spec.get("incar_images"):  # "incar_images": pre-defined image number.
-                update_spec = {label: ep.as_dict(),
-                               "_queueadapter": {"nnodes": fw_spec["incar_images"],
-                                                 "nodes": fw_spec["incar_images"]}}
+                update_spec = {
+                    label: ep.as_dict(),
+                    "_queueadapter": {
+                        "nnodes": fw_spec["incar_images"],
+                        "nodes": fw_spec["incar_images"],
+                    },
+                }
             else:
                 # Calculate number of images if "IMAGES" tag is not provided.
                 index = int(label[-1])
@@ -95,18 +122,26 @@ class TransferNEBTask(FiretaskBase):
 
                 max_dist = max(get_endpoint_dist(ep, ep_1))
                 nimages = round(max_dist / d_img) or 1
-                update_spec = {label: ep, "_queueadapter": {"nnodes": int(nimages),
-                                                            "nodes": int(nimages)}}
+                update_spec = {
+                    label: ep,
+                    "_queueadapter": {"nnodes": int(nimages), "nodes": int(nimages)},
+                }
             # Use neb walltime if it is in fw_spec
             if fw_spec["neb_walltime"] is not None:
-                update_spec["_queueadapter"].update({"walltime": fw_spec.get("neb_walltime")})
+                update_spec["_queueadapter"].update(
+                    {"walltime": fw_spec.get("neb_walltime")}
+                )
 
         else:  # label == "parent"
             f = glob.glob("CONTCAR*")[0]
             s = Structure.from_file(f, False)
             ep0, ep1 = get_endpoints_from_index(s, fw_spec["site_indices"])
 
-            update_spec = {"parent": s.as_dict(), "ep0": ep0.as_dict(), "ep1": ep1.as_dict()}
+            update_spec = {
+                "parent": s.as_dict(),
+                "ep0": ep0.as_dict(),
+                "ep1": ep1.as_dict(),
+            }
 
         # Clear current directory.
         for d in os.listdir(src_dir):
@@ -121,15 +156,16 @@ class TransferNEBTask(FiretaskBase):
 @explicit_serialize
 class RunNEBVaspFake(FiretaskBase):
     """
-     Vasp Emulator for NEB, which has a different file arrangement. Similar to RunVaspFake class.
+    Vasp Emulator for NEB, which has a different file arrangement. Similar to RunVaspFake class.
 
-     Required params:
-         ref_dir (string): Path to reference vasp run directory with input files in the folder named
-            'inputs' and output files in the folder named 'outputs'.
+    Required params:
+        ref_dir (string): Path to reference vasp run directory with input files in the folder named
+           'inputs' and output files in the folder named 'outputs'.
 
-     Optional params:
-         params_to_check (list): optional list of incar parameters to check.
-     """
+    Optional params:
+        params_to_check (list): optional list of incar parameters to check.
+    """
+
     required_params = ["ref_dir"]
     optional_params = ["params_to_check"]
 
@@ -147,16 +183,22 @@ class RunNEBVaspFake(FiretaskBase):
         self.ref_dir_output = os.path.join(self["ref_dir"], "outputs")
 
         user_sdir = glob.glob(os.path.join(os.getcwd(), "[0-9][0-9]"))
-        ref_sdir_input = glob.glob(os.path.join(self["ref_dir"], "inputs", "[0-9][0-9]"))
-        ref_sdir_output = glob.glob(os.path.join(self["ref_dir"], "outputs", "[0-9][0-9]"))
+        ref_sdir_input = glob.glob(
+            os.path.join(self["ref_dir"], "inputs", "[0-9][0-9]")
+        )
+        ref_sdir_output = glob.glob(
+            os.path.join(self["ref_dir"], "outputs", "[0-9][0-9]")
+        )
         user_sdir.sort()
         ref_sdir_input.sort()
         ref_sdir_output.sort()
 
         # Check sub-folders consistence.
         if len(user_sdir) != len(ref_sdir_input):
-            raise ValueError("Sub-folder numbers are inconsistent! "
-                             "Paths are:\n{}\n{}".format(self.user_dir, self.ref_dir_input))
+            raise ValueError(
+                "Sub-folder numbers are inconsistent! "
+                "Paths are:\n{}\n{}".format(self.user_dir, self.ref_dir_input)
+            )
         self.user_sdir = user_sdir
         self.ref_sdir_input = ref_sdir_input
         self.ref_sdir_output = ref_sdir_output
@@ -171,30 +213,40 @@ class RunNEBVaspFake(FiretaskBase):
         defaults = {"ICHAIN": 0, "LCLIMB": True}
         for p in params_to_check:
             if user_incar.get(p, defaults.get(p)) != ref_incar.get(p, defaults.get(p)):
-                raise ValueError("INCAR value of {} is inconsistent!".format(p))
+                raise ValueError(f"INCAR value of {p} is inconsistent!")
 
         # Check KPOINTS
         user_kpoints = Kpoints.from_file(os.path.join(self.user_dir, "KPOINTS"))
         ref_kpoints = Kpoints.from_file(os.path.join(self.ref_dir_input, "KPOINTS"))
-        if user_kpoints.style != ref_kpoints.style or user_kpoints.num_kpts != ref_kpoints.num_kpts:
-            raise ValueError("KPOINT files are inconsistent! "
-                             "Paths are:\n{}\n{} with kpts = {} {}".format(
-                self.user_dir, self.ref_dir_input, user_kpoints, ref_kpoints))
+        if (
+            user_kpoints.style != ref_kpoints.style
+            or user_kpoints.num_kpts != ref_kpoints.num_kpts
+        ):
+            raise ValueError(
+                "KPOINT files are inconsistent! "
+                "Paths are:\n{}\n{} with kpts = {} {}".format(
+                    self.user_dir, self.ref_dir_input, user_kpoints, ref_kpoints
+                )
+            )
 
         # Check POTCAR
         user_potcar = Potcar.from_file(os.path.join(self.user_dir, "POTCAR"))
         ref_potcar = Potcar.from_file(os.path.join(self.ref_dir_input, "POTCAR"))
         if user_potcar.symbols != ref_potcar.symbols:
-            raise ValueError("POTCAR files are inconsistent! "
-                             "Paths are:\n{}\n{}".format(self.user_dir, self.ref_dir_input))
+            raise ValueError(
+                "POTCAR files are inconsistent! "
+                "Paths are:\n{}\n{}".format(self.user_dir, self.ref_dir_input)
+            )
 
         # Check POSCARs
         for u, r in zip(self.user_sdir, self.ref_sdir_input):
             user_poscar = Poscar.from_file(os.path.join(u, "POSCAR"))
             ref_poscar = Poscar.from_file(os.path.join(r, "POSCAR"))
-            if user_poscar.natoms != ref_poscar.natoms or \
-                            user_poscar.site_symbols != ref_poscar.site_symbols:
-                raise ValueError("POSCAR files are inconsistent! Paths are:\n{}\n{}".format(u, r))
+            if (
+                user_poscar.natoms != ref_poscar.natoms
+                or user_poscar.site_symbols != ref_poscar.site_symbols
+            ):
+                raise ValueError(f"POSCAR files are inconsistent! Paths are:\n{u}\n{r}")
 
     def _clear_inputs(self):
         """
@@ -241,6 +293,7 @@ class WriteNEBFromImages(FiretaskBase):
         user_incar_settings (dict): Additional INCAR settings.
         user_kpoints_settings (dict): Additional KPOINTS settings.
     """
+
     required_params = ["neb_label"]
     optional_params = ["user_incar_settings", "user_kpoints_settings"]
 
@@ -254,8 +307,11 @@ class WriteNEBFromImages(FiretaskBase):
             images = [Structure.from_dict(i) for i in images]
         except:
             images = images
-        vis = MVLCINEBSet(images, user_incar_settings=user_incar_settings,
-                          user_kpoints_settings=user_kpoints_settings)
+        vis = MVLCINEBSet(
+            images,
+            user_incar_settings=user_incar_settings,
+            user_kpoints_settings=user_kpoints_settings,
+        )
         vis.write_input(".")
 
 
@@ -280,9 +336,14 @@ class WriteNEBFromEndpoints(FiretaskBase):
         interpolation_type (str): method to do image interpolation from two endpoints.
                             Choose from ["IDPP", "linear"], default "IDPP"
     """
+
     required_params = ["user_incar_settings"]
-    optional_params = ["user_kpoints_settings", "sort_tol", "d_img",
-                       "interpolation_type"]
+    optional_params = [
+        "user_kpoints_settings",
+        "sort_tol",
+        "d_img",
+        "interpolation_type",
+    ]
 
     def run_task(self, fw_spec):
         user_incar_settings = self["user_incar_settings"]
@@ -308,10 +369,15 @@ class WriteNEBFromEndpoints(FiretaskBase):
             images = self._get_images_by_linear_interp(nimages, ep0, ep1)
             images_dic_list = [i.as_dict() for i in images]
         else:
-            raise ValueError("The interpolation method must either be 'linear' or 'IDPP'!")
+            raise ValueError(
+                "The interpolation method must either be 'linear' or 'IDPP'!"
+            )
 
-        write = WriteNEBFromImages(neb_label='1', user_incar_settings=user_incar_settings,
-                                   user_kpoints_settings=user_kpoints_settings)
+        write = WriteNEBFromImages(
+            neb_label="1",
+            user_incar_settings=user_incar_settings,
+            user_kpoints_settings=user_kpoints_settings,
+        )
         fw_spec["neb"] = [images_dic_list]
         write.run_task(fw_spec=fw_spec)
 
@@ -330,7 +396,9 @@ class WriteNEBFromEndpoints(FiretaskBase):
         # Assume dilute diffusion
         max_dist = 0
         for s_0, s_1 in zip(ep0, ep1):
-            site_dist = ep0.lattice.get_distance_and_image(s_0.frac_coords, s_1.frac_coords)[0]
+            site_dist = ep0.lattice.get_distance_and_image(
+                s_0.frac_coords, s_1.frac_coords
+            )[0]
             if site_dist > max_dist:
                 max_dist = site_dist
 
@@ -347,8 +415,10 @@ class WriteNEBFromEndpoints(FiretaskBase):
             images = ep0.interpolate(ep1, nimages=nimages + 1, autosort_tol=sort_tol)
         except Exception as e:
             if "Unable to reliably match structures " in str(e):
-                logger.warning("Auto sorting is turned off because it is unable to match the "
-                            "end-point structures!")
+                logger.warning(
+                    "Auto sorting is turned off because it is unable to match the "
+                    "end-point structures!"
+                )
                 images = ep0.interpolate(ep1, nimages=nimages + 1, autosort_tol=0)
             else:
                 raise e

@@ -1,5 +1,3 @@
-# coding: utf-8
-
 # This module defines a workflow that fragments a molecule and optimizes each fragment.
 # It will most often be used in order to obtain the bond dissociation energies of a molecule.
 
@@ -19,19 +17,21 @@ __credits__ = "Brandon Wood, Shyam Dwaraknath"
 logger = get_logger(__name__)
 
 
-def get_fragmentation_wf(molecule,
-                         depth=1,
-                         open_rings=True,
-                         additional_charges=None,
-                         do_triplets=True,
-                         pcm_dielectric=None,
-                         do_optimization=True,
-                         linked=False,
-                         qchem_input_params=None,
-                         name="FF then fragment",
-                         db_file=">>db_file<<",
-                         check_db=True,
-                         **kwargs):
+def get_fragmentation_wf(
+    molecule,
+    depth=1,
+    open_rings=True,
+    additional_charges=None,
+    do_triplets=True,
+    pcm_dielectric=None,
+    do_optimization=True,
+    linked=False,
+    qchem_input_params=None,
+    name="FF then fragment",
+    db_file=">>db_file<<",
+    check_db=True,
+    **kwargs,
+):
     """
 
     Args:
@@ -113,7 +113,8 @@ def get_fragmentation_wf(molecule,
             max_cores=">>max_cores<<",
             qchem_input_params=qchem_input_params,
             linked=linked,
-            db_file=db_file)
+            db_file=db_file,
+        )
 
         # Fragment the optimized molecule
         fw2 = FragmentFW(
@@ -126,7 +127,8 @@ def get_fragmentation_wf(molecule,
             qchem_input_params=qchem_input_params,
             db_file=db_file,
             check_db=check_db,
-            parents=fw1)
+            parents=fw1,
+        )
         fws = [fw1, fw2]
 
     else:
@@ -141,9 +143,10 @@ def get_fragmentation_wf(molecule,
             name="fragment and FF_opt",
             qchem_input_params=qchem_input_params,
             db_file=db_file,
-            check_db=check_db)
+            check_db=check_db,
+        )
         fws = [fw1]
 
-    wfname = "{}:{}".format(molecule.composition.reduced_formula, name)
+    wfname = f"{molecule.composition.reduced_formula}:{name}"
 
     return Workflow(fws, name=wfname, **kwargs)

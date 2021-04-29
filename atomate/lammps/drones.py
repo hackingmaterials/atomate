@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 """
 Lammps Drones.
 """
@@ -9,6 +6,7 @@ import os
 from datetime import datetime
 
 from pymatgen.apps.borg.hive import AbstractDrone
+
 # from pymatgen.io.lammps.output import LammpsLog, LammpsDump, LammpsRun
 # from pymatgen.io.lammps.sets import LammpsInputSet
 
@@ -16,8 +14,8 @@ from atomate.utils.utils import get_uri
 
 from atomate.utils.utils import get_logger
 
-__author__ = 'Brandon Wood, Kiran Mathew'
-__email__ = 'b.wood@berkeley.edu'
+__author__ = "Brandon Wood, Kiran Mathew"
+__email__ = "b.wood@berkeley.edu"
 
 logger = get_logger(__name__)
 
@@ -27,10 +25,20 @@ class LammpsDrone(AbstractDrone):
     __version__ = 0.1
 
     schema = {
-        "root": {"schema", "dir_name", "input", "output", "last_updated", "state", "completed_at"}
+        "root": {
+            "schema",
+            "dir_name",
+            "input",
+            "output",
+            "last_updated",
+            "state",
+            "completed_at",
+        }
     }
 
-    def __init__(self, additional_fields=None, use_full_uri=True, diffusion_params=None):
+    def __init__(
+        self, additional_fields=None, use_full_uri=True, diffusion_params=None
+    ):
         """
 
         Args:
@@ -44,8 +52,15 @@ class LammpsDrone(AbstractDrone):
         self.runs = []
         self.diffusion_params = diffusion_params
 
-    def assimilate(self, path, input_filename, log_filename="log.lammps",  is_forcefield=False,
-                   data_filename=None, dump_files=None):
+    def assimilate(
+        self,
+        path,
+        input_filename,
+        log_filename="log.lammps",
+        is_forcefield=False,
+        data_filename=None,
+        dump_files=None,
+    ):
         """
         Parses lammps input, data and log files and insert the result into the db.
 
@@ -68,7 +83,9 @@ class LammpsDrone(AbstractDrone):
         dump_files = [dump_files] if isinstance(dump_files, str) else dump_files
 
         # input set
-        lmps_input = LammpsInputSet.from_file("lammps", input_file, {}, data_file, data_filename)
+        lmps_input = LammpsInputSet.from_file(
+            "lammps", input_file, {}, data_file, data_filename
+        )
 
         # dumps
         dumps = []
@@ -79,7 +96,7 @@ class LammpsDrone(AbstractDrone):
         # log
         log = LammpsLog(log_file=log_file)
 
-        logger.info("Getting task doc for base dir :{}".format(path))
+        logger.info(f"Getting task doc for base dir :{path}")
         d = self.generate_doc(path, lmps_input, log, dumps)
 
         lmps_run = None
@@ -101,9 +118,11 @@ class LammpsDrone(AbstractDrone):
         if self.diffusion_params and isinstance(lmps_run, LammpsRun):
             d["analysis"] = {}
             d["analysis"]["diffusion_params"] = self.diffusion_params
-            diffusion_analyzer = lmps_run.get_diffusion_analyzer(**self.diffusion_params)
+            diffusion_analyzer = lmps_run.get_diffusion_analyzer(
+                **self.diffusion_params
+            )
             d["analysis"]["diffusion"] = diffusion_analyzer.get_summary_dict()
-        d['state'] = 'successful'
+        d["state"] = "successful"
 
     def generate_doc(self, dir_name, lmps_input, log, dumps):
         """
@@ -123,32 +142,43 @@ class LammpsDrone(AbstractDrone):
                 fullpath = get_uri(dir_name)
             d = {k: v for k, v in self.additional_fields.items()}
             d["schema"] = {"code": "atomate", "version": LammpsDrone.__version__}
-            d["completed_at"] = str(datetime.fromtimestamp(os.path.getmtime(log.log_file)))
+            d["completed_at"] = str(
+                datetime.fromtimestamp(os.path.getmtime(log.log_file))
+            )
             d["dir_name"] = fullpath
             d["last_updated"] = datetime.utcnow()
             d["input"] = lmps_input.as_dict()
             d["output"] = {"log": log.as_dict()}
-            d["output"]["dumps"] = dict([(dump_fname, dmp.as_dict()) for dump_fname, dmp in dumps])
+            d["output"]["dumps"] = {
+                dump_fname: dmp.as_dict() for dump_fname, dmp in dumps
+            }
             return d
 
         except:
             import traceback
+
             logger.error(traceback.format_exc())
-            logger.error("Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc())
+            logger.error(
+                "Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc()
+            )
             return None
 
     def get_valid_paths(self, path):
         return [path]
 
     def as_dict(self):
-        init_args = {"additional_fields": self.additional_fields,
-                     "use_full_uri": self.use_full_uri,
-                     "diffusion_params": self.diffusion_params}
+        init_args = {
+            "additional_fields": self.additional_fields,
+            "use_full_uri": self.use_full_uri,
+            "diffusion_params": self.diffusion_params,
+        }
 
-        return {"@module": self.__class__.__module__,
-                "@class": self.__class__.__name__,
-                "version": self.__class__.__version__,
-                "init_args": init_args}
+        return {
+            "@module": self.__class__.__module__,
+            "@class": self.__class__.__name__,
+            "version": self.__class__.__version__,
+            "init_args": init_args,
+        }
 
     @classmethod
     def from_dict(cls, d):

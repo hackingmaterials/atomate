@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 """
 This module defines a base class for derived database classes that store calculation data.
 """
@@ -129,12 +126,12 @@ class CalcDb(metaclass=ABCMeta):
     @abstractmethod
     def build_indexes(self, indexes=None, background=True):
         """
-         Build the indexes.
+        Build the indexes.
 
-         Args:
-             indexes (list): list of single field indexes to be built.
-             background (bool): Run in the background or not.
-         """
+        Args:
+            indexes (list): list of single field indexes to be built.
+            background (bool): Run in the background or not.
+        """
 
     def insert(self, d, update_duplicates=True):
         """

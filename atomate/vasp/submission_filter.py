@@ -1,20 +1,39 @@
-# coding: utf-8
-
-
 from monty.json import MSONable, MontyDecoder
 
 from pymatgen.ext.matproj import MPRester
 from pymatgen.alchemy.filters import AbstractStructureFilter
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>, Kiran Mathew <kmathew@lbl.gov>'
+__author__ = "Anubhav Jain <ajain@lbl.gov>, Kiran Mathew <kmathew@lbl.gov>"
 
 
 class SubmissionFilter(AbstractStructureFilter):
-    NO_POTCARS = ['Po', 'At', 'Rn', 'Fr', 'Ra', 'Am', 'Cm', 'Bk',
-                  'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr']
+    NO_POTCARS = [
+        "Po",
+        "At",
+        "Rn",
+        "Fr",
+        "Ra",
+        "Am",
+        "Cm",
+        "Bk",
+        "Cf",
+        "Es",
+        "Fm",
+        "Md",
+        "No",
+        "Lr",
+    ]
 
-    def __init__(self, is_valid=True, potcar_exists=True, max_natoms=200, is_ordered=True,
-                 not_in_MP=True, MAPI_KEY=None, require_bandstructure=False):
+    def __init__(
+        self,
+        is_valid=True,
+        potcar_exists=True,
+        max_natoms=200,
+        is_ordered=True,
+        not_in_MP=True,
+        MAPI_KEY=None,
+        require_bandstructure=False,
+    ):
         """
         Initialize a submission filter for checking that structures are valid for calculations.
 
@@ -64,7 +83,7 @@ class SubmissionFilter(AbstractStructureFilter):
                         try:
                             bs = mpr.get_bandstructure_by_material_id(mpid)
                             if bs:
-                                failures.append("NOT_IN_MP=False ({})".format(mpid))
+                                failures.append(f"NOT_IN_MP=False ({mpid})")
                         except:
                             pass
                 else:
@@ -76,6 +95,9 @@ class SubmissionFilter(AbstractStructureFilter):
 
     @classmethod
     def from_dict(cls, d):
-        decoded = {k: MontyDecoder().process_decoded(v) for k, v in d.items() if
-                   not k.startswith("@")}
+        decoded = {
+            k: MontyDecoder().process_decoded(v)
+            for k, v in d.items()
+            if not k.startswith("@")
+        }
         return cls(**decoded)

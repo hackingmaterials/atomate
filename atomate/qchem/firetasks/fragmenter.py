@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 # This module defines a task that returns all fragments of a molecule
 
 import copy
@@ -103,7 +100,17 @@ class FragmentMolecule(FiretaskBase):
     """
 
     optional_params = [
-        "molecule", "edges", "depth", "open_rings", "opt_steps", "additional_charges", "do_triplets", "linked", "qchem_input_params", "db_file", "check_db"
+        "molecule",
+        "edges",
+        "depth",
+        "open_rings",
+        "opt_steps",
+        "additional_charges",
+        "do_triplets",
+        "linked",
+        "qchem_input_params",
+        "db_file",
+        "check_db",
     ]
 
     def run_task(self, fw_spec):
@@ -129,9 +136,9 @@ class FragmentMolecule(FiretaskBase):
         if molecule.charge == 0:
             self.charges = [-1, 0, 1]
         elif molecule.charge > 0:
-            self.charges = [molecule.charge-1, molecule.charge]
+            self.charges = [molecule.charge - 1, molecule.charge]
         else:
-            self.charges = [molecule.charge, molecule.charge+1]
+            self.charges = [molecule.charge, molecule.charge + 1]
         self.principle_charge = molecule.charge
 
         # Include any additional charges specified by the user:
@@ -143,7 +150,13 @@ class FragmentMolecule(FiretaskBase):
                 print("Charge " + str(additional_charge) + " already present!")
 
         # Obtain fragments from Pymatgen's fragmenter:
-        fragmenter = Fragmenter(molecule=molecule, edges=self.get("edges", None), depth=self.depth, open_rings=self.get("open_rings", True), opt_steps=self.get("opt_steps", 10000))
+        fragmenter = Fragmenter(
+            molecule=molecule,
+            edges=self.get("edges", None),
+            depth=self.depth,
+            open_rings=self.get("open_rings", True),
+            opt_steps=self.get("opt_steps", 10000),
+        )
         self.unique_fragments = []
         for key in fragmenter.unique_frag_dict:
             for frag in fragmenter.unique_frag_dict[key]:
@@ -161,17 +174,19 @@ class FragmentMolecule(FiretaskBase):
         # attempt to connect to the database to later check if a fragment has already been calculated
         find_dict = {"formula_pretty": {"$in": self.unique_formulae}}
         if "pcm_dielectric" in self.qchem_input_params:
-            find_dict["calcs_reversed.input.solvent.dielectric"] = str(self.qchem_input_params["pcm_dielectric"])
+            find_dict["calcs_reversed.input.solvent.dielectric"] = str(
+                self.qchem_input_params["pcm_dielectric"]
+            )
         db_file = env_chk(self.get("db_file"), fw_spec)
         self.check_db = self.get("check_db", bool(db_file))
         self.all_relevant_docs = []
         if db_file and self.check_db:
             mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
             self.all_relevant_docs = list(
-                mmdb.collection.find(find_dict, {
-                    "formula_pretty": 1,
-                    "input.initial_molecule": 1
-                }))
+                mmdb.collection.find(
+                    find_dict, {"formula_pretty": 1, "input.initial_molecule": 1}
+                )
+            )
 
         # Return an FWAction which includes a new additional firework for each unique, relevant molecule
         # not already present in our database
@@ -193,7 +208,9 @@ class FragmentMolecule(FiretaskBase):
             for unique_molecule in self.unique_molecules:
                 if unique_molecule.spin_multiplicity == 1:
                     this_molecule = copy.deepcopy(unique_molecule)
-                    this_molecule.set_charge_and_spin(charge=this_molecule.charge, spin_multiplicity=3)
+                    this_molecule.set_charge_and_spin(
+                        charge=this_molecule.charge, spin_multiplicity=3
+                    )
                     self.unique_molecules.append(this_molecule)
 
     def _in_database(self, molecule):
@@ -208,13 +225,22 @@ class FragmentMolecule(FiretaskBase):
         # otherwise, look through the docs for an entry with an isomorphic molecule with
         # equivalent charge and multiplicity
         else:
-            new_mol_graph = MoleculeGraph.with_local_env_strategy(molecule, OpenBabelNN())
+            new_mol_graph = MoleculeGraph.with_local_env_strategy(
+                molecule, OpenBabelNN()
+            )
             for doc in self.all_relevant_docs:
                 if molecule.composition.reduced_formula == doc["formula_pretty"]:
                     old_mol = Molecule.from_dict(doc["input"]["initial_molecule"])
-                    old_mol_graph = MoleculeGraph.with_local_env_strategy(old_mol, OpenBabelNN())
+                    old_mol_graph = MoleculeGraph.with_local_env_strategy(
+                        old_mol, OpenBabelNN()
+                    )
                     # If such an equivalent molecule is found, return true
-                    if new_mol_graph.isomorphic_to(old_mol_graph) and molecule.charge == old_mol_graph.molecule.charge and molecule.spin_multiplicity == old_mol_graph.molecule.spin_multiplicity:
+                    if (
+                        new_mol_graph.isomorphic_to(old_mol_graph)
+                        and molecule.charge == old_mol_graph.molecule.charge
+                        and molecule.spin_multiplicity
+                        == old_mol_graph.molecule.spin_multiplicity
+                    ):
                         return True
             # Otherwise, return false
             return False
@@ -227,6 +253,7 @@ class FragmentMolecule(FiretaskBase):
         """
         from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
         from atomate.qchem.fireworks.core import SinglePointFW
+
         new_FWs = []
         for ii, unique_molecule in enumerate(self.unique_molecules):
             if not self._in_database(unique_molecule):
@@ -238,7 +265,9 @@ class FragmentMolecule(FiretaskBase):
                             qchem_cmd=">>qchem_cmd<<",
                             max_cores=">>max_cores<<",
                             qchem_input_params=self.qchem_input_params,
-                            db_file=">>db_file<<"))
+                            db_file=">>db_file<<",
+                        )
+                    )
                 else:
                     new_FWs.append(
                         FrequencyFlatteningOptimizeFW(
@@ -248,5 +277,7 @@ class FragmentMolecule(FiretaskBase):
                             max_cores=">>max_cores<<",
                             qchem_input_params=self.qchem_input_params,
                             linked=self.linked,
-                            db_file=">>db_file<<"))
+                            db_file=">>db_file<<",
+                        )
+                    )
         return new_FWs

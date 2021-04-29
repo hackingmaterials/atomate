@@ -1,5 +1,3 @@
-# coding: utf-8
-
 import warnings
 
 from atomate.vasp.config import (
@@ -71,7 +69,7 @@ class OptimizeFW(Firework):
         auto_npar=">>auto_npar<<",
         half_kpts_first_relax=HALF_KPOINTS_FIRST_RELAX,
         parents=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Optimize the given structure.
@@ -123,11 +121,11 @@ class OptimizeFW(Firework):
         )
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-        super(OptimizeFW, self).__init__(
+        super().__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
+            name=f"{structure.composition.reduced_formula}-{name}",
+            **kwargs,
         )
 
 
@@ -145,7 +143,7 @@ class ScanOptimizeFW(Firework):
         db_file=DB_FILE,
         vasptodb_kwargs=None,
         parents=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Structure optimization using the SCAN metaGGA functional. If this Firework is
@@ -293,7 +291,7 @@ class ScanOptimizeFW(Firework):
         # zip the output (don't rely on custodian to do it)
         t.append(GzipDir())
 
-        super(ScanOptimizeFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class StaticFW(Firework):
@@ -310,7 +308,7 @@ class StaticFW(Firework):
         vasptodb_kwargs=None,
         parents=None,
         spec_structure_key=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Standard static calculation Firework - either from a previous location or from a structure.
@@ -378,7 +376,7 @@ class StaticFW(Firework):
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, **vasptodb_kwargs))
-        super(StaticFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class StaticInterpolateFW(Firework):
@@ -396,7 +394,7 @@ class StaticInterpolateFW(Firework):
         this_image=None,
         nimages=None,
         autosort_tol=0,
-        **kwargs
+        **kwargs,
     ):
         """
         Standard static calculation Firework that interpolates structures from two previous calculations.
@@ -439,11 +437,11 @@ class StaticInterpolateFW(Firework):
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
-        super(StaticInterpolateFW, self).__init__(
+        super().__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
+            name=f"{structure.composition.reduced_formula}-{name}",
+            **kwargs,
         )
 
 
@@ -457,7 +455,7 @@ class HSEBSFW(Firework):
         name=None,
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
-        **kwargs
+        **kwargs,
     ):
         """
         For getting a more accurate band gap or a full band structure with HSE - requires previous
@@ -507,7 +505,7 @@ class HSEBSFW(Firework):
                 bandstructure_mode=bandstructure_mode,
             )
         )
-        super(HSEBSFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class NonSCFFW(Firework):
@@ -522,7 +520,7 @@ class NonSCFFW(Firework):
         copy_vasp_outputs=True,
         db_file=DB_FILE,
         input_set_overrides=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Standard NonSCF Calculation Firework supporting uniform and line modes.
@@ -590,7 +588,7 @@ class NonSCFFW(Firework):
             )
         )
 
-        super(NonSCFFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class LepsFW(Firework):
@@ -606,7 +604,7 @@ class LepsFW(Firework):
         mode=None,
         displacement=None,
         user_incar_settings=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Standard static calculation Firework for dielectric constants using DFPT.
@@ -672,11 +670,7 @@ class LepsFW(Firework):
                 )
             else:
                 name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
-                key = (
-                    "{}_{}".format(mode, displacement)
-                    .replace("-", "m")
-                    .replace(".", "d")
-                )
+                key = f"{mode}_{displacement}".replace("-", "m").replace(".", "d")
                 pass_fw = pass_vasp_result(
                     pass_dict={
                         "mode": mode,
@@ -705,11 +699,11 @@ class LepsFW(Firework):
             ]
         )
 
-        super(LepsFW, self).__init__(
+        super().__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
+            name=f"{structure.composition.reduced_formula}-{name}",
+            **kwargs,
         )
 
 
@@ -726,7 +720,7 @@ class DFPTFW(Firework):
         parents=None,
         user_incar_settings=None,
         pass_nm_results=False,
-        **kwargs
+        **kwargs,
     ):
         """
          Static DFPT calculation Firework
@@ -810,7 +804,7 @@ class DFPTFW(Firework):
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
-        super(DFPTFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class RamanFW(Firework):
@@ -825,7 +819,7 @@ class RamanFW(Firework):
         db_file=DB_FILE,
         parents=None,
         user_incar_settings=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Static calculation Firework that computes the DFPT dielectric constant for
@@ -871,7 +865,7 @@ class RamanFW(Firework):
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
 
-        key = "{}_{}".format(mode, displacement).replace("-", "m").replace(".", "d")
+        key = f"{mode}_{displacement}".replace("-", "m").replace(".", "d")
         t.append(
             pass_vasp_result(
                 pass_dict={
@@ -879,7 +873,7 @@ class RamanFW(Firework):
                     "displacement": displacement,
                     "epsilon": "a>>epsilon_static",
                 },
-                mod_spec_key="raman_epsilon->{}".format(key),
+                mod_spec_key=f"raman_epsilon->{key}",
                 parse_eigen=True,
             )
         )
@@ -888,7 +882,7 @@ class RamanFW(Firework):
 
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
-        super(RamanFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class SOCFW(Firework):
@@ -903,7 +897,7 @@ class SOCFW(Firework):
         copy_vasp_outputs=True,
         db_file=None,
         parents=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Firework for spin orbit coupling calculation.
@@ -961,7 +955,7 @@ class SOCFW(Firework):
                 VaspToDb(db_file=db_file, additional_fields={"task_label": name}),
             ]
         )
-        super(SOCFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class TransmuterFW(Firework):
@@ -978,7 +972,7 @@ class TransmuterFW(Firework):
         db_file=DB_FILE,
         parents=None,
         override_default_vasp_params=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Apply the transformations to the input structure, write the input set corresponding
@@ -1003,7 +997,7 @@ class TransmuterFW(Firework):
             override_default_vasp_params (dict): additional user input settings for vasp_input_set.
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(structure.composition.reduced_formula, name)
+        fw_name = f"{structure.composition.reduced_formula}-{name}"
         override_default_vasp_params = override_default_vasp_params or {}
         t = []
 
@@ -1062,7 +1056,7 @@ class TransmuterFW(Firework):
             )
         )
 
-        super(TransmuterFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class MDFW(Firework):
@@ -1080,7 +1074,7 @@ class MDFW(Firework):
         db_file=DB_FILE,
         parents=None,
         copy_vasp_outputs=True,
-        **kwargs
+        **kwargs,
     ):
         """
         Standard firework for a single MD run.
@@ -1111,7 +1105,7 @@ class MDFW(Firework):
             start_temp=start_temp,
             end_temp=end_temp,
             nsteps=nsteps,
-            **override_default_vasp_params
+            **override_default_vasp_params,
         )
 
         t = []
@@ -1139,11 +1133,11 @@ class MDFW(Firework):
                 defuse_unsuccessful=False,
             )
         )
-        super(MDFW, self).__init__(
+        super().__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
+            name=f"{structure.composition.reduced_formula}-{name}",
+            **kwargs,
         )
 
 
@@ -1161,7 +1155,7 @@ class BoltztrapFW(Firework):
         prev_calc_dir=None,
         soc=False,
         additional_fields=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Run Boltztrap (which includes writing bolztrap input files and parsing outputs). Assumes
@@ -1207,7 +1201,7 @@ class BoltztrapFW(Firework):
             ]
         )
 
-        super(BoltztrapFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class NEBRelaxationFW(Firework):
@@ -1227,7 +1221,7 @@ class NEBRelaxationFW(Firework):
         user_incar_settings=None,
         user_kpoints_settings=None,
         additional_cust_args=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Args:
@@ -1287,7 +1281,7 @@ class NEBRelaxationFW(Firework):
             PassCalcLocs(name=label),
         ]
 
-        super(NEBRelaxationFW, self).__init__(tasks, spec=spec, name=label, **kwargs)
+        super().__init__(tasks, spec=spec, name=label, **kwargs)
 
 
 class NEBFW(Firework):
@@ -1309,7 +1303,7 @@ class NEBFW(Firework):
         user_incar_settings=None,
         user_kpoints_settings=None,
         additional_cust_args=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Args:
@@ -1323,7 +1317,7 @@ class NEBFW(Firework):
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         assert neb_label.isdigit() and int(neb_label) >= 1
-        label = "neb{}".format(neb_label)
+        label = f"neb{neb_label}"
         sort_tol = spec["sort_tol"]
         d_img = spec["d_img"]
         interpolation_type = spec["interpolation_type"]
@@ -1368,4 +1362,4 @@ class NEBFW(Firework):
             PassCalcLocs(name=label),
         ]
 
-        super(NEBFW, self).__init__(tasks, spec=spec, name=label, **kwargs)
+        super().__init__(tasks, spec=spec, name=label, **kwargs)
