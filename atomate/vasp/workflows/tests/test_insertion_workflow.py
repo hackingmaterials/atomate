@@ -60,6 +60,34 @@ class TestInsertionWorkflow(AtomateTest):
             ],
             optimizefw_kwargs={"ediffg": -0.05},
         )
+
+        wf_stop_early = get_ion_insertion_wf(
+            structure=base_struct,
+            structure_matcher=sm,
+            working_ion="Mg",
+            volumetric_data_type="AECCAR",
+            db_file=db_dir / "db.json",
+            max_inserted_atoms=1,
+            vasp_powerups=[
+                {
+                    "powerup_name": "add_modify_incar",
+                    "kwargs": {"modify_incar_params": {"incar_update": {"KPAR": 8}}},
+                },
+                {
+                    "powerup_name": "use_fake_vasp",
+                    "kwargs": {
+                        "ref_dirs": calc_dirs,
+                        "check_incar": False,
+                        "check_kpoints": False,
+                        "check_poscar": False,
+                        "check_potcar": False,
+                    },
+                },
+                {"powerup_name": "use_potcar_spec", "kwargs": {}},
+            ],
+            optimizefw_kwargs={"ediffg": -0.05},
+        )
+
         wf = use_fake_vasp(
             wf,
             calc_dirs,
@@ -71,7 +99,31 @@ class TestInsertionWorkflow(AtomateTest):
         wf = use_potcar_spec(wf)
         self.wf = wf
 
+        wf_stop_early = use_fake_vasp(
+            wf_stop_early,
+            calc_dirs,
+            check_incar=False,
+            check_kpoints=False,
+            check_poscar=False,
+            check_potcar=False,
+        )
+        wf_stop_early = use_potcar_spec(wf_stop_early)
+        self.wf_stop_early = wf_stop_early
+
     def test_has_inserted(self):
+        self.lp.add_wf(self.wf_stop_early)
+        rapidfire(
+            self.lp,
+            fworker=FWorker(
+                env={
+                    "db_file": os.path.join(db_dir, "db.json"),
+                    "vasp_cmd": ["echo", "fake"],
+                }
+            ),
+        )
+        formula = self.get_task_collection(coll_name="tasks").distinct("formula_pretty")
+        self.assertEqual(set(formula), {"Y2Mg(PO4)2", "YPO4"})
+
         self.lp.add_wf(self.wf)
         rapidfire(
             self.lp,

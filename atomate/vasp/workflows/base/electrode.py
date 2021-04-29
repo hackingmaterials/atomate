@@ -26,7 +26,8 @@ def get_ion_insertion_wf(
     vasptodb_kwargs: dict = None,
     volumetric_data_type: str = "CHGCAR",
     vasp_powerups: List[dict] = None,
-    max_insertions: int = 4,
+    attempt_insertions: int = 4,
+    max_inserted_atoms: int = None,
     allow_fizzled_parents: bool = True,
     optimizefw_kwargs: dict = None,
     staticfw_kwargs: dict = None,
@@ -48,6 +49,8 @@ def get_ion_insertion_wf(
         volumetric_data_type: the type of volumetric data used to determine the insertion sites
         vasp_powerups: additional powerups given to all the dynamically created workflows
         optimizefw_kwargs: additional kwargs for all the OptimizeFWs
+        max_inserted_atoms: the limit on the total number of ions to insert
+        attempt_insertions: number of insertions sites to run at each insertion step
         staticfw_kwargs: additional kwargs for all the StaticFWs
     """
 
@@ -121,11 +124,12 @@ def get_ion_insertion_wf(
     # Note this is probably redundant but is easier
     for fw in wf.fws:
         fw.spec["db_file"] = db_file
-        fw.spec["max_insertions"] = max_insertions
+        fw.spec["attempt_insertions"] = attempt_insertions
         fw.spec["vasptodb_kwargs"] = vasptodb_kwargs
         fw.spec["staticfw_kwargs"] = staticfw_kwargs
         fw.spec["optimizefw_kwargs"] = optimizefw_kwargs
         fw.spec["allow_fizzled_parents"] = allow_fizzled_parents
         fw.spec["volumetric_data_type"] = volumetric_data_type
+        fw.spec["max_inserted_atoms"] = max_inserted_atoms
 
     return wf
