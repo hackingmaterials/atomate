@@ -1,0 +1,17 @@
+version: 2
+updates:
+- package-ecosystem: pip
+  directory: "/"
+  schedule:
+    interval: weekly
+    time: "13:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: boto3
+    versions:
+    - 1.17.22
+    - 1.17.44
+    - 1.17.53
+  - dependency-name: pymatgen
+    versions:
+    - 2022.0.3
