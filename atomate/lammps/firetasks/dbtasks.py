@@ -23,7 +23,7 @@ class LammpsMDToDB(FiretaskBase):
     searching for a unique tag
     """
     required_params = ["db_file"]
-    optional_params = ["input_filename", "run_label", "comments"]
+    optional_params = ["input_filename", "run_label", "comments", "atomic_map"]
 
     def run_task(self, fw_spec):
         db_file = env_chk(self["db_file"], fw_spec)
@@ -36,11 +36,13 @@ class LammpsMDToDB(FiretaskBase):
         timestep = float(re.search(r"timestep\s+(.*)\n", input_string).group(1).split()[0])
         temp = float(re.search(r"variable\s+ diffusiontemp(.*)\n", input_string).group(1).split()[1])
 
-        groups = re.findall(r"group\s+(.*)\n", input_string)
-        atomic_map = {}
-        for group_str in groups:
-            atom, _str, atom_id = group_str.split()
-            atomic_map[int(atom_id)] = atom
+        atomic_map = self.get("atomic_map", None)
+        if atomic_map is None:
+            groups = re.findall(r"group\s+(.*)\n", input_string)
+            atomic_map = {}
+            for group_str in groups:
+                atom, _str, atom_id = group_str.split()
+                atomic_map[int(atom_id)] = atom
 
         # Load trajectories
         path = os.getcwd()
