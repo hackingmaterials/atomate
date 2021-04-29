@@ -43,7 +43,7 @@ class LammpsMDToDB(FiretaskBase):
             for group_str in groups:
                 atom, _str, atom_id = group_str.split()
                 atomic_map[int(atom_id)] = atom
-        elif isinstance(atomic_map.keys()[0], str):
+        elif isinstance(list(atomic_map.keys())[0], str):
             _atomic_map = {}
             for i in atomic_map:
                 _atomic_map[int(i)] = atomic_map[i]
