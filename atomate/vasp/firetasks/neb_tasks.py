@@ -4,7 +4,7 @@ import shutil
 
 from pymatgen.core import Structure
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
-from pymatgen_diffusion.neb.io import (
+from pymatgen.analysis.diffusion.neb.io import (
     MVLCINEBSet,
     get_endpoint_dist,
     get_endpoints_from_index,
@@ -117,7 +117,7 @@ class TransferNEBTask(FiretaskBase):
                 ep_1_dict = fw_spec.get("ep{}".format(1 - index))  # Another endpoint
                 try:
                     ep_1 = Structure.from_dict(ep_1_dict)
-                except:
+                except Exception:
                     ep_1 = ep_1_dict
 
                 max_dist = max(get_endpoint_dist(ep, ep_1))
@@ -147,7 +147,7 @@ class TransferNEBTask(FiretaskBase):
         for d in os.listdir(src_dir):
             try:
                 os.remove(os.path.join(src_dir, d))
-            except:
+            except Exception:
                 shutil.rmtree(os.path.join(src_dir, d))
 
         return FWAction(update_spec=update_spec)
@@ -305,7 +305,7 @@ class WriteNEBFromImages(FiretaskBase):
         images = fw_spec["neb"][int(neb_label) - 1]
         try:
             images = [Structure.from_dict(i) for i in images]
-        except:
+        except Exception:
             images = images
         vis = MVLCINEBSet(
             images,
@@ -353,14 +353,14 @@ class WriteNEBFromEndpoints(FiretaskBase):
         try:
             ep0 = Structure.from_dict(fw_spec["ep0"])
             ep1 = Structure.from_dict(fw_spec["ep1"])
-        except:
+        except Exception:
             ep0 = fw_spec["ep0"]
             ep1 = fw_spec["ep1"]
 
         # Get number of images.
         nimages = user_incar_settings.get("IMAGES", self._get_nimages(ep0, ep1))
         if interpolation_type == "IDPP":
-            from pymatgen_diffusion.neb.pathfinder import IDPPSolver
+            from pymatgen.analysis.diffusion.neb.pathfinder import IDPPSolver
 
             obj = IDPPSolver.from_endpoints([ep0, ep1], nimages=nimages)
             images = obj.run(species=idpp_species)

@@ -1250,7 +1250,7 @@ class NEBRelaxationFW(Firework):
                 user_kpoints_settings=user_kpoints_settings,
             )
         else:  # label == "ep0" or "ep1"
-            from pymatgen_diffusion.neb.io import MVLCINEBEndPointSet
+            from pymatgen.analysis.diffusion.neb.io import MVLCINEBEndPointSet
 
             vasp_input_set = MVLCINEBEndPointSet(
                 structure,
