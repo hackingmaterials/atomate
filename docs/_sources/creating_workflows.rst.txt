@@ -89,7 +89,7 @@ Once you have identified each calculation or analysis step as a Firework in our 
 * TransmuterFW
 * HSEBSFW
 * NonSCFFW
-* LepsFW
+* DFPTFW
 * SOCFW
 * MDFW
 * BoltztrapFW
