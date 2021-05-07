@@ -182,8 +182,18 @@ class WriteCustomInput(FiretaskBase):
         opt = self.get("opt", None)
         pcm = self.get("pcm", None)
         solvent = self.get("solvent", None)
+        vdw_mode = self.get("vdw_mode", "atomic")
+        van_der_waals = self.get("van_der_waals", None)
 
-        qcin = QCInput(molecule=mol, rem=self["rem"], opt=opt, pcm=pcm, solvent=solvent)
+        qcin = QCInput(
+            molecule=mol,
+            rem=self["rem"],
+            opt=opt,
+            pcm=pcm,
+            solvent=solvent,
+            van_der_waals=van_der_waals,
+            vdw_mode=vdw_mode,
+        )
         qcin.write_file(input_file)
 
 
