@@ -164,6 +164,8 @@ class QChemDrone(AbstractDrone):
                 d["orig"]["pcm"] = orig_input.pcm
                 d["orig"]["solvent"] = orig_input.solvent
                 d["orig"]["smx"] = orig_input.smx
+                d["orig"]["vdw_mode"] = orig_input.vdw_mode
+                d["orig"]["van_der_waals"] = orig_input.van_der_waals
 
             if multirun:
                 d["calcs_reversed"] = self.process_qchem_multirun(
@@ -360,6 +362,8 @@ class QChemDrone(AbstractDrone):
         d["input"]["pcm"] = temp_input.pcm
         d["input"]["solvent"] = temp_input.solvent
         d["input"]["smx"] = temp_input.smx
+        d["input"]["vdw_mode"] = orig_input.vdw_mode
+        d["input"]["van_der_waals"] = orig_input.van_der_waals
         d["task"] = {"type": taskname, "name": taskname}
         return d
 
@@ -391,6 +395,8 @@ class QChemDrone(AbstractDrone):
                     d["input"]["pcm"] = multi_in[ii].pcm
                     d["input"]["solvent"] = multi_in[ii].solvent
                     d["input"]["smx"] = multi_in[ii].smx
+                    d["input"]["vdw_mode"] = multi_in[ii].vdw_mode
+                    d["input"]["van_der_waals"] = multi_in[ii].van_der_waals
                     d["task"] = {"type": key, "name": "calc" + str(ii)}
                     to_return.append(d)
             return to_return
