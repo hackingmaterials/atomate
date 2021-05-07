@@ -138,6 +138,7 @@ class WriteCustomInput(FiretaskBase):
         "opt",
         "pcm",
         "solvent",
+        "van_der_waals",
         "input_file",
         "write_to_dir",
     ]
