@@ -4,7 +4,7 @@ import shutil
 
 from pymatgen.core import Structure
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
-from pymatgen.analysis.diffusion.neb.io import (
+from pymatgen_diffusion.neb.io import (
     MVLCINEBSet,
     get_endpoint_dist,
     get_endpoints_from_index,
@@ -360,7 +360,7 @@ class WriteNEBFromEndpoints(FiretaskBase):
         # Get number of images.
         nimages = user_incar_settings.get("IMAGES", self._get_nimages(ep0, ep1))
         if interpolation_type == "IDPP":
-            from pymatgen.analysis.diffusion.neb.pathfinder import IDPPSolver
+            from pymatgen_diffusion.neb.pathfinder import IDPPSolver
 
             obj = IDPPSolver.from_endpoints([ep0, ep1], nimages=nimages)
             images = obj.run(species=idpp_species)

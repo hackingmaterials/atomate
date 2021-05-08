@@ -6,7 +6,7 @@ This module defines the Nudged Elastic Band (NEB) workflow.
 
 from datetime import datetime
 
-from pymatgen.analysis.diffusion.neb.io import get_endpoints_from_index
+from pymatgen_diffusion.neb.io import get_endpoints_from_index
 
 from fireworks.core.firework import Workflow
 
