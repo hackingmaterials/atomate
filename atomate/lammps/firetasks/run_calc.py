@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 """
 This module defines firetasks for running lammps
 """
@@ -14,7 +11,7 @@ from fireworks import explicit_serialize, FiretaskBase, FWAction
 
 from atomate.utils.utils import get_logger
 
-__author__ = 'Kiran Mathew'
+__author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
 
 logger = get_logger(__name__)
@@ -37,7 +34,7 @@ class RunLammpsDirect(FiretaskBase):
         input_filename = self["input_filename"]
         lmps_runner = LammpsRunner(input_filename, lammps_cmd)
         stdout, stderr = lmps_runner.run()
-        logger.info("LAMMPS finished running: {} \n {}".format(stdout, stderr))
+        logger.info(f"LAMMPS finished running: {stdout} \n {stderr}")
 
 
 @explicit_serialize
@@ -81,17 +78,25 @@ class RunPackmol(FiretaskBase):
     """
 
     required_params = ["molecules", "packing_config", "packmol_cmd"]
-    optional_params = ["tolerance", "filetype", "control_params", "output_file",
-                       "site_property"]
+    optional_params = [
+        "tolerance",
+        "filetype",
+        "control_params",
+        "output_file",
+        "site_property",
+    ]
 
     def run_task(self, fw_spec):
-        pmr = PackmolRunner(self["molecules"], self["packing_config"],
-                            tolerance=self.get("tolerance", 2.0),
-                            filetype=self.get("filetype", "xyz"),
-                            control_params=self.get("control_params", {"nloop": 1000}),
-                            output_file=self.get("output_file", "packed_mol.xyz"),
-                            bin=self["packmol_cmd"])
+        pmr = PackmolRunner(
+            self["molecules"],
+            self["packing_config"],
+            tolerance=self.get("tolerance", 2.0),
+            filetype=self.get("filetype", "xyz"),
+            control_params=self.get("control_params", {"nloop": 1000}),
+            output_file=self.get("output_file", "packed_mol.xyz"),
+            bin=self["packmol_cmd"],
+        )
         logger.info("Running {}".format(self["packmol_cmd"]))
         packed_mol = pmr.run(site_property=self.get("site_property", None))
         logger.info("Packmol finished running.")
-        return FWAction(mod_spec=[{'_set': {'packed_mol': packed_mol}}])
+        return FWAction(mod_spec=[{"_set": {"packed_mol": packed_mol}}])

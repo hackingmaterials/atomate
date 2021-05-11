@@ -4,6 +4,6 @@ fireworks:
 - fw: atomate.vasp.fireworks.core.OptimizeFW
   params:
     ediffg: -0.05
-- fw: atomate.vasp.fireworks.core.LepsFW
+- fw: atomate.vasp.fireworks.core.DFPTFW
   params:
     parents: 0

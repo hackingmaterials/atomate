@@ -15,7 +15,8 @@ from pymatgen.core import Structure
 from pymatgen.util.testing import PymatgenTest
 
 try:
-    from pymatgen_diffusion.neb.io import get_endpoints_from_index
+    from pymatgen.analysis.diffusion.neb.io import get_endpoints_from_index
+
     pmgd = True
 
 except ImportError:
@@ -37,7 +38,7 @@ class TestNudgedElasticBandWorkflow(AtomateTest):
         1) Basic check for pymatgen configurations.
         2) Setup all test workflow.
         """
-        super(TestNudgedElasticBandWorkflow, self).setUp()
+        super().setUp()
         # Structures used for test:
         parent = PymatgenTest.get_structure("Li2O")
         parent.remove_oxidation_states()
@@ -45,11 +46,11 @@ class TestNudgedElasticBandWorkflow(AtomateTest):
         parent = parent.get_sorted_structure()
 
         ep0, ep1 = get_endpoints_from_index(parent, [0, 1])
-        neb_dir = [wf_dir / "4/inputs/{:02}/POSCAR".format(i) for i in range(5)]
+        neb_dir = [wf_dir / f"4/inputs/{i:02}/POSCAR" for i in range(5)]
         self.structures = [Structure.from_file(n) for n in neb_dir]
 
         test_yaml = wf_dir / "config/neb_unittest.yaml"
-        with open(test_yaml, "r") as stream:
+        with open(test_yaml) as stream:
             self.config = yaml.safe_load(stream)
 
         # Use scratch directory as destination directory for testing

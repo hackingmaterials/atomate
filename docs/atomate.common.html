@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>atomate.common package &#8212; atomate 0.9.8 documentation</title>
+    <title>atomate.common package &#8212; atomate 0.9.9 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.9 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.common package</a></li> 
       </ul>
     </div>  
@@ -64,7 +64,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="atomate.common.tests.html">atomate.common.tests package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.common.tests.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="atomate.common.tests.html#module-atomate.common.tests.test_powerups">atomate.common.tests.test_powerups module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.common.tests.html#atomate-common-tests-test-powerups-module">atomate.common.tests.test_powerups module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.common.tests.html#module-atomate.common.tests">Module contents</a></li>
 </ul>
 </li>
@@ -77,6 +77,148 @@
 <div class="section" id="module-atomate.common.powerups">
 <span id="atomate-common-powerups-module"></span><h2>atomate.common.powerups module<a class="headerlink" href="#module-atomate.common.powerups" title="Permalink to this headline">¶</a></h2>
 <p>This module defines general powerups that can be used for all workflows</p>
+<dl class="py function">
+<dt id="atomate.common.powerups.add_additional_fields_to_taskdocs">
+<code class="sig-prename descclassname">atomate.common.powerups.</code><code class="sig-name descname">add_additional_fields_to_taskdocs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">original_wf</span></em>, <em class="sig-param"><span class="n">update_dict</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">task_name_constraint</span><span class="o">=</span><span class="default_value">'ToDb'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.powerups.add_additional_fields_to_taskdocs" title="Permalink to this definition">¶</a></dt>
+<dd><p>For all XXToDbTasks in a given workflow, add information  to
+“additional_fields” to be placed in the task doc.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>original_wf (Workflow)
+update_dict (Dict): dictionary to add additional_fields
+task_name_constraint (str): name of the Firetasks to be modified.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.common.powerups.add_namefile">
+<code class="sig-prename descclassname">atomate.common.powerups.</code><code class="sig-name descname">add_namefile</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">original_wf</span></em>, <em class="sig-param"><span class="n">use_slug</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.powerups.add_namefile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Every FireWork begins by writing an empty file with the name
+“FW–&lt;fw.name&gt;”. This makes it easy to figure out what jobs are in what
+launcher directories, e.g. “ls -l launch*/FW–<a href="#id1"><span class="problematic" id="id2">*</span></a>” from within a “block” dir.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>original_wf (Workflow)
+use_slug (bool): whether to replace whitespace-type chars with a slug</p>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.common.powerups.add_priority">
+<code class="sig-prename descclassname">atomate.common.powerups.</code><code class="sig-name descname">add_priority</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">original_wf</span></em>, <em class="sig-param"><span class="n">root_priority</span></em>, <em class="sig-param"><span class="n">child_priority</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.powerups.add_priority" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds priority to a workflow</p>
+<dl>
+<dt>Args:</dt><dd><p>original_wf (Workflow): original WF
+root_priority (int): priority of first (root) job(s)
+child_priority(int): priority of all child jobs. Defaults to</p>
+<blockquote>
+<div><p>root_priority</p>
+</div></blockquote>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow: priority-decorated workflow</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.common.powerups.add_tags">
+<code class="sig-prename descclassname">atomate.common.powerups.</code><code class="sig-name descname">add_tags</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">original_wf</span></em>, <em class="sig-param"><span class="n">tags_list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.powerups.add_tags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds tags to all Fireworks in the Workflow, WF metadata, as well as
+additional_fields for the Drone to track them later (e.g. tag all fireworks
+and tasks related to a specific research project).</p>
+<p>Tags are written to the “_spec” key of each Firework in the workflow and
+to the “metadata.tags” key of each Workflow. If the workflow contains any
+Firetasks ending in “ToDb”, e.g. VaspToDb, QChemToDb, etc., then the tags
+are also passed as “additional_fields” to these tasks and included in the
+resulting task documents.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>original_wf (Workflow)
+tags_list: list of tags parameters (list of strings)</p>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.common.powerups.powerup_by_kwargs">
+<code class="sig-prename descclassname">atomate.common.powerups.</code><code class="sig-name descname">powerup_by_kwargs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">original_wf</span><span class="p">:</span> <span class="n">fireworks.core.firework.Workflow</span></em>, <em class="sig-param"><span class="n">powerup_dicts</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.powerups.powerup_by_kwargs" title="Permalink to this definition">¶</a></dt>
+<dd><p>apply powerups in the form using a list of dictionaries
+[</p>
+<blockquote>
+<div><p>{“powerup_name” : powerup_function1, “kwargs”: {parameter1 : value1, parameter2: value2}},
+{“powerup_name” : powerup_function2, “kwargs”: {parameter1 : value1, parameter2: value2}},</p>
+</div></blockquote>
+<p>]</p>
+<dl>
+<dt>As an example:</dt><dd><dl class="simple">
+<dt>power_up_by_kwargs([</dt><dd><dl class="simple">
+<dt>{“powerup_name”<span class="classifier">“add_additional_fields_to_taskdocs”,</span></dt><dd><p>“kwargs: {“update_dict” : {“foo” : “bar”}}}
+]</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p>)</p>
+</dd>
+<dt>Args:</dt><dd><p>original_wf: workflow that will be changed
+powerup_dicts: dictionary containing the powerup_name and kwarg.</p>
+<blockquote>
+<div><p>if “.” is present in the name it will be imported as a full path
+if not we will use standard atomate modules where the powerups are kept</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.common.powerups.preserve_fworker">
+<code class="sig-prename descclassname">atomate.common.powerups.</code><code class="sig-name descname">preserve_fworker</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">original_wf</span></em>, <em class="sig-param"><span class="n">fw_name_constraint</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.powerups.preserve_fworker" title="Permalink to this definition">¶</a></dt>
+<dd><p>set _preserve_fworker spec of Fireworker(s) of a Workflow. Can be used to
+pin a workflow to the first fworker it is run with. Very useful when running
+on multiple machines that can’t share files. fw_name_constraint can be used
+to only preserve fworker after a certain point where file passing becomes
+important</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>original_wf (Workflow):
+fw_name_constraint (str): name of the Fireworks to be tagged (all if
+None is passed)</p>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow: modified workflow with specified Fireworkers tagged</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.common.powerups.set_execution_options">
+<code class="sig-prename descclassname">atomate.common.powerups.</code><code class="sig-name descname">set_execution_options</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">original_wf</span></em>, <em class="sig-param"><span class="n">fworker_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">category</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fw_name_constraint</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">task_name_constraint</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.powerups.set_execution_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>set _fworker spec of Fireworker(s) of a Workflow. It can be used to specify
+a queue; e.g. run large-memory jobs on a separate queue.</p>
+<dl>
+<dt>Args:</dt><dd><p>original_wf (Workflow):
+fworker_name (str): user-defined tag to be added under fw.spec._fworker</p>
+<blockquote>
+<div><p>e.g. “large memory”, “big”, etc</p>
+</div></blockquote>
+<p>category (str): category of FWorker that should pul job
+fw_name_constraint (str): name of the Fireworks to be tagged (all if</p>
+<blockquote>
+<div><p>None is passed)</p>
+</div></blockquote>
+<dl class="simple">
+<dt>task_name_constraint (str): name of the Firetasks to be tagged (e.g.</dt><dd><p>None or ‘RunVasp’)</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow: modified workflow with specified Fireworkers tagged</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt id="atomate.common.powerups.set_queue_adapter">
 <code class="sig-prename descclassname">atomate.common.powerups.</code><code class="sig-name descname">set_queue_adapter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">original_wf</span><span class="p">:</span> <span class="n">fireworks.core.firework.Workflow</span></em>, <em class="sig-param"><span class="n">queueadapter</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fw_name_constraint</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">task_name_constraint</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; fireworks.core.firework.Workflow<a class="headerlink" href="#atomate.common.powerups.set_queue_adapter" title="Permalink to this definition">¶</a></dt>
@@ -146,7 +288,7 @@ task_name_constraint (str): name of the Firetasks to be tagged (e.g. None or ‘
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.8 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.9 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.common package</a></li> 
       </ul>
     </div>

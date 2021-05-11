@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 """
 This module defines the Nudged Elastic Band (NEB) workflow.
@@ -7,14 +6,14 @@ This module defines the Nudged Elastic Band (NEB) workflow.
 
 from datetime import datetime
 
-from pymatgen_diffusion.neb.io import get_endpoints_from_index
+from pymatgen.analysis.diffusion.neb.io import get_endpoints_from_index
 
 from fireworks.core.firework import Workflow
 
 from atomate.vasp.fireworks.core import NEBFW, NEBRelaxationFW
 
 __author__ = "Hanmei Tang, Iek-Heng Chu"
-__email__ = 'hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu'
+__email__ = "hat003@eng.ucsd.edu, ihchu@eng.ucsd.edu"
 
 
 # TODO: @shyuep: Please do a code review at this module before I look at this. -computron
@@ -47,19 +46,26 @@ def _update_spec(additional_spec):
         spec dict
     """
     additional_spec = additional_spec or {}
-    default_spec = {"is_optimized": False,
-                    "interpolation_type": "IDPP",
-                    "idpp_species": None,
-                    "sort_tol": 0,
-                    "d_img": 0.7,
-                    "wf_name": datetime.utcnow().strftime('%Y-%m-%d-%H-%M-%S-%f'),
-                    "neb_walltime": None}
+    default_spec = {
+        "is_optimized": False,
+        "interpolation_type": "IDPP",
+        "idpp_species": None,
+        "sort_tol": 0,
+        "d_img": 0.7,
+        "wf_name": datetime.utcnow().strftime("%Y-%m-%d-%H-%M-%S-%f"),
+        "neb_walltime": None,
+    }
     default_spec.update(additional_spec)
     return default_spec
 
 
-def get_wf_neb_from_structure(structure, user_incar_settings=None, additional_spec=None,
-                              user_kpoints_settings=None, additional_cust_args=None):
+def get_wf_neb_from_structure(
+    structure,
+    user_incar_settings=None,
+    additional_spec=None,
+    user_kpoints_settings=None,
+    additional_cust_args=None,
+):
     """
     Obtain the CI-NEB workflow staring with a parent structure. This works only under the single
     vacancy diffusion mechanism.
@@ -103,7 +109,9 @@ def get_wf_neb_from_structure(structure, user_incar_settings=None, additional_sp
     # Assume one round NEB if user_incar_settings not provided.
     user_incar_settings = user_incar_settings or [{}, {}, {}]
     neb_round = len(user_incar_settings[2:])
-    user_kpoints_settings = user_kpoints_settings or [{"grid_density": 1000}] * (neb_round + 2)
+    user_kpoints_settings = user_kpoints_settings or [{"grid_density": 1000}] * (
+        neb_round + 2
+    )
     additional_cust_args = additional_cust_args or [{}] * (neb_round + 2)
     for incar in user_incar_settings[2:]:
         if incar.get("IMAGES"):
@@ -116,17 +124,24 @@ def get_wf_neb_from_structure(structure, user_incar_settings=None, additional_sp
 
         # Get neb fireworks.
         for n in range(neb_round):
-            fw = NEBFW(spec=spec, neb_label=str(n + 1), from_images=False,
-                       user_incar_settings=user_incar_settings[n + 2],
-                       user_kpoints_settings=user_kpoints_settings[n + 2],
-                       additional_cust_args=additional_cust_args[n + 2])
+            fw = NEBFW(
+                spec=spec,
+                neb_label=str(n + 1),
+                from_images=False,
+                user_incar_settings=user_incar_settings[n + 2],
+                user_kpoints_settings=user_kpoints_settings[n + 2],
+                additional_cust_args=additional_cust_args[n + 2],
+            )
             neb_fws.append(fw)
         # Get relax fireworks
         for label in ["ep0", "ep1"]:
-            fw = NEBRelaxationFW(spec=spec, label=label,
-                                 user_incar_settings=user_incar_settings[1],
-                                 user_kpoints_settings=user_kpoints_settings[1],
-                                 additional_cust_args=additional_cust_args[1])
+            fw = NEBRelaxationFW(
+                spec=spec,
+                label=label,
+                user_incar_settings=user_incar_settings[1],
+                user_kpoints_settings=user_kpoints_settings[1],
+                additional_cust_args=additional_cust_args[1],
+            )
             rlx_fws.append(fw)
         # Build fireworks link
         links = {rlx_fws[0]: [neb_fws[0]], rlx_fws[1]: [neb_fws[0]]}
@@ -136,28 +151,42 @@ def get_wf_neb_from_structure(structure, user_incar_settings=None, additional_sp
 
         # Get neb fireworks.
         for n in range(neb_round):
-            fw = NEBFW(spec=spec, neb_label=str(n + 1), from_images=False,
-                       user_incar_settings=user_incar_settings[n + 2],
-                       user_kpoints_settings=user_kpoints_settings[n + 2],
-                       additional_cust_args=additional_cust_args[n + 2])
+            fw = NEBFW(
+                spec=spec,
+                neb_label=str(n + 1),
+                from_images=False,
+                user_incar_settings=user_incar_settings[n + 2],
+                user_kpoints_settings=user_kpoints_settings[n + 2],
+                additional_cust_args=additional_cust_args[n + 2],
+            )
             neb_fws.append(fw)
         # Get relaxation fireworks.
-        rlx_fws.append(NEBRelaxationFW(spec=spec, label="parent",
-                                       user_incar_settings=user_incar_settings[0],
-                                       user_kpoints_settings=user_kpoints_settings[0],
-                                       additional_cust_args=additional_cust_args[0]))
+        rlx_fws.append(
+            NEBRelaxationFW(
+                spec=spec,
+                label="parent",
+                user_incar_settings=user_incar_settings[0],
+                user_kpoints_settings=user_kpoints_settings[0],
+                additional_cust_args=additional_cust_args[0],
+            )
+        )
 
         for i, label in enumerate(["ep0", "ep1"]):
-            fw = NEBRelaxationFW(spec=spec, label=label,
-                                 user_incar_settings=user_incar_settings[1],
-                                 user_kpoints_settings=user_kpoints_settings[1],
-                                 additional_cust_args=additional_cust_args[1])
+            fw = NEBRelaxationFW(
+                spec=spec,
+                label=label,
+                user_incar_settings=user_incar_settings[1],
+                user_kpoints_settings=user_kpoints_settings[1],
+                additional_cust_args=additional_cust_args[1],
+            )
             rlx_fws.append(fw)
 
         # Build fireworks link
-        links = {rlx_fws[0]: [rlx_fws[1], rlx_fws[2]],
-                 rlx_fws[1]: [neb_fws[0]],
-                 rlx_fws[2]: [neb_fws[0]]}
+        links = {
+            rlx_fws[0]: [rlx_fws[1], rlx_fws[2]],
+            rlx_fws[1]: [neb_fws[0]],
+            rlx_fws[2]: [neb_fws[0]],
+        }
 
     # Put all fireworks together with link
     fws = rlx_fws + neb_fws
@@ -168,8 +197,14 @@ def get_wf_neb_from_structure(structure, user_incar_settings=None, additional_sp
     return workflow
 
 
-def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, additional_spec=None,
-                              user_kpoints_settings=None, additional_cust_args=None):
+def get_wf_neb_from_endpoints(
+    parent,
+    endpoints,
+    user_incar_settings=None,
+    additional_spec=None,
+    user_kpoints_settings=None,
+    additional_cust_args=None,
+):
     """
     Get a CI-NEB workflow from given endpoints.
     Workflow: (Endpoints relax -- ) NEB_1 -- NEB_2 - ... - NEB_r
@@ -210,22 +245,31 @@ def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, addit
     # Assume one round NEB if user_incar_settings not provided.
     user_incar_settings = user_incar_settings or [{}, {}, {}]
     neb_round = len(user_incar_settings[2:])
-    user_kpoints_settings = user_kpoints_settings or [{"grid_density": 1000}] * (neb_round + 2)
+    user_kpoints_settings = user_kpoints_settings or [{"grid_density": 1000}] * (
+        neb_round + 2
+    )
     additional_cust_args = additional_cust_args or [{}] * (neb_round + 2)
     for incar in user_incar_settings[2:]:
         if incar.get("IMAGES"):
             # If "incar_images" appears, the number of images is pre-defined.
             spec["incar_images"] = incar["IMAGES"]
             if is_optimized:
-                spec["_queueadapter"] = {"nnodes": incar["IMAGES"], "nodes": incar["IMAGES"]}
+                spec["_queueadapter"] = {
+                    "nnodes": incar["IMAGES"],
+                    "nodes": incar["IMAGES"],
+                }
             break
 
     neb_fws = []
     for n in range(neb_round):
-        fw = NEBFW(spec=spec, neb_label=str(n + 1), from_images=False,
-                   user_incar_settings=user_incar_settings[n + 2],
-                   user_kpoints_settings=user_kpoints_settings[n + 2],
-                   additional_cust_args=additional_cust_args[n + 2])
+        fw = NEBFW(
+            spec=spec,
+            neb_label=str(n + 1),
+            from_images=False,
+            user_incar_settings=user_incar_settings[n + 2],
+            user_kpoints_settings=user_kpoints_settings[n + 2],
+            additional_cust_args=additional_cust_args[n + 2],
+        )
         neb_fws.append(fw)
 
     workflow = Workflow(neb_fws, name=wf_name)
@@ -234,9 +278,13 @@ def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, addit
     if not is_optimized:
         ep_fws = []
         for i in ["ep0", "ep1"]:
-            fw = NEBRelaxationFW(spec=spec, label=i, user_incar_settings=user_incar_settings[1],
-                                 user_kpoints_settings=user_kpoints_settings[1],
-                                 additional_cust_args=additional_cust_args[1])
+            fw = NEBRelaxationFW(
+                spec=spec,
+                label=i,
+                user_incar_settings=user_incar_settings[1],
+                user_kpoints_settings=user_kpoints_settings[1],
+                additional_cust_args=additional_cust_args[1],
+            )
             ep_fws.append(fw)
 
         # Build fireworks link
@@ -250,8 +298,14 @@ def get_wf_neb_from_endpoints(parent, endpoints, user_incar_settings=None, addit
     return workflow
 
 
-def get_wf_neb_from_images(parent, images, user_incar_settings, additional_spec=None,
-                           user_kpoints_settings=None, additional_cust_args=None):
+def get_wf_neb_from_images(
+    parent,
+    images,
+    user_incar_settings,
+    additional_spec=None,
+    user_kpoints_settings=None,
+    additional_cust_args=None,
+):
     """
     Get a CI-NEB workflow from given images.
     Workflow: NEB_1 -- NEB_2 - ... - NEB_n
@@ -283,7 +337,10 @@ def get_wf_neb_from_images(parent, images, user_incar_settings, additional_spec=
     spec["parent"] = parent.as_dict()
     assert isinstance(images, list) and len(images) >= 3
     spec["neb"] = [[s.as_dict() for s in images]]
-    spec["_queueadapter"] = {"nnodes": str(len(images) - 2), "nodes": str(len(images) - 2)}
+    spec["_queueadapter"] = {
+        "nnodes": str(len(images) - 2),
+        "nodes": str(len(images) - 2),
+    }
     if spec["neb_walltime"] is not None:
         spec["_queueadapter"].update({"walltime": spec.get("neb_walltime")})
     wf_name = spec["wf_name"]
@@ -291,16 +348,22 @@ def get_wf_neb_from_images(parent, images, user_incar_settings, additional_spec=
     # Assume one round NEB if user_incar_settings not provided.
     user_incar_settings = user_incar_settings or [{}, {}, {}]
     neb_round = len(user_incar_settings[2:])
-    user_kpoints_settings = user_kpoints_settings or [{"grid_density": 1000}] * (neb_round + 2)
+    user_kpoints_settings = user_kpoints_settings or [{"grid_density": 1000}] * (
+        neb_round + 2
+    )
     additional_cust_args = additional_cust_args or [{}] * (neb_round + 2)
 
     fws = []
     # Get neb fireworks.
     for n in range(neb_round):
-        fw = NEBFW(spec=spec, neb_label=str(n + 1), from_images=True,
-                   user_incar_settings=user_incar_settings[n + 2],
-                   user_kpoints_settings=user_kpoints_settings[n + 2],
-                   additional_cust_args=additional_cust_args[n + 2])
+        fw = NEBFW(
+            spec=spec,
+            neb_label=str(n + 1),
+            from_images=True,
+            user_incar_settings=user_incar_settings[n + 2],
+            user_kpoints_settings=user_kpoints_settings[n + 2],
+            additional_cust_args=additional_cust_args[n + 2],
+        )
         fws.append(fw)
 
     # Build fireworks link

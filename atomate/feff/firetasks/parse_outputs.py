@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 import json
 import os
 from datetime import datetime
@@ -19,8 +16,8 @@ from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import get_logger
 from atomate.feff.database import FeffCalcDb
 
-__author__ = 'Kiran Mathew'
-__email__ = 'kmathew@lbl.gov'
+__author__ = "Kiran Mathew"
+__email__ = "kmathew@lbl.gov"
 
 logger = get_logger(__name__)
 
@@ -49,7 +46,14 @@ class SpectrumToDbTask(FiretaskBase):
     """
 
     required_params = ["absorbing_atom", "structure", "spectrum_type", "output_file"]
-    optional_params = ["input_file", "calc_dir", "calc_loc", "db_file", "edge", "metadata"]
+    optional_params = [
+        "input_file",
+        "calc_dir",
+        "calc_loc",
+        "db_file",
+        "edge",
+        "metadata",
+    ]
 
     def run_task(self, fw_spec):
         calc_dir = os.getcwd()
@@ -58,24 +62,28 @@ class SpectrumToDbTask(FiretaskBase):
         elif self.get("calc_loc"):
             calc_dir = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])["path"]
 
-        logger.info("PARSING DIRECTORY: {}".format(calc_dir))
+        logger.info(f"PARSING DIRECTORY: {calc_dir}")
 
-        db_file = env_chk(self.get('db_file'), fw_spec)
+        db_file = env_chk(self.get("db_file"), fw_spec)
 
         cluster_dict = None
         tags = Tags.from_file(filename="feff.inp")
         if "RECIPROCAL" not in tags:
             cluster_dict = Atoms.cluster_from_file("feff.inp").as_dict()
-        doc = {"input_parameters": tags.as_dict(),
-               "cluster": cluster_dict,
-               "structure": self["structure"].as_dict(),
-               "absorbing_atom": self["absorbing_atom"],
-               "spectrum_type": self["spectrum_type"],
-               "spectrum": np.loadtxt(os.path.join(calc_dir, self["output_file"])).tolist(),
-               "edge": self.get("edge", None),
-               "metadata": self.get("metadata", None),
-               "dir_name": os.path.abspath(os.getcwd()),
-               "last_updated": datetime.utcnow()}
+        doc = {
+            "input_parameters": tags.as_dict(),
+            "cluster": cluster_dict,
+            "structure": self["structure"].as_dict(),
+            "absorbing_atom": self["absorbing_atom"],
+            "spectrum_type": self["spectrum_type"],
+            "spectrum": np.loadtxt(
+                os.path.join(calc_dir, self["output_file"])
+            ).tolist(),
+            "edge": self.get("edge", None),
+            "metadata": self.get("metadata", None),
+            "dir_name": os.path.abspath(os.getcwd()),
+            "last_updated": datetime.utcnow(),
+        }
 
         if not db_file:
             with open("feff_task.json", "w") as f:
@@ -110,5 +118,9 @@ class AddPathsToFilepadTask(FiretaskBase):
         labels = self.get("labels", None)
         for i, p in enumerate(paths):
             l = labels[i] if labels is not None else None
-            fpad.add_file(p, label=l, metadata=self.get("metadata", None),
-                          compress=self.get("compress", True))
+            fpad.add_file(
+                p,
+                label=l,
+                metadata=self.get("metadata", None),
+                compress=self.get("compress", True),
+            )

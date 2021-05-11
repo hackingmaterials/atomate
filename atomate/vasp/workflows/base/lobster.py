@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 """
 This module defines the VASP/Lobster workflows
@@ -205,10 +204,10 @@ def get_wf_lobster_test_basis(
                 lobsterin_key_dict=user_lobsterin_settings,
                 handler_group="default",
                 validator_group="strict",
-                name="lobster_calculation_{}".format(ibasis),
+                name=f"lobster_calculation_{ibasis}",
                 lobstertodb_kwargs={
-                        "basis_id": ibasis,
-                        "number_lobster_runs": len(list_basis_dict),
+                    "basis_id": ibasis,
+                    "number_lobster_runs": len(list_basis_dict),
                 },
                 additional_outputs=additional_outputs,
             )

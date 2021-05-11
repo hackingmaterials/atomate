@@ -1,9 +1,6 @@
-# coding: utf-8
-
-
 from tqdm import tqdm
 
-from atomate.utils.utils import get_logger , get_database
+from atomate.utils.utils import get_logger, get_database
 
 from pymatgen.core import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
@@ -13,7 +10,7 @@ from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = "Anubhav Jain <ajain@lbl.gov>"
 
 
 class BoltztrapMaterialsBuilder(AbstractBuilder):
@@ -33,7 +30,7 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
         logger.info("Initializing list of all new boltztrap ids to process ...")
         previous_oids = []
         for m in self._materials.find({}, {"_boltztrapbuilder.all_object_ids": 1}):
-            if '_boltztrapbuilder' in m:
+            if "_boltztrapbuilder" in m:
                 previous_oids.extend(m["_boltztrapbuilder"]["all_object_ids"])
 
         if not previous_oids:
@@ -42,21 +39,26 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
         all_btrap_ids = [i["_id"] for i in self._boltztrap.find({}, {"_id": 1})]
         new_btrap_ids = [o_id for o_id in all_btrap_ids if o_id not in previous_oids]
 
-        logger.info("There are {} new boltztrap ids to process.".format(len(new_btrap_ids)))
+        logger.info(
+            "There are {} new boltztrap ids to process.".format(len(new_btrap_ids))
+        )
 
         pbar = tqdm(new_btrap_ids)
         for o_id in pbar:
-            pbar.set_description("Processing object_id: {}".format(o_id))
+            pbar.set_description(f"Processing object_id: {o_id}")
             try:
                 doc = self._boltztrap.find_one({"_id": o_id})
                 m_id = self._match_material(doc)
                 if not m_id:
-                    raise ValueError("Cannot find matching material for object_id: {}".format(o_id))
+                    raise ValueError(
+                        f"Cannot find matching material for object_id: {o_id}"
+                    )
                 self._update_material(m_id, doc)
             except:
                 import traceback
+
                 logger.exception("<---")
-                logger.exception("There was an error processing task_id: {}".format(o_id))
+                logger.exception(f"There was an error processing task_id: {o_id}")
                 logger.exception(traceback.format_exc())
                 logger.exception("--->")
 
@@ -64,8 +66,9 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
 
     def reset(self):
         logger.info("Resetting BoltztrapMaterialsBuilder")
-        self._materials.update_many({}, {"$unset": {"_boltztrapbuilder": 1,
-                                                    "transport": 1}})
+        self._materials.update_many(
+            {}, {"$unset": {"_boltztrapbuilder": 1, "transport": 1}}
+        )
         self._build_indexes()
         logger.info("Finished resetting BoltztrapMaterialsBuilder")
 
@@ -86,16 +89,24 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
         formula = doc["formula_reduced_abc"]
         sgnum = doc["spacegroup"]["number"]
 
-        for m in self._materials.find({"formula_reduced_abc": formula, "sg_number": sgnum},
-                                      {"structure": 1, "material_id": 1}):
+        for m in self._materials.find(
+            {"formula_reduced_abc": formula, "sg_number": sgnum},
+            {"structure": 1, "material_id": 1},
+        ):
 
             m_struct = Structure.from_dict(m["structure"])
             t_struct = Structure.from_dict(doc["structure"])
 
-            sm = StructureMatcher(ltol=ltol, stol=stol, angle_tol=angle_tol,
-                                  primitive_cell=True, scale=True,
-                                  attempt_supercell=False, allow_subset=False,
-                                  comparator=ElementComparator())
+            sm = StructureMatcher(
+                ltol=ltol,
+                stol=stol,
+                angle_tol=angle_tol,
+                primitive_cell=True,
+                scale=True,
+                attempt_supercell=False,
+                allow_subset=False,
+                comparator=ElementComparator(),
+            )
 
             if sm.fit(m_struct, t_struct):
                 return m["material_id"]
@@ -120,15 +131,17 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
         d["kappa_min"] = bta.get_extreme("kappa", maximize=False)
 
         self._materials.update_one({"material_id": m_id}, {"$set": {"transport": d}})
-        self._materials.update_one({"material_id": m_id},
-                                   {"$push": {"_boltztrapbuilder.all_object_ids": doc["_id"]}})
+        self._materials.update_one(
+            {"material_id": m_id},
+            {"$push": {"_boltztrapbuilder.all_object_ids": doc["_id"]}},
+        )
 
     def _build_indexes(self):
         """
         Create indexes for faster searching
         """
         for x in ["zt", "pf", "seebeck", "conductivity", "kappa_max", "kappa_min"]:
-            self._materials.create_index("transport.{}.best.value".format(x))
+            self._materials.create_index(f"transport.{x}.best.value")
 
     @classmethod
     def from_file(cls, db_file, m="materials", b="boltztrap", **kwargs):

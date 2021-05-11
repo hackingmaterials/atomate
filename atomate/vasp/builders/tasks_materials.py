@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 import os
 from datetime import datetime
 
@@ -17,22 +14,31 @@ from pymatgen.analysis.structure_matcher import StructureMatcher, ElementCompara
 
 logger = get_logger(__name__)
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = "Anubhav Jain <ajain@lbl.gov>"
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 """
-This class collects all "tasks" (individual calculations) on a single compound and produces a 
-summary report in a new collection ("materials"). The tasks are matched based on having the same 
+This class collects all "tasks" (individual calculations) on a single compound and produces a
+summary report in a new collection ("materials"). The tasks are matched based on having the same
 crystal structure, with some options for overriding this.
 
 There is lots of config for this builder in the accompanying "tasks_materials_settings.yaml" file.
 
 """
 
+
 class TasksMaterialsBuilder(AbstractBuilder):
-    def __init__(self, materials_write, counter_write, tasks_read, tasks_prefix="t",
-                 materials_prefix="m", query=None, settings_file=None):
+    def __init__(
+        self,
+        materials_write,
+        counter_write,
+        tasks_read,
+        tasks_prefix="t",
+        materials_prefix="m",
+        query=None,
+        settings_file=None,
+    ):
         """
         Create a materials collection from a tasks collection.
 
@@ -47,12 +53,13 @@ class TasksMaterialsBuilder(AbstractBuilder):
         """
 
         settings_file = settings_file or os.path.join(
-            module_dir, "tasks_materials_settings.yaml")
+            module_dir, "tasks_materials_settings.yaml"
+        )
         x = loadfn(settings_file)
-        self.supported_task_labels = x['supported_task_labels']
-        self.property_settings = x['property_settings']
-        self.indexes = x.get('indexes', [])
-        self.properties_root = x.get('properties_root', [])
+        self.supported_task_labels = x["supported_task_labels"]
+        self.property_settings = x["property_settings"]
+        self.indexes = x.get("indexes", [])
+        self.properties_root = x.get("properties_root", [])
 
         self._materials = materials_write
         if self._materials.count() == 0:
@@ -79,19 +86,22 @@ class TasksMaterialsBuilder(AbstractBuilder):
         if self.query:
             common_keys = [k for k in q.keys() if k in self.query.keys()]
             if common_keys:
-                raise ValueError("User query parameter cannot contain key(s): {}".
-                                 format(common_keys))
+                raise ValueError(
+                    "User query parameter cannot contain key(s): {}".format(common_keys)
+                )
             q.update(self.query)
 
-        all_task_ids = [dbid_to_str(self._t_prefix, t["task_id"]) for t in
-                        self._tasks.find(q, {"task_id": 1})]
+        all_task_ids = [
+            dbid_to_str(self._t_prefix, t["task_id"])
+            for t in self._tasks.find(q, {"task_id": 1})
+        ]
         task_ids = [t_id for t_id in all_task_ids if t_id not in previous_task_ids]
 
         logger.info("There are {} new task_ids to process.".format(len(task_ids)))
 
         pbar = tqdm(task_ids)
         for t_id in pbar:
-            pbar.set_description("Processing task_id: {}".format(t_id))
+            pbar.set_description(f"Processing task_id: {t_id}")
             try:
                 taskdoc = self._tasks.find_one({"task_id": dbid_to_int(t_id)})
                 m_id = self._match_material(taskdoc)
@@ -101,8 +111,9 @@ class TasksMaterialsBuilder(AbstractBuilder):
 
             except:
                 import traceback
+
                 logger.exception("<---")
-                logger.exception("There was an error processing task_id: {}".format(t_id))
+                logger.exception(f"There was an error processing task_id: {t_id}")
                 logger.exception(traceback.format_exc())
                 logger.exception("--->")
 
@@ -133,7 +144,9 @@ class TasksMaterialsBuilder(AbstractBuilder):
             db_read = get_database(db_file, admin=False)
             db_read.collection_names()  # throw error if auth failed
         except:
-            logger.warning("Warning: could not get read-only database; using write creds")
+            logger.warning(
+                "Warning: could not get read-only database; using write creds"
+            )
             db_read = get_database(db_file, admin=True)
         return cls(db_write[m], db_write[c], db_read[t], **kwargs)
 
@@ -165,21 +178,36 @@ class TasksMaterialsBuilder(AbstractBuilder):
         # different structures to contribute to the same "material", e.g. from an ordering scheme
         if "parent_structure" in taskdoc:
             t_struct = Structure.from_dict(taskdoc["parent_structure"]["structure"])
-            q = {"formula_reduced_abc": formula, "parent_structure.spacegroup.number": taskdoc[
-                "parent_structure"]["spacegroup"]["number"]}
+            q = {
+                "formula_reduced_abc": formula,
+                "parent_structure.spacegroup.number": taskdoc["parent_structure"][
+                    "spacegroup"
+                ]["number"],
+            }
         else:
             sgnum = taskdoc["output"]["spacegroup"]["number"]
             t_struct = Structure.from_dict(taskdoc["output"]["structure"])
             q = {"formula_reduced_abc": formula, "sg_number": sgnum}
 
-        for m in self._materials.find(q, {"parent_structure": 1, "structure": 1, "material_id": 1}):
-            s_dict = m["parent_structure"]["structure"] if "parent_structure" in m else m[
-                "structure"]
+        for m in self._materials.find(
+            q, {"parent_structure": 1, "structure": 1, "material_id": 1}
+        ):
+            s_dict = (
+                m["parent_structure"]["structure"]
+                if "parent_structure" in m
+                else m["structure"]
+            )
             m_struct = Structure.from_dict(s_dict)
-            sm = StructureMatcher(ltol=ltol, stol=stol, angle_tol=angle_tol,
-                                  primitive_cell=True, scale=True,
-                                  attempt_supercell=False, allow_subset=False,
-                                  comparator=ElementComparator())
+            sm = StructureMatcher(
+                ltol=ltol,
+                stol=stol,
+                angle_tol=angle_tol,
+                primitive_cell=True,
+                scale=True,
+                attempt_supercell=False,
+                allow_subset=False,
+                comparator=ElementComparator(),
+            )
 
             if sm.fit(m_struct, t_struct):
                 return m["material_id"]
@@ -197,27 +225,41 @@ class TasksMaterialsBuilder(AbstractBuilder):
             (int) - material_id of the new document
         """
         doc = {"created_at": datetime.utcnow()}
-        doc["_tasksbuilder"] = {"all_task_ids": [], "prop_metadata":
-            {"labels": {}, "task_ids": {}}, "updated_at": datetime.utcnow()}
+        doc["_tasksbuilder"] = {
+            "all_task_ids": [],
+            "prop_metadata": {"labels": {}, "task_ids": {}},
+            "updated_at": datetime.utcnow(),
+        }
         doc["spacegroup"] = taskdoc["output"]["spacegroup"]
         doc["structure"] = taskdoc["output"]["structure"]
         doc["material_id"] = dbid_to_str(
-            self._m_prefix, self._counter.find_one_and_update(
-                {"_id": "materialid"}, {"$inc": {"c": 1}},
-                return_document=ReturnDocument.AFTER)["c"])
+            self._m_prefix,
+            self._counter.find_one_and_update(
+                {"_id": "materialid"},
+                {"$inc": {"c": 1}},
+                return_document=ReturnDocument.AFTER,
+            )["c"],
+        )
 
         doc["sg_symbol"] = doc["spacegroup"]["symbol"]
         doc["sg_number"] = doc["spacegroup"]["number"]
 
-
-        for x in ["formula_anonymous", "formula_pretty", "formula_reduced_abc", "elements",
-                  "nelements", "chemsys"]:
+        for x in [
+            "formula_anonymous",
+            "formula_pretty",
+            "formula_reduced_abc",
+            "elements",
+            "nelements",
+            "chemsys",
+        ]:
             doc[x] = taskdoc[x]
 
         if "parent_structure" in taskdoc:
             doc["parent_structure"] = taskdoc["parent_structure"]
             t_struct = Structure.from_dict(taskdoc["parent_structure"]["structure"])
-            doc["parent_structure"]["formula_reduced_abc"] = t_struct.composition.reduced_formula
+            doc["parent_structure"][
+                "formula_reduced_abc"
+            ] = t_struct.composition.reduced_formula
 
         self._materials.insert_one(doc)
 
@@ -236,10 +278,12 @@ class TasksMaterialsBuilder(AbstractBuilder):
         # as defined by the task label.  This is used to decide if the new taskdoc is a type of
         # calculation that provides higher quality data for that property
         prop_tlabels = self._materials.find_one(
-            {"material_id": m_id}, {"_tasksbuilder.prop_metadata.labels": 1})[
-            "_tasksbuilder"]["prop_metadata"]["labels"]
+            {"material_id": m_id}, {"_tasksbuilder.prop_metadata.labels": 1}
+        )["_tasksbuilder"]["prop_metadata"]["labels"]
 
-        task_label = taskdoc["task_label"]  # task label of new doc that updates this material
+        task_label = taskdoc[
+            "task_label"
+        ]  # task label of new doc that updates this material
 
         # figure out what materials properties need to be updated based on new task
         for x in self.property_settings:
@@ -255,39 +299,68 @@ class TasksMaterialsBuilder(AbstractBuilder):
                     # i) materials property data not present, so this is best
                     # ii) task quality higher based on task label
                     # iii) task quality equal to materials; use lowest energy task
-                    if not m_quality or t_quality > m_quality \
-                            or (t_quality == m_quality
-                                and taskdoc["output"]["energy_per_atom"] <
-                                    self._materials.find_one({"material_id": m_id}, {
-                                        "_tasksbuilder": 1})["_tasksbuilder"]["prop_metadata"][
-                                        "energies"][p]):
+                    if (
+                        not m_quality
+                        or t_quality > m_quality
+                        or (
+                            t_quality == m_quality
+                            and taskdoc["output"]["energy_per_atom"]
+                            < self._materials.find_one(
+                                {"material_id": m_id}, {"_tasksbuilder": 1}
+                            )["_tasksbuilder"]["prop_metadata"]["energies"][p]
+                        )
+                    ):
 
                         # this task has better quality data
                         # figure out where the property data lives in the materials doc and
                         # in the task doc
-                        materials_key = "{}.{}".format(x["materials_key"], p) \
-                            if x.get("materials_key") else p
-                        tasks_key = "{}.{}".format(x["tasks_key"], p) \
-                            if x.get("tasks_key") else p
+                        materials_key = (
+                            "{}.{}".format(x["materials_key"], p)
+                            if x.get("materials_key")
+                            else p
+                        )
+                        tasks_key = (
+                            "{}.{}".format(x["tasks_key"], p)
+                            if x.get("tasks_key")
+                            else p
+                        )
 
                         # insert property data AND metadata about this task
-                        self._materials.\
-                            update_one({"material_id": m_id},
-                                       {"$set": {materials_key: get_mongolike(taskdoc, tasks_key),
-                                                 "_tasksbuilder.prop_metadata.labels.{}".format(p): task_label,
-                                                 "_tasksbuilder.prop_metadata.task_ids.{}".format(p): dbid_to_str(
-                                                     self._t_prefix, taskdoc["task_id"]),
-                                                 "_tasksbuilder.prop_metadata.energies.{}".format(p): taskdoc["output"]["energy_per_atom"],
-                                                 "_tasksbuilder.updated_at": datetime.utcnow()}})
+                        self._materials.update_one(
+                            {"material_id": m_id},
+                            {
+                                "$set": {
+                                    materials_key: get_mongolike(taskdoc, tasks_key),
+                                    f"_tasksbuilder.prop_metadata.labels.{p}": task_label,
+                                    f"_tasksbuilder.prop_metadata.task_ids.{p}": dbid_to_str(
+                                        self._t_prefix, taskdoc["task_id"]
+                                    ),
+                                    f"_tasksbuilder.prop_metadata.energies.{p}": taskdoc[
+                                        "output"
+                                    ][
+                                        "energy_per_atom"
+                                    ],
+                                    "_tasksbuilder.updated_at": datetime.utcnow(),
+                                }
+                            },
+                        )
 
                         # copy property to document root if in properties_root
                         # i.e., intentionally duplicate some data to the root level
                         if p in self.properties_root:
-                            self._materials.\
-                            update_one({"material_id": m_id},
-                                       {"$set": {p: get_mongolike(taskdoc, tasks_key)}})
+                            self._materials.update_one(
+                                {"material_id": m_id},
+                                {"$set": {p: get_mongolike(taskdoc, tasks_key)}},
+                            )
 
         # update the database to reflect that this task_id was already processed
-        self._materials.update_one({"material_id": m_id},
-                                   {"$push": {"_tasksbuilder.all_task_ids": dbid_to_str(
-                                       self._t_prefix, taskdoc["task_id"])}})
+        self._materials.update_one(
+            {"material_id": m_id},
+            {
+                "$push": {
+                    "_tasksbuilder.all_task_ids": dbid_to_str(
+                        self._t_prefix, taskdoc["task_id"]
+                    )
+                }
+            },
+        )
