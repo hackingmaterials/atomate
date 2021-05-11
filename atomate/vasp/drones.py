@@ -44,7 +44,8 @@ __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
-STORE_BADER = STORE_BADER and (which("bader") or which("bader.exe"))
+BADER_EXE_EXISTS = (which("bader") or which("bader.exe"))
+STORE_BADER = STORE_BADER and BADER_EXE_EXISTS
 
 
 
