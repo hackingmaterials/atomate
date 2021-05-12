@@ -38,6 +38,10 @@ STORE_VOLUMETRIC_DATA = ()  # e.g. ("chgcar", "aeccar0", "aeccar2", "elfcar", "l
 # useful for storing duplicate of FW.json
 STORE_ADDITIONAL_JSON = False
 
+# store Bader analysis when parsing VASP directories
+# (also requires "bader" executable to be in path)
+STORE_BADER = False
+
 # vasp output files that will be copied to lobster run
 VASP_OUTPUT_FILES = [
     "OUTCAR",
