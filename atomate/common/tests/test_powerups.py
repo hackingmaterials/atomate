@@ -1,5 +1,6 @@
 import unittest
 
+from atomate.utils.utils import get_fws_and_tasks
 from atomate.vasp.workflows.base.core import get_wf
 
 from pymatgen.io.vasp.sets import MPRelaxSet
@@ -10,6 +11,8 @@ from atomate.common.powerups import (
     add_priority,
     add_tags,
     powerup_by_kwargs,
+    add_additional_fields_to_taskdocs,
+    add_metadata,
 )
 from fireworks import Firework, ScriptTask, Workflow
 
@@ -136,6 +139,36 @@ class TestPowerups(unittest.TestCase):
             wf.id_fw[-2].spec, {"_queueadapter": {"test": {"test": 1}}}
         )
         self.assertDictEqual(wf.id_fw[-3].spec, {})
+
+    def test_add_additional_fields_to_taskdocs(self):
+
+        my_wf = copy_wf(self.bsboltz_wf)
+        meta_dict = {"foo": "bar", "baz": 42}
+        my_wf = add_additional_fields_to_taskdocs(my_wf, meta_dict)
+
+        found = 0
+
+        for fw in my_wf.fws:
+            for task in fw.tasks:
+                if "ToDb" in str(task):
+                    for key, val in meta_dict.items():
+                        self.assertEqual(task["additional_fields"][key], val)
+
+                    found += 1
+
+        self.assertEqual(found, 5)
+
+    def test_add_metadata(self):
+        my_wf = copy_wf(self.bs_wf)
+        my_wf.metadata = {"what": "ever"}
+        meta_dict = {"foo": "bar", "baz": 42}
+        my_wf = add_metadata(my_wf, meta_dict, fw_name_constraint="NonSCFFW")
+
+        self.assertEqual(my_wf.metadata, {"what": "ever", "foo": "bar", "baz": 42})
+
+        for [fw, _] in get_fws_and_tasks(my_wf, fw_name_constraint="NonSCFFW"):
+            for key, val in meta_dict.items():
+                self.assertEqual(fw.spec[key], val)
 
 
 def copy_wf(wf):
