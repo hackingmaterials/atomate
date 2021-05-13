@@ -130,6 +130,34 @@ def add_additional_fields_to_taskdocs(
     return original_wf
 
 
+def add_metadata(wf, meta_dict, fw_name_constraint=None):
+    """
+    Add a metadata dictionary to a Workflow and all its Fireworks. The dictionary
+    is merged into the "metadata" key of the Workflow and into the "_spec" key of
+    each Firework in the workflow.
+
+    Can be used in combination with add_additional_fields_to_taskdocs to add the
+    same set of key-value pairs to Workflows, Fireworks and Tasks collections.
+
+    Args:
+        wf (Workflow)
+        meta_dict: dictionary of custom metadata
+
+    Returns:
+       Workflow
+    """
+
+    # add metadata to Workflow metadata
+    wf.metadata.update(meta_dict)
+
+    # add metadata to Firework metadata
+    for fw in wf.fws:
+        if fw_name_constraint is None or fw_name_constraint in fw.name:
+            fw.spec.update(meta_dict)
+
+    return wf
+
+
 def preserve_fworker(original_wf, fw_name_constraint=None):
     """
     set _preserve_fworker spec of Fireworker(s) of a Workflow. Can be used to
