@@ -4,6 +4,14 @@ atomate.qchem.workflows.base package
 Submodules
 ----------
 
+atomate.qchem.workflows.base.FF\_and\_critic module
+---------------------------------------------------
+
+.. automodule:: atomate.qchem.workflows.base.FF_and_critic
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.qchem.workflows.base.double\_FF\_opt module
 ---------------------------------------------------
 
@@ -27,7 +35,6 @@ atomate.qchem.workflows.base.torsion\_potential module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

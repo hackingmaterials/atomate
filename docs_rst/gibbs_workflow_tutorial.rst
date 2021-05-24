@@ -91,7 +91,7 @@ In the directory you created, make a Python script named ``gibbs.py`` with the f
 
     #!/usr/bin/env python
     import numpy as np
-    from pymatgen import MPRester
+    from pymatgen.ext.matproj import MPRester
     from fireworks import LaunchPad
     from atomate.vasp.workflows.presets.core import wf_gibbs_free_energy
 
@@ -157,7 +157,7 @@ Simply add the following Python script (``gibbs-analysis.py``) to your folder an
 .. code-block:: python
 
     from atomate.vasp.database import VaspCalcDb
-    from pymatgen import Structure
+    from pymatgen.core import Structure
     import numpy as np
 
     import matplotlib.pyplot as plt

@@ -8,7 +8,7 @@ from pymongo import MongoClient
 
 import numpy as np
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"

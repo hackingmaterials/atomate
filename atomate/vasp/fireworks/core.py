@@ -1,5 +1,3 @@
-# coding: utf-8
-
 import warnings
 
 from atomate.vasp.config import (
@@ -17,7 +15,7 @@ sequences of VASP calculations.
 
 from fireworks import Firework
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.io.vasp.sets import (
     MPRelaxSet,
     MPScanRelaxSet,
@@ -31,7 +29,7 @@ from atomate.common.firetasks.glue_tasks import (
     PassCalcLocs,
     CopyFiles,
     DeleteFiles,
-    GzipDir
+    GzipDir,
 )
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
 from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
@@ -71,7 +69,7 @@ class OptimizeFW(Firework):
         auto_npar=">>auto_npar<<",
         half_kpts_first_relax=HALF_KPOINTS_FIRST_RELAX,
         parents=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Optimize the given structure.
@@ -99,10 +97,15 @@ class OptimizeFW(Firework):
             structure, force_gamma=force_gamma, **override_default_vasp_params
         )
 
-        if vasp_input_set.incar["ISIF"] in (0, 1, 2, 7) and job_type == "double_relaxation":
+        if (
+            vasp_input_set.incar["ISIF"] in (0, 1, 2, 7)
+            and job_type == "double_relaxation"
+        ):
             warnings.warn(
                 "A double relaxation run might not be appropriate with ISIF {}".format(
-                    vasp_input_set.incar["ISIF"]))
+                    vasp_input_set.incar["ISIF"]
+                )
+            )
 
         t = []
         t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set))
@@ -118,11 +121,11 @@ class OptimizeFW(Firework):
         )
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
-        super(OptimizeFW, self).__init__(
+        super().__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
+            name=f"{structure.composition.reduced_formula}-{name}",
+            **kwargs,
         )
 
 
@@ -130,7 +133,7 @@ class ScanOptimizeFW(Firework):
     def __init__(
         self,
         structure=None,
-        name="SCAN 680 eV structure optimization",
+        name="SCAN structure optimization",
         vasp_input_set=None,
         vasp_input_set_params=None,
         vasp_cmd=VASP_CMD,
@@ -140,7 +143,7 @@ class ScanOptimizeFW(Firework):
         db_file=DB_FILE,
         vasptodb_kwargs=None,
         parents=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Structure optimization using the SCAN metaGGA functional. If this Firework is
@@ -195,43 +198,60 @@ class ScanOptimizeFW(Firework):
         if prev_calc_dir:
             has_previous_calc = True
             # Copy the CHGCAR from previous calc directory (usually PBE)
-            t.append(CopyVaspOutputs(calc_dir=prev_calc_dir,
-                                     contcar_to_poscar=True,
-                                     additional_files=["CHGCAR"]
-                                     )
-                     )
+            t.append(
+                CopyVaspOutputs(
+                    calc_dir=prev_calc_dir,
+                    contcar_to_poscar=True,
+                    additional_files=["CHGCAR"],
+                )
+            )
         elif parents:
             if prev_calc_loc:
                 has_previous_calc = True
                 # Copy the CHGCAR from previous calc location (usually PBE)
-                t.append(CopyVaspOutputs(calc_loc=prev_calc_loc,
-                                         contcar_to_poscar=True,
-                                         additional_files=["CHGCAR"]
-                                         )
-                         )
+                t.append(
+                    CopyVaspOutputs(
+                        calc_loc=prev_calc_loc,
+                        contcar_to_poscar=True,
+                        additional_files=["CHGCAR"],
+                    )
+                )
             else:
-                raise UserWarning("You specified parent Firework but did not provide its location. Set "
-                                  "prev_calc_dir or prev_calc_loc and try again.")
+                raise UserWarning(
+                    "You specified parent Firework but did not provide its location. Set "
+                    "prev_calc_dir or prev_calc_loc and try again."
+                )
         elif prev_calc_loc:
-            raise UserWarning("You specified prev_calc_loc but did not provide a parent Firework. Set "
-                              "parents and try again.")
+            raise UserWarning(
+                "You specified prev_calc_loc but did not provide a parent Firework. Set "
+                "parents and try again."
+            )
 
         if has_previous_calc:
             # Update the InputSet with the bandgap from the previous calc
-            t.append(WriteScanRelaxFromPrev(vasp_input_set_params=vasp_input_set_params))
+            t.append(
+                WriteScanRelaxFromPrev(vasp_input_set_params=vasp_input_set_params)
+            )
 
             # Set ICHARG to 1 to utilize the pre-existing CHGCAR
             settings = {"_set": {"ICHARG": 1}}
 
             if vasp_input_set_params.get("vdw"):
                 # Copy the pre-compiled VdW kernel for VASP
-                t.append(CopyFiles(files_to_copy=["vdw_kernel.bindat"], from_dir=vdw_kernel_dir))
+                t.append(
+                    CopyFiles(
+                        files_to_copy=["vdw_kernel.bindat"], from_dir=vdw_kernel_dir
+                    )
+                )
 
                 # Enable vdW for the SCAN step
                 settings["_set"]["LUSE_VDW"] = True
                 settings["_set"]["BPARAM"] = 15.7
 
             t.append(ModifyIncar(incar_dictmod=settings))
+
+            # use the 'scan' custodian handler group
+            handler_group = "scan"
 
         elif structure:
             vasp_input_set = vasp_input_set or MPScanRelaxSet(
@@ -241,22 +261,28 @@ class ScanOptimizeFW(Firework):
                 WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
             )
             # Update the INCAR for the PBESol GGA preconditioning step
-            pre_opt_settings = {"_set": {"GGA": "Ps",
-                                         "METAGGA": None,
-                                         "EDIFFG": -0.05
-                                         }}
+            pre_opt_settings = {"_set": {"GGA": "Ps", "METAGGA": None, "EDIFFG": -0.05}}
 
             # Disable vdW for the precondition step
             if vasp_input_set_params.get("vdw"):
-                pre_opt_settings.update({"_unset": {"LUSE_VDW": True,
-                                                    "BPARAM": 15.7}})
+                pre_opt_settings.update({"_unset": {"LUSE_VDW": True, "BPARAM": 15.7}})
 
             t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
+
+            # use the 'default' custodian handler group
+            handler_group = "default"
         else:
             raise ValueError("Must specify structure or previous calculation")
 
         # Run VASP
-        t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<", gzip_output=False))
+        t.append(
+            RunVaspCustodian(
+                vasp_cmd=vasp_cmd,
+                auto_npar=">>auto_npar<<",
+                handler_group=handler_group,
+                gzip_output=False,
+            )
+        )
         t.append(PassCalcLocs(name=name))
         # Parse
         t.append(VaspToDb(db_file=db_file, **vasptodb_kwargs))
@@ -265,7 +291,7 @@ class ScanOptimizeFW(Firework):
         # zip the output (don't rely on custodian to do it)
         t.append(GzipDir())
 
-        super(ScanOptimizeFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class StaticFW(Firework):
@@ -281,7 +307,8 @@ class StaticFW(Firework):
         db_file=DB_FILE,
         vasptodb_kwargs=None,
         parents=None,
-        **kwargs
+        spec_structure_key=None,
+        **kwargs,
     ):
         """
         Standard static calculation Firework - either from a previous location or from a structure.
@@ -316,7 +343,18 @@ class StaticFW(Firework):
             structure.composition.reduced_formula if structure else "unknown", name
         )
 
-        if prev_calc_dir:
+        if spec_structure_key is not None:
+            vasp_input_set = vasp_input_set or MPStaticSet(
+                structure, **vasp_input_set_params
+            )
+            t.append(
+                WriteVaspFromIOSet(
+                    structure=structure,
+                    vasp_input_set=vasp_input_set,
+                    spec_structure_key="prev_calc_structure",
+                )
+            )
+        elif prev_calc_dir:
             t.append(CopyVaspOutputs(calc_dir=prev_calc_dir, contcar_to_poscar=True))
             t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
         elif parents:
@@ -338,7 +376,7 @@ class StaticFW(Firework):
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, **vasptodb_kwargs))
-        super(StaticFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class StaticInterpolateFW(Firework):
@@ -356,7 +394,7 @@ class StaticInterpolateFW(Firework):
         this_image=None,
         nimages=None,
         autosort_tol=0,
-        **kwargs
+        **kwargs,
     ):
         """
         Standard static calculation Firework that interpolates structures from two previous calculations.
@@ -399,11 +437,11 @@ class StaticInterpolateFW(Firework):
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
-        super(StaticInterpolateFW, self).__init__(
+        super().__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
+            name=f"{structure.composition.reduced_formula}-{name}",
+            **kwargs,
         )
 
 
@@ -417,7 +455,7 @@ class HSEBSFW(Firework):
         name=None,
         vasp_cmd=VASP_CMD,
         db_file=DB_FILE,
-        **kwargs
+        **kwargs,
     ):
         """
         For getting a more accurate band gap or a full band structure with HSE - requires previous
@@ -467,7 +505,7 @@ class HSEBSFW(Firework):
                 bandstructure_mode=bandstructure_mode,
             )
         )
-        super(HSEBSFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class NonSCFFW(Firework):
@@ -482,7 +520,7 @@ class NonSCFFW(Firework):
         copy_vasp_outputs=True,
         db_file=DB_FILE,
         input_set_overrides=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Standard NonSCF Calculation Firework supporting uniform and line modes.
@@ -550,127 +588,7 @@ class NonSCFFW(Firework):
             )
         )
 
-        super(NonSCFFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
-
-
-class LepsFW(Firework):
-    def __init__(
-        self,
-        structure,
-        name="static dielectric",
-        vasp_cmd=VASP_CMD,
-        copy_vasp_outputs=True,
-        db_file=DB_FILE,
-        parents=None,
-        phonon=False,
-        mode=None,
-        displacement=None,
-        user_incar_settings=None,
-        **kwargs
-    ):
-        """
-        Standard static calculation Firework for dielectric constants using DFPT.
-
-        Args:
-            structure (Structure): Input structure. If copy_vasp_outputs, used only to set the
-                name of the FW.
-            name (str): Name for the Firework.
-            vasp_cmd (str): Command to run vasp.
-            copy_vasp_outputs (bool): Whether to copy outputs from previous
-                run. Defaults to True.
-            db_file (str): Path to file specifying db credentials.
-            parents (Firework): Parents of this particular Firework.
-                FW or list of FWS.
-            phonon (bool): Whether or not to extract normal modes and pass it. This argument along
-                with the mode and displacement arguments must be set for the calculation of
-                dielectric constant in the Raman tensor workflow.
-            mode (int): normal mode index.
-            displacement (float): displacement along the normal mode in Angstroms.
-            user_incar_settings (dict): Parameters in INCAR to override
-            **kwargs: Other kwargs that are passed to Firework.__init__.
-        """
-        warnings.warn(
-            "This firework will be removed soon. Use DFPTFW and/or RamanFW fireworks."
-        )
-        user_incar_settings = user_incar_settings or {}
-        t = []
-
-        if copy_vasp_outputs:
-            t.append(
-                CopyVaspOutputs(
-                    calc_loc=True, additional_files=["CHGCAR"], contcar_to_poscar=True
-                )
-            )
-            t.append(
-                WriteVaspStaticFromPrev(
-                    lepsilon=True,
-                    other_params={"user_incar_settings": user_incar_settings},
-                )
-            )
-        else:
-            vasp_input_set = MPStaticSet(
-                structure, lepsilon=True, user_incar_settings=user_incar_settings
-            )
-            t.append(
-                WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
-            )
-
-        if phonon:
-            if mode is None and displacement is None:
-                name = "{} {}".format("phonon", name)
-                t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
-                t.append(
-                    pass_vasp_result(
-                        {
-                            "structure": "a>>final_structure",
-                            "eigenvals": "a>>normalmode_eigenvals",
-                            "eigenvecs": "a>>normalmode_eigenvecs",
-                        },
-                        parse_eigen=True,
-                        mod_spec_key="normalmodes",
-                    )
-                )
-            else:
-                name = "raman_{}_{} {}".format(str(mode), str(displacement), name)
-                key = (
-                    "{}_{}".format(mode, displacement)
-                    .replace("-", "m")
-                    .replace(".", "d")
-                )
-                pass_fw = pass_vasp_result(
-                    pass_dict={
-                        "mode": mode,
-                        "displacement": displacement,
-                        "epsilon": "a>>epsilon_static",
-                    },
-                    mod_spec_key="raman_epsilon->" + key,
-                    parse_eigen=True,
-                )
-                t.extend(
-                    [
-                        WriteNormalmodeDisplacedPoscar(
-                            mode=mode, displacement=displacement
-                        ),
-                        RunVaspCustodian(vasp_cmd=vasp_cmd),
-                        pass_fw,
-                    ]
-                )
-        else:
-            t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
-
-        t.extend(
-            [
-                PassCalcLocs(name=name),
-                VaspToDb(db_file=db_file, additional_fields={"task_label": name}),
-            ]
-        )
-
-        super(LepsFW, self).__init__(
-            t,
-            parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
-        )
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class DFPTFW(Firework):
@@ -686,7 +604,7 @@ class DFPTFW(Firework):
         parents=None,
         user_incar_settings=None,
         pass_nm_results=False,
-        **kwargs
+        **kwargs,
     ):
         """
          Static DFPT calculation Firework
@@ -770,7 +688,7 @@ class DFPTFW(Firework):
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
-        super(DFPTFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class RamanFW(Firework):
@@ -785,7 +703,7 @@ class RamanFW(Firework):
         db_file=DB_FILE,
         parents=None,
         user_incar_settings=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Static calculation Firework that computes the DFPT dielectric constant for
@@ -831,7 +749,7 @@ class RamanFW(Firework):
 
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd))
 
-        key = "{}_{}".format(mode, displacement).replace("-", "m").replace(".", "d")
+        key = f"{mode}_{displacement}".replace("-", "m").replace(".", "d")
         t.append(
             pass_vasp_result(
                 pass_dict={
@@ -839,7 +757,7 @@ class RamanFW(Firework):
                     "displacement": displacement,
                     "epsilon": "a>>epsilon_static",
                 },
-                mod_spec_key="raman_epsilon->{}".format(key),
+                mod_spec_key=f"raman_epsilon->{key}",
                 parse_eigen=True,
             )
         )
@@ -848,7 +766,7 @@ class RamanFW(Firework):
 
         t.append(VaspToDb(db_file=db_file, additional_fields={"task_label": name}))
 
-        super(RamanFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class SOCFW(Firework):
@@ -863,7 +781,7 @@ class SOCFW(Firework):
         copy_vasp_outputs=True,
         db_file=None,
         parents=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Firework for spin orbit coupling calculation.
@@ -921,7 +839,7 @@ class SOCFW(Firework):
                 VaspToDb(db_file=db_file, additional_fields={"task_label": name}),
             ]
         )
-        super(SOCFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class TransmuterFW(Firework):
@@ -938,7 +856,7 @@ class TransmuterFW(Firework):
         db_file=DB_FILE,
         parents=None,
         override_default_vasp_params=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Apply the transformations to the input structure, write the input set corresponding
@@ -963,7 +881,7 @@ class TransmuterFW(Firework):
             override_default_vasp_params (dict): additional user input settings for vasp_input_set.
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(structure.composition.reduced_formula, name)
+        fw_name = f"{structure.composition.reduced_formula}-{name}"
         override_default_vasp_params = override_default_vasp_params or {}
         t = []
 
@@ -1022,7 +940,7 @@ class TransmuterFW(Firework):
             )
         )
 
-        super(TransmuterFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class MDFW(Firework):
@@ -1040,7 +958,7 @@ class MDFW(Firework):
         db_file=DB_FILE,
         parents=None,
         copy_vasp_outputs=True,
-        **kwargs
+        **kwargs,
     ):
         """
         Standard firework for a single MD run.
@@ -1071,7 +989,7 @@ class MDFW(Firework):
             start_temp=start_temp,
             end_temp=end_temp,
             nsteps=nsteps,
-            **override_default_vasp_params
+            **override_default_vasp_params,
         )
 
         t = []
@@ -1099,11 +1017,11 @@ class MDFW(Firework):
                 defuse_unsuccessful=False,
             )
         )
-        super(MDFW, self).__init__(
+        super().__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
+            name=f"{structure.composition.reduced_formula}-{name}",
+            **kwargs,
         )
 
 
@@ -1121,7 +1039,7 @@ class BoltztrapFW(Firework):
         prev_calc_dir=None,
         soc=False,
         additional_fields=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Run Boltztrap (which includes writing bolztrap input files and parsing outputs). Assumes
@@ -1167,7 +1085,7 @@ class BoltztrapFW(Firework):
             ]
         )
 
-        super(BoltztrapFW, self).__init__(t, parents=parents, name=fw_name, **kwargs)
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
 
 class NEBRelaxationFW(Firework):
@@ -1187,7 +1105,7 @@ class NEBRelaxationFW(Firework):
         user_incar_settings=None,
         user_kpoints_settings=None,
         additional_cust_args=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Args:
@@ -1216,7 +1134,7 @@ class NEBRelaxationFW(Firework):
                 user_kpoints_settings=user_kpoints_settings,
             )
         else:  # label == "ep0" or "ep1"
-            from pymatgen_diffusion.neb.io import MVLCINEBEndPointSet
+            from pymatgen.analysis.diffusion.neb.io import MVLCINEBEndPointSet
 
             vasp_input_set = MVLCINEBEndPointSet(
                 structure,
@@ -1247,7 +1165,7 @@ class NEBRelaxationFW(Firework):
             PassCalcLocs(name=label),
         ]
 
-        super(NEBRelaxationFW, self).__init__(tasks, spec=spec, name=label, **kwargs)
+        super().__init__(tasks, spec=spec, name=label, **kwargs)
 
 
 class NEBFW(Firework):
@@ -1269,7 +1187,7 @@ class NEBFW(Firework):
         user_incar_settings=None,
         user_kpoints_settings=None,
         additional_cust_args=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Args:
@@ -1283,7 +1201,7 @@ class NEBFW(Firework):
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
         assert neb_label.isdigit() and int(neb_label) >= 1
-        label = "neb{}".format(neb_label)
+        label = f"neb{neb_label}"
         sort_tol = spec["sort_tol"]
         d_img = spec["d_img"]
         interpolation_type = spec["interpolation_type"]
@@ -1328,4 +1246,4 @@ class NEBFW(Firework):
             PassCalcLocs(name=label),
         ]
 
-        super(NEBFW, self).__init__(tasks, spec=spec, name=label, **kwargs)
+        super().__init__(tasks, spec=spec, name=label, **kwargs)

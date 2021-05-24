@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 """
 This module defines tasks to run FEFF.
 """
@@ -11,7 +8,7 @@ from fireworks import explicit_serialize, FiretaskBase
 
 from atomate.utils.utils import env_chk, get_logger
 
-__author__ = 'Kiran Mathew'
+__author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
 
 logger = get_logger(__name__)
@@ -30,6 +27,6 @@ class RunFeffDirect(FiretaskBase):
 
     def run_task(self, fw_spec):
         feff_cmd = env_chk(self["feff_cmd"], fw_spec)
-        logger.info("Running FEFF using exe: {}".format(feff_cmd))
+        logger.info(f"Running FEFF using exe: {feff_cmd}")
         return_code = subprocess.call(feff_cmd, shell=True)
-        logger.info("FEFF finished running with returncode: {}".format(return_code))
+        logger.info(f"FEFF finished running with returncode: {return_code}")

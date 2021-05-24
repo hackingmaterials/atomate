@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomate.feff.firetasks
    atomate.feff.fireworks
@@ -20,7 +21,6 @@ atomate.feff.database module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

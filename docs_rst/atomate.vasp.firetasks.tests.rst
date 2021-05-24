@@ -28,6 +28,14 @@ atomate.vasp.firetasks.tests.test\_get\_interpolated\_poscar module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.firetasks.tests.test\_lobster\_tasks module
+--------------------------------------------------------
+
+.. automodule:: atomate.vasp.firetasks.tests.test_lobster_tasks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.firetasks.tests.test\_polarization\_to\_db module
 --------------------------------------------------------------
 
@@ -51,7 +59,6 @@ atomate.vasp.firetasks.tests.test\_write\_vasp\_from\_interpolated\_poscar modul
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

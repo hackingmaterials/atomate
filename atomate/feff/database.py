@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 """
 This module defines the database classes.
 """
@@ -8,19 +5,25 @@ This module defines the database classes.
 from atomate.utils.database import CalcDb
 from atomate.utils.utils import get_logger
 
-__author__ = 'Kiran Mathew'
-__credits__ = 'Anubhav Jain'
-__email__ = 'kmathew@lbl.gov'
+__author__ = "Kiran Mathew"
+__credits__ = "Anubhav Jain"
+__email__ = "kmathew@lbl.gov"
 
 logger = get_logger(__name__)
 
 
 class FeffCalcDb(CalcDb):
-
-    def __init__(self, host="localhost", port=27017, database="feff", collection="tasks", user=None,
-                 password=None, **kwargs):
-        super(FeffCalcDb, self).__init__(host, port, database, collection,
-                                         user, password, **kwargs)
+    def __init__(
+        self,
+        host="localhost",
+        port=27017,
+        database="feff",
+        collection="tasks",
+        user=None,
+        password=None,
+        **kwargs
+    ):
+        super().__init__(host, port, database, collection, user, password, **kwargs)
 
     def build_indexes(self, indexes=None, background=True):
         _indexes = indexes if indexes else ["structure.formula"]

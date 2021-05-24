@@ -1,16 +1,12 @@
-# coding: utf-8
-
-
 import json
 import os
 import shutil
 import unittest
-from io import open
 
 from fireworks import LaunchPad
 from pymongo import MongoClient
 
-from pymatgen import SETTINGS
+from pymatgen.core import SETTINGS
 
 __author__ = "Kiran Mathew"
 __credits__ = "Anubhav Jain"

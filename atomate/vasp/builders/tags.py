@@ -1,18 +1,14 @@
-# coding: utf-8
-
-
 from tqdm import tqdm
 
 from atomate.vasp.builders.utils import dbid_to_int, dbid_to_str
 from atomate.utils.utils import get_database
 
 from atomate.utils.utils import get_logger
-from atomate.vasp.builders.tasks_materials import TasksMaterialsBuilder
 from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)
 
-__author__ = 'Alireza Faghanina <albalu@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
+__author__ = "Alireza Faghanina <albalu@lbl.gov>, Anubhav Jain <ajain@lbl.gov>"
 
 
 class TagsBuilder(AbstractBuilder):
@@ -38,26 +34,34 @@ class TagsBuilder(AbstractBuilder):
 
         logger.info("Initializing list of all new task_ids to process ...")
         previous_task_ids = []
-        for m in self._materials.find({"_tagsbuilder": {"$exists": True}},
-                                      {"_tagsbuilder.all_task_ids": 1}):
+        for m in self._materials.find(
+            {"_tagsbuilder": {"$exists": True}}, {"_tagsbuilder.all_task_ids": 1}
+        ):
             previous_task_ids.extend(m["_tagsbuilder"]["all_task_ids"])
 
         previous_task_ids = [dbid_to_int(t) for t in previous_task_ids]
 
-        q = {"tags": {"$exists": True}, "task_id": {"$nin": previous_task_ids},
-             "state": "successful"}
+        q = {
+            "tags": {"$exists": True},
+            "task_id": {"$nin": previous_task_ids},
+            "state": "successful",
+        }
 
         tasks = [t for t in self._tasks.find(q, {"task_id": 1, "tags": 1})]
         pbar = tqdm(tasks)
         for t in pbar:
             try:
-                pbar.set_description("Processing task_id: {}".format(t['task_id']))
+                pbar.set_description("Processing task_id: {}".format(t["task_id"]))
 
                 # get the corresponding materials id
-                m = self._materials.find_one({"_tasksbuilder.all_task_ids":
-                                                  dbid_to_str(self._tasks_prefix, t["task_id"])},
-                                             {"material_id": 1, "tags": 1,
-                                              "_tagsbuilder": 1})
+                m = self._materials.find_one(
+                    {
+                        "_tasksbuilder.all_task_ids": dbid_to_str(
+                            self._tasks_prefix, t["task_id"]
+                        )
+                    },
+                    {"material_id": 1, "tags": 1, "_tagsbuilder": 1},
+                )
                 if m:
                     all_tags = t["tags"]
                     if "tags" in m and m["tags"]:
@@ -68,14 +72,23 @@ class TagsBuilder(AbstractBuilder):
                         all_tasks.extend(m["_tagsbuilder"]["all_task_ids"])
 
                     all_tags = list(set(all_tags))  # filter duplicates
-                    self._materials.update_one({"material_id": m["material_id"]},
-                                               {"$set": {"tags": all_tags,
-                                                         "_tagsbuilder.all_task_ids": all_tasks}})
+                    self._materials.update_one(
+                        {"material_id": m["material_id"]},
+                        {
+                            "$set": {
+                                "tags": all_tags,
+                                "_tagsbuilder.all_task_ids": all_tasks,
+                            }
+                        },
+                    )
 
             except:
                 import traceback
+
                 logger.exception("<---")
-                logger.exception("There was an error processing task_id: {}".format(t["task_id"]))
+                logger.exception(
+                    "There was an error processing task_id: {}".format(t["task_id"])
+                )
                 logger.exception(traceback.format_exc())
                 logger.exception("--->")
         logger.info("TagsBuilder finished processing.")

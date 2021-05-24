@@ -1,0 +1,35 @@
+$molecule
+ 0 1
+ O     -0.5741620000      1.2402830000     -0.0725710000
+ C     -0.0348010000     -0.0161700000     -0.0190530000
+ C      1.4924970000     -0.0670660000     -0.0948500000
+ O      2.0100290000     -1.2753940000     -0.1296980000
+ Li     -1.0556250000      2.8018570000      0.0009580000
+ H     -0.3783470000     -0.6527700000     -0.8593740000
+ H     -0.3088140000     -0.5625060000      0.9070080000
+ F      1.9761310000      0.6348910000      1.1205810000
+ H      1.8592770000      0.6091610000     -0.8894920000
+ Li      2.6138150000     -2.8122960000      0.0364910000
+$end
+
+$rem
+   job_type = opt
+   basis = def2-tzvppd
+   max_scf_cycles = 200
+   gen_scfman = true
+   xc_grid = 3
+   scf_algorithm = diis
+   resp_charges = true
+   symmetry = false
+   sym_ignore = true
+   method = wb97xv
+   geom_opt_max_cycles = 200
+   solvent_method = smd
+   ideriv = 1
+   thresh = 14
+   scf_guess_always = true
+$end
+
+$smx
+   solvent other
+$end

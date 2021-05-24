@@ -2,7 +2,7 @@ from tqdm import tqdm
 
 from atomate.utils.utils import get_database
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.analysis.structure_analyzer import get_dimensionality
 
 from atomate.utils.utils import get_logger

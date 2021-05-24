@@ -44,6 +44,14 @@ atomate.vasp.workflows.base.elastic module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.workflows.base.electrode module
+--------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.electrode
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.workflows.base.exchange module
 -------------------------------------------
 
@@ -64,6 +72,14 @@ atomate.vasp.workflows.base.gibbs module
 ----------------------------------------
 
 .. automodule:: atomate.vasp.workflows.base.gibbs
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+atomate.vasp.workflows.base.lobster module
+------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.lobster
    :members:
    :undoc-members:
    :show-inheritance:
@@ -99,7 +115,6 @@ atomate.vasp.workflows.base.thermal\_expansion module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

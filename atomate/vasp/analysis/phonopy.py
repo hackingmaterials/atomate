@@ -1,9 +1,7 @@
-# coding: utf-8
-
 import numpy as np
 from monty.dev import requires
 
-from pymatgen import Structure
+from pymatgen.core.structure import Structure
 
 try:
     import phonopy
@@ -131,10 +129,7 @@ def get_phonopy_qha(
         cv.append(c)
 
     # add pressure contribution
-    energies = (
-        np.array(energies) + np.array(volumes) * pressure / EVAngstromToGPa
-    )
-
+    energies = np.array(energies) + np.array(volumes) * pressure / EVAngstromToGPa
     # quasi-harmonic approx
     return PhonopyQHA(
         volumes,

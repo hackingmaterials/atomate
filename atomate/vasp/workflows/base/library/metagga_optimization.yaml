@@ -1,0 +1,18 @@
+# metaGGA structure optimization
+# Author: Ryan Kingsbury (RKingsbury@lbl.gov)
+fireworks:
+- fw: atomate.vasp.fireworks.core.ScanOptimizeFW
+  params:
+    name: "PBEsol structure optimization"
+    vasptodb_kwargs:
+      task_fields_to_push: {"gga_bandgap": "calcs_reversed.0.output.bandgap"}
+      store_volumetric_data: ["CHGCAR", "AECCAR0", "AECCAR2", "ELFCAR"]
+      parse_bader: False
+- fw: atomate.vasp.fireworks.core.ScanOptimizeFW
+  params:
+    name: "R2SCAN structure optimization"
+    parents: 0
+    prev_calc_loc: True
+    vasptodb_kwargs:
+      store_volumetric_data: ["CHGCAR", "AECCAR0", "AECCAR2", "ELFCAR"]
+      parse_bader: False

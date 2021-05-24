@@ -8,7 +8,7 @@ from atomate.vasp.database import VaspCalcDb
 from datetime import datetime
 import numpy as np
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
 from pymatgen.analysis.magnetism.heisenberg import HeisenbergMapper, HeisenbergModel
 from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering

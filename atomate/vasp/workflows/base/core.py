@@ -1,20 +1,19 @@
-# coding: utf-8
-
-
 import os
 
 from atomate.utils.utils import get_wf_from_spec_dict
 
 from monty.serialization import loadfn
 
-__author__ = 'Anubhav Jain, Shyue Ping Ong, Kiran Mathew'
-__email__ = 'ajain@lbl.gov, ongsp@eng.ucsd.edu, kmathew@lbl.gov'
+__author__ = "Anubhav Jain, Shyue Ping Ong, Kiran Mathew"
+__email__ = "ajain@lbl.gov, ongsp@eng.ucsd.edu, kmathew@lbl.gov"
 
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
 
-def get_wf(structure, wf_filename, params=None, common_params=None, vis=None, wf_metadata=None):
+def get_wf(
+    structure, wf_filename, params=None, common_params=None, vis=None, wf_metadata=None
+):
     """
     Get a workflow given a structure and a name of file from the workflow library.
 
@@ -39,7 +38,9 @@ def get_wf(structure, wf_filename, params=None, common_params=None, vis=None, wf
 
     if params:
         if len(params) != len(d["fireworks"]):
-            raise ValueError("The length of the params array must match the length of the Fireworks array!")
+            raise ValueError(
+                "The length of the params array must match the length of the Fireworks array!"
+            )
 
         for idx, v in enumerate(params):
             if "params" not in d["fireworks"][idx]:
@@ -47,7 +48,7 @@ def get_wf(structure, wf_filename, params=None, common_params=None, vis=None, wf
             d["fireworks"][idx]["params"].update(v)
 
     if common_params:
-        if 'common_params' not in d:
+        if "common_params" not in d:
             d["common_params"] = {}
         d["common_params"].update(common_params)
 

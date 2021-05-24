@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomate.feff.firetasks.tests
 
@@ -42,7 +43,6 @@ atomate.feff.firetasks.write\_inputs module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

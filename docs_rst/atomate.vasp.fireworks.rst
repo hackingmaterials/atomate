@@ -20,6 +20,14 @@ atomate.vasp.fireworks.exchange module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.fireworks.lobster module
+-------------------------------------
+
+.. automodule:: atomate.vasp.fireworks.lobster
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.fireworks.nmr module
 ---------------------------------
 
@@ -35,7 +43,6 @@ atomate.vasp.fireworks.polarization module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------
