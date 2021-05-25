@@ -1,4 +1,5 @@
 import math
+from pydash import get
 
 from fireworks import FiretaskBase, explicit_serialize, FWAction, Firework, Workflow
 from pymatgen.core import Structure
@@ -157,6 +158,28 @@ class GetInsertionCalcs(FiretaskBase):
         working_ion = fw_spec.get("working_ion")
         allow_fizzled_parents = fw_spec.get("allow_fizzled_parents", False)
         optimizefw_kwargs = fw_spec.get("optimizefw_kwargs", {})
+        if "override_default_vasp_params" in optimizefw_kwargs.keys():
+            if (
+                "user_incar_settings"
+                in optimizefw_kwargs["override_default_vasp_params"].keys()
+            ):
+                if (
+                    "NSW"
+                    not in optimizefw_kwargs["override_default_vasp_params"][
+                        "user_incar_settings"
+                    ].keys()
+                ):
+                    optimizefw_kwargs["override_default_vasp_params"][
+                        "user_incar_settings"
+                    ]["NSW"] = 299
+            else:
+                optimizefw_kwargs["override_default_vasp_params"].update(
+                    {"user_incar_settings": {"NSW": 299}}
+                )
+        else:
+            optimizefw_kwargs["override_default_vasp_params"] = {
+                "user_incar_settings": {"NSW": 299}
+            }
         n_ion = int(base_structure.composition.element_composition[working_ion]) + 1
 
         new_fws = []
@@ -169,10 +192,7 @@ class GetInsertionCalcs(FiretaskBase):
             # Create new fw
             fw = OptimizeFW(
                 inserted_structure,
-                name=f"structure optimization-{itr}",
-                override_default_vasp_params={
-                    "user_incar_settings": {"NSW": 299}
-                },  # structure are rough guesses
+                name=f"structure optimization-{itr}",  # structure are rough guesses
                 **optimizefw_kwargs,
             )
             fw.tasks[-1]["additional_fields"].update(
