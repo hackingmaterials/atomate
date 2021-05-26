@@ -4,11 +4,18 @@ from typing import Dict, List, Tuple
 import numpy as np
 
 from atomate.utils.utils import get_logger
+<<<<<<< HEAD
 from pymatgen import Structure
+=======
+from hiphive.cutoffs import is_cutoff_allowed, estimate_maximum_cutoff
+from hiphive import ForceConstants
+from pymatgen.core.structure import Structure
+from pymatgen.io.ase import AseAtomsAdaptor
+>>>>>>> 8f4f7e37 (gruneisen and CTE)
 from pymatgen.io.phonopy import get_phonopy_structure
 
-__author__ = "Alex Ganose, Rees Chang"
-__email__ = "aganose@lbl.gov, rc564@cornell.edu"
+__author__ = "Alex Ganose, Rees Chang, Junsoo Park"
+__email__ = "aganose@lbl.gov, rc564@cornell.edu, jsyony37@lbl.gov"
 
 logger = get_logger(__name__)
 
@@ -124,17 +131,24 @@ def fit_force_constants(
         ``SortedForceConstants`` object and a dictionary of information on the
         fitting process.
     """
+<<<<<<< HEAD
     from hiphive.fitting import Optimizer
     from hiphive import ForceConstantPotential, enforce_rotational_sum_rules
 
     logger.info("Starting fitting force constants.")
+=======
+    logger.info("Starting force constant fitting.")
+>>>>>>> 8f4f7e37 (gruneisen and CTE)
 
     fitting_data = {
         "cutoffs": [],
         "rmse_test": [],
         "n_imaginary": [],
         "min_frequency": [],
-        "300K_free_energy": [],
+        "temperature": [],
+        "free_energy": [],
+        "entropy": [],
+        "heat_capacity": [],
         "fit_method": fit_method,
         "imaginary_tol": imaginary_tol,
         "max_n_imaginary": max_n_imaginary,
@@ -150,7 +164,66 @@ def fit_force_constants(
         "cutoffs": None,
     }
     n_cutoffs = len(all_cutoffs)
+<<<<<<< HEAD
     for i, cutoffs in enumerate(all_cutoffs):
+=======
+
+    fit_kwargs = fit_kwargs if fit_kwargs else {}
+    if fit_method == "rfe" and n_jobs == -1:
+        fit_kwargs["n_jobs"] = 1
+
+    cutoff_results = Parallel(n_jobs=-1, backend="multiprocessing")(delayed(_run_cutoffs)(
+        i, cutoffs, n_cutoffs, parent_structure, structures, supercell_matrix,
+        fit_method, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
+
+    for result in cutoff_results:
+        if result is None:
+            pass
+
+        fitting_data["cutoffs"].append(result["cutoffs"])
+        fitting_data["rmse_test"].append(result["rmse_test"])
+        fitting_data["n_imaginary"].append(result["n_imaginary"])
+        fitting_data["min_frequency"].append(result["min_frequency"])
+        fitting_data["temperature"].append(result["temperature"])
+        fitting_data["free_energy"].append(result["free_energy"])
+        fitting_data["entropy"].append(result["entropy"])
+        fitting_data["heat_capcity"].append(result["heat_capacity"])
+
+        if (
+            result["min_frequency"] > -np.abs(max_imaginary_freq)
+#            and result["n_imaginary"] <= max_n_imaginary
+#            and result["n_imaginary"] < best_fit["n_imaginary"]
+            and result["rmse_test"] < best_fit["rmse_test"]
+        ):
+            best_fit.update(result)
+            fitting_data["best"] = result["cutoffs"]
+
+    logger.info("Finished fitting force constants.")
+
+    return best_fit["force_constants"], fitting_data
+
+
+def _run_cutoffs(
+    i,
+    cutoffs,
+    n_cutoffs,
+    parent_structure,
+    structures,
+    supercell_matrix,
+    fit_method,
+    imaginary_tol,
+    fit_kwargs
+):
+    from hiphive.fitting import Optimizer
+    from hiphive import ForceConstantPotential, enforce_rotational_sum_rules
+
+    logger.info(
+        "Testing cutoffs {} out of {}: {}".format(i + 1, n_cutoffs, cutoffs)
+    )
+    supercell_atoms = structures[0]
+
+    if not is_cutoff_allowed(supercell_atoms, max(cutoffs)):
+>>>>>>> 8f4f7e37 (gruneisen and CTE)
         logger.info(
             "Testing cutoffs {} out of {}: {}".format(i, n_cutoffs, cutoffs)
         )
@@ -164,10 +237,12 @@ def fit_force_constants(
         fcp = ForceConstantPotential(sc.cluster_space, parameters)
         fcs = fcp.get_force_constants(supercell_atoms)
 
-        phonopy_fcs = fcs.get_fc_array(order=2)
-        n_imaginary, min_freq, free_energy = evaluate_force_constants(
-            parent_structure, supercell_matrix, phonopy_fcs, imaginary_tol
+        T_qha = [i*100 for i in range(16)]
+#        phonopy_fcs = fcs.get_fc_array(order=2)
+        n_imaginary, min_freq, free_energy, entropy, Cv, grun, cte, dLfrac = evaluate_force_constants(
+            parent_structure, supercell_matrix, fcs, imaginary_tol, T_qha
         )
+<<<<<<< HEAD
 
         fitting_data["cutoffs"].append(cutoffs)
         fitting_data["rmse_test"].append(opt.rmse_test)
@@ -194,6 +269,22 @@ def fit_force_constants(
     logger.info("Finished fitting force constants.")
 
     return best_fit["force_constants"], fitting_data
+=======
+        return {
+            "cutoffs": cutoffs,
+            "rmse_test": opt.rmse_test,
+            "n_imaginary": n_imaginary,
+            "min_frequency": min_freq,
+            "temperature": T_qha,
+            "free_energy": free_energy,
+            "entropy": entropy,
+            "heat_capacity": Cv,
+            "thermal_expansion": cte,
+            "force_constants": fcp
+        }
+    except Exception:
+        return None
+>>>>>>> 8f4f7e37 (gruneisen and CTE)
 
 
 def get_structure_container(
@@ -226,9 +317,10 @@ def get_structure_container(
 def evaluate_force_constants(
     structure: Structure,
     supercell_matrix: np.ndarray,
-    force_constants: np.ndarray,
+    force_constants: ForceConstants,
     imaginary_tol: float = IMAGINARY_TOL,
-) -> Tuple[int, float, float]:
+    T: List
+) -> Tuple[int, float, List, List, List]:
     """
     Uses the force constants to extract phonon properties. Used for comparing
     the accuracy of force constant fits.
@@ -242,22 +334,87 @@ def evaluate_force_constants(
 
     Returns:
         A tuple of the number of imaginary modes at Gamma, the minimum phonon
-        frequency at Gamma, and the free energy at 300 K.
+        frequency at Gamma, and the free energy, entropy, and heat capacity
     """
     from phonopy import Phonopy
 
+    fcs2 = fcs.get_fc_array(2)
+    fcs3 = fcs.get_fc_array(3)
     parent_phonopy = get_phonopy_structure(structure)
     phonopy = Phonopy(parent_phonopy, supercell_matrix=supercell_matrix)
 
-    phonopy.set_force_constants(force_constants)
+    phonopy.set_force_constants(fcs2)
     phonopy.run_mesh(is_gamma_center=True)
-    phonopy.run_thermal_properties(temperatures=[300])
-    free_energy = phonopy.get_thermal_properties_dict()["free_energy"][0]
-
+    phonopy.run_thermal_properties(temperatures=T)
+    free_energy = phonopy.get_thermal_properties_dict()["free_energy"]
+    entropy = phonopy.get_thermal_properties_dict()["entropy"]
+    Cv = phonopy.get_thermal_properties_dict()["heat_capacity"]
+    freq = phonopy.mesh.frequencies
     # find imaginary modes at gamma
-    phonopy.run_qpoints([0, 0, 0])
-    gamma_eigs = phonopy.get_qpoints_dict()["frequencies"]
-    n_imaginary = int(np.sum(gamma_eigs < -np.abs(imaginary_tol)))
-    min_frequency = np.min(gamma_eigs)
+#    phonopy.run_qpoints([0, 0, 0])
+#    gamma_eigs = phonopy.get_qpoints_dict()["frequencies"]
+    n_imaginary = int(np.sum(freq < -np.abs(imaginary_tol)))
+    min_frequency = np.min(freq)
 
-    return n_imaginary, min_frequency, free_energy
+    if n_imeginary > 0:
+        grun, cte = gruneisen(phonopy,fcs2,fcs3,mesh,T,Cv,bulk_mod,vol)
+        dLfrac = thermal_expansion(T,cte)
+    else:
+        grun = np.zeros((len(T),3))
+        cte = np.zeros((len(T),3))
+        dLfrac = np.zeros((len(T),3))
+        
+    return n_imaginary, min_frequency, free_energy, entropy, Cv, grun, cte, dLfrac
+
+
+def gruneisen(
+        phonopy: Phonopy,
+        fcs2: np.ndarray,
+        fcs3: np.ndarray,
+        mesh: List,
+        temperature: List,
+        Cv: List, # in J
+        bulk_mod: float, # in GPa
+        vol: float # in A^3
+) -> Tuple[List,List]:
+    
+    from phono3py.phonon3.gruneisen import Gruneisen
+    
+    gruneisen = Gruneisen(fcs2,fcs3,phonopy.supercell,phonopy.primitive)
+    gruneisen.set_sampling_mesh(mesh,is_gamma_center=True)
+    gruneisen.run()
+    grun = gruneisen.get_gruneisen_parameters() # (nptk,nmode,3,3)
+    omega = gruneisen._frequencies
+    qp = gruneisen._qpoints
+    kweight = gruneisen._weights
+    grun_tot = list()
+    for temp in temperature:
+        grun_tot.append(get_total_grun(omega,grun,kweight,temp))
+    grun_tot = np.array(np.nan_to_num(np.array(grun_tot)))
+    # linear thermal expansion coefficient     
+    cte = grun_tot*(Cv.repeat(3).reshape((len(Cv),3)))/(vol/10**30)/(bulk_mod*10**9)/3
+    cte = np.nan_to_num(cte)    
+    logger.info('Frequency : {}'.format(np.sort(omega.flatten())))
+    logger.info('Gruneisen : {}'.format(grun_tot))
+    logger.info('CTE : {}'.format(cte))    
+    return grun_tot, cte
+
+
+def thermal_expansion(
+        temperature: List,
+        cte: List
+) -> List:
+    assert len(temperature)==len(cte)
+    if 0 not in temperature:
+        temperature = [0] + temperature
+        cte = [[0,0,0]] + cte
+    temperature = np.array(temperature)
+    cte = np.array(cte)
+    # linear expansion fraction
+    dLfrac = copy(cte)
+    for t in range(len(temperature)):
+        dLfrac[t,:] = np.trapz(cte[:t+1,:],temperature[:t+1],axis=0)
+    dLfrac = np.nan_to_num(dLfrac)
+    logger.info('dLfrac : {}'.format(dLfrac))
+    return dLfrac
+
