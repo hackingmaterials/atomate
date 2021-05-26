@@ -3,6 +3,7 @@ from joblib import Parallel, delayed
 from typing import Dict, List, Tuple, Optional
 
 import numpy as np
+import scipy as sp
 
 from atomate.utils.utils import get_logger
 from hiphive.cutoffs import is_cutoff_allowed, estimate_maximum_cutoff
@@ -20,7 +21,7 @@ MAX_IMAGINARY_FREQ = 10  # in THz
 IMAGINARY_TOL = 0.025  # in THz
 MAX_N_IMAGINARY = np.inf
 FIT_METHOD = "least-squares"
-
+eV2J = 1.602e-19
 
 def get_cutoffs(supercell_structure: Structure):
     """
@@ -313,14 +314,21 @@ def evaluate_force_constants(
     fcs3 = fcs.get_fc_array(3)
     parent_phonopy = get_phonopy_structure(structure)
     phonopy = Phonopy(parent_phonopy, supercell_matrix=supercell_matrix)
-
+    vol = phonopy.primitive.get_volume()
+    natom = phonopy.primitive.get_number_of_atoms()
+    
     phonopy.set_force_constants(fcs2)
     phonopy.run_mesh(is_gamma_center=True)
     phonopy.run_thermal_properties(temperatures=T)
+
     free_energy = phonopy.get_thermal_properties_dict()["free_energy"]
+    free_energy *= 1000/sp.constants.Avogadro/eV2J/natom # kJ/mol to eV/atom
     entropy = phonopy.get_thermal_properties_dict()["entropy"]
+    entropy *= 1/sp.constants.Avogadro/eV2J/natom # J/K/mol to eV/K/atom
     Cv = phonopy.get_thermal_properties_dict()["heat_capacity"]
-    freq = phonopy.mesh.frequencies
+    Cv *= 1/sp.constants.Avogadro/eV2J/natom # J/K/mol to eV/K/atom
+    
+    freq = phonopy.mesh.frequencies # in THz
     # find imaginary modes at gamma
 #    phonopy.run_qpoints([0, 0, 0])
 #    gamma_eigs = phonopy.get_qpoints_dict()["frequencies"]
@@ -330,7 +338,7 @@ def evaluate_force_constants(
     if n_imeginary > 0:
         grun, cte = gruneisen(phonopy,fcs2,fcs3,mesh,T,Cv,bulk_mod,vol)
         dLfrac = thermal_expansion(T,cte)
-    else:
+    else: # do not calculate these if imaginary modes exist
         grun = np.zeros((len(T),3))
         cte = np.zeros((len(T),3))
         dLfrac = np.zeros((len(T),3))
@@ -344,11 +352,11 @@ def gruneisen(
         fcs3: np.ndarray,
         mesh: List,
         temperature: List,
-        Cv: List, # in J
+        Cv: np.ndarray, # in eV/K/atom
         bulk_mod: float, # in GPa
         vol: float # in A^3
 ) -> Tuple[List,List]:
-    
+
     from phono3py.phonon3.gruneisen import Gruneisen
     
     gruneisen = Gruneisen(fcs2,fcs3,phonopy.supercell,phonopy.primitive)
@@ -362,6 +370,7 @@ def gruneisen(
     for temp in temperature:
         grun_tot.append(get_total_grun(omega,grun,kweight,temp))
     grun_tot = np.array(np.nan_to_num(np.array(grun_tot)))
+    Cv *= eV2J*phonopy.primitive.get_number_of_atoms() # eV/K/atom to J/K
     # linear thermal expansion coefficient     
     cte = grun_tot*(Cv.repeat(3).reshape((len(Cv),3)))/(vol/10**30)/(bulk_mod*10**9)/3
     cte = np.nan_to_num(cte)    
@@ -374,7 +383,7 @@ def gruneisen(
 def thermal_expansion(
         temperature: List,
         cte: List,
-        T=None: float 
+        T: Optional[float]=None
 ) -> np.ndarray:
     assert len(temperature)==len(cte)
     if 0 not in temperature:
