@@ -424,7 +424,7 @@ def thermal_expansion(
     else:
         try:
             T_ind = np.where(temperature==T)[0][0]
-            return [dLfrac[T_ind]]
+            return np.array([dLfrac[T_ind]])
         except:
             raise ValueError('Designated T does not exist in the temperature array!')
 
