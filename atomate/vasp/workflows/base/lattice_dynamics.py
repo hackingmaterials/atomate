@@ -126,7 +126,7 @@ def get_lattice_dynamics_wf(
         if supercell_matrix_kwargs.get("force_diagonal", False):
             warnings.warn(
                 "Diagonal transformation required to calculate lattice thermal "
-                "conductivity. Forcing diagonal matrix"
+                "conductivity using ShengBTE. Forcing diagonal matrix"
             )
         supercell_matrix_kwargs["force_diagonal"] = True
 
@@ -138,6 +138,7 @@ def get_lattice_dynamics_wf(
         n_supercells = get_num_supercells(supercell, **num_supercell_kwargs)
         perturbed_structure_kwargs["n_configs_per_std"] = n_supercells
 
+    # 1. Start by pertrubing supercell and calculating forces
     wf = get_perturbed_structure_wf(
         structure,
         supercell_matrix=supercell_matrix,
@@ -148,12 +149,14 @@ def get_lattice_dynamics_wf(
         **perturbed_structure_kwargs,
     )
 
+    # 2. Fit interatomic force constants from pertrubed structures
     allow_fizzled = {"_allow_fizzled_parents": True}
     fw_fit_force_constant = FitForceConstantsFW(
         db_file=db_file, spec=allow_fizzled
     )
     wf.append_wf(Workflow.from_Firework(fw_fit_force_constant), wf.leaf_fw_ids)
 
+    # 3. Lattice thermal conductivity calculation (optional)
     if calculate_lattice_thermal_conductivity:
         fw_lattice_conductivity = LatticeThermalConductivityFW(
             db_file=db_file,
