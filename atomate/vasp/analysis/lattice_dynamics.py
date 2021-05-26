@@ -240,7 +240,7 @@ def _run_cutoffs(
         T_qha = [i*100 for i in range(16)]
 #        phonopy_fcs = fcs.get_fc_array(order=2)
         n_imaginary, min_freq, free_energy, entropy, Cv, grun, cte, dLfrac = evaluate_force_constants(
-            parent_structure, supercell_matrix, fcs, imaginary_tol, T_qha
+            parent_structure, supercell_matrix, fcs, T_qha, imaginary_tol
         )
 <<<<<<< HEAD
 
@@ -318,8 +318,8 @@ def evaluate_force_constants(
     structure: Structure,
     supercell_matrix: np.ndarray,
     force_constants: ForceConstants,
-    imaginary_tol: float = IMAGINARY_TOL,
-    T: List
+    T: List,
+    imaginary_tol: float = IMAGINARY_TOL
 ) -> Tuple[int, float, List, List, List]:
     """
     Uses the force constants to extract phonon properties. Used for comparing
@@ -402,19 +402,29 @@ def gruneisen(
 
 def thermal_expansion(
         temperature: List,
-        cte: List
-) -> List:
+        cte: List,
+        T=None: float 
+) -> np.ndarray:
     assert len(temperature)==len(cte)
     if 0 not in temperature:
         temperature = [0] + temperature
         cte = [[0,0,0]] + cte
     temperature = np.array(temperature)
-    cte = np.array(cte)
+    ind = np.argsort(temperature)
+    temperature = temperature[ind]
+    cte = np.array(cte)[ind]
     # linear expansion fraction
     dLfrac = copy(cte)
     for t in range(len(temperature)):
         dLfrac[t,:] = np.trapz(cte[:t+1,:],temperature[:t+1],axis=0)
     dLfrac = np.nan_to_num(dLfrac)
     logger.info('dLfrac : {}'.format(dLfrac))
-    return dLfrac
+    if T is None:
+        return dLfrac
+    else:
+        try:
+            T_ind = np.where(temperature==T)[0][0]
+            return [dLfrac[T_ind]]
+        except:
+            raise ValueError('Designated T does not exist in the temperature array!')
 
