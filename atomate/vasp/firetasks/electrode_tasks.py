@@ -1,5 +1,4 @@
 import math
-from pydash import get
 
 from fireworks import FiretaskBase, explicit_serialize, FWAction, Firework, Workflow
 from pymatgen.core import Structure
