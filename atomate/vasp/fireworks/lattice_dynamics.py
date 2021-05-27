@@ -134,3 +134,57 @@ class LatticeThermalConductivityFW(Firework):
 
         tasks = [copy_files, run_shengbte, shengbte_to_db]
         super().__init__(tasks, name=name, **kwargs)
+
+
+
+class RenormalizationFW(Firework):        
+    """
+    Performs temperature-dependent phonon renormalization to obtain phonons
+    at finite temperatures. Can be used to stabilize dynamically unstable modes
+                                                                                                                                                                                                
+    Args:
+        name: Name of this FW.
+        prev_calc_dir: Path to a directory containing the force constant
+            information. Will override ``parents`` when collecting the force
+            constants to run ShengBTE.
+        db_file: Path to a db file.
+        shengbte_cmd: The name of the shengbte executable to run. Supports
+            env_chk.
+        temperature: The temperature to perform phonon renormalization at
+            Can be given as a single float, or a dictionary with the keys 
+            "min", "max", "step".
+        shengbte_control_kwargs: Options to be included in the ShengBTE
+            control file.
+        **kwargs: Other kwargs that are passed to Firework.__init__.
+    """
+    
+    def __init__(
+        self,
+        name="Renormalization",
+        prev_calc_dir: Optional[str] = None,
+        db_file: str = None,
+        shengbte_cmd: str = SHENGBTE_CMD,
+        temperature: Union[float, dict] = DEFAULT_TEMPERATURE,
+        shengbte_control_kwargs: Optional[dict] = None,
+        **kwargs
+    ):    
+    
+    # files needed to run ShengBTE                                                                                                                                                                      
+    files = [
+        "structure_data.json",
+        "FORCE_CONSTANTS_2ND",
+        "FORCE_CONSTANTS_3RD",
+    ]
+    
+    if prev_calc_dir:
+        copy_files = CopyFiles(from_dir=prev_calc_dir, files_to_copy=files)
+    else:
+        copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
+
+    fit_constants = RunHiPhiveRenorm(
+        cutoffs=cutoffs,
+        imaginary_tol=imaginary_tol,
+        max_n_imaginary=max_n_imaginary,
+        max_imaginary_freq=max_imaginary_freq,
+        fit_method=fit_method,
+    )        
