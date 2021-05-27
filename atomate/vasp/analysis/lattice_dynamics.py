@@ -35,6 +35,9 @@ logger = get_logger(__name__)
 MAX_IMAGINARY_FREQ = 10  # in THz
 IMAGINARY_TOL = 0.025  # in THz
 MAX_N_IMAGINARY = np.inf
+T_QHA = [i*100 for i in range(16)]
+T_RENORM = [i*100 for i in range(0,16,3)]
+
 FIT_METHOD = "least-squares"
 eV2J = 1.602e-19
 
@@ -248,10 +251,9 @@ def _run_cutoffs(
         fcp = ForceConstantPotential(sc.cluster_space, parameters)
         fcs = fcp.get_force_constants(supercell_atoms)
 
-        T_qha = [i*100 for i in range(16)]
 #        phonopy_fcs = fcs.get_fc_array(order=2)
         n_imaginary, min_freq, free_energy, entropy, Cv, grun, cte, dLfrac = evaluate_force_constants(
-            parent_structure, supercell_matrix, fcs, T_qha, imaginary_tol
+            parent_structure, supercell_matrix, fcs, T_QHA, imaginary_tol
         )
 <<<<<<< HEAD
 
@@ -286,7 +288,7 @@ def _run_cutoffs(
             "rmse_test": opt.rmse_test,
             "n_imaginary": n_imaginary,
             "min_frequency": min_freq,
-            "temperature": T_qha,
+            "temperature": T_QHA,
             "free_energy": free_energy,
             "entropy": entropy,
             "heat_capacity": Cv,

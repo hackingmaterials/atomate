@@ -16,13 +16,17 @@ from atomate.vasp.analysis.lattice_dynamics import (
     IMAGINARY_TOL,
     MAX_IMAGINARY_FREQ,
     MAX_N_IMAGINARY,
+    T_QHA,
+    T_RENORM,
     fit_force_constants,
     get_cutoffs,
 )
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
+
 from fireworks import FiretaskBase, FWAction, explicit_serialize
-from pymatgen import Structure
+
+from pymatgen.core.structure import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.phonopy import get_phonon_band_structure_from_fc, \
     get_phonon_dos_from_fc, get_phonon_band_structure_symm_line_from_fc
@@ -33,17 +37,18 @@ from pymatgen.transformations.standard_transformations import (
 
 try:
     import hiphive
+    from hiphive.utilities import get_displacements
+    from hiphive import Renormalization
 except ImportError:
     hiphive = False
 
 
-__author__ = "Alex Ganose"
-__email__ = "aganose@lbl.gov"
+__author__ = "Alex Ganose, Junsoo Park"
+__email__ = "aganose@lbl.gov, jsyony37@lbl.gov"
 
 logger = get_logger(__name__)
 
 # define shared constants
-DEFAULT_TEMPERATURE = 300
 MESH_DENSITY = 100.0  # should always be a float
 
 
@@ -196,6 +201,93 @@ class RunHiPhive(FiretaskBase):
             )
 
 
+
+@explicit_serialize
+class RunHiPhiveRenorm(FiretaskBase):
+    """
+    Perform phonon renormalization to obtain temperature-dependent force constants
+    using hiPhive. Requires "structure_data.json" to be present in the current working
+    directory.
+
+    cs,supercell,fcs,param,T,
+
+    Required parameters:
+        cs (hiphive.ClusterSpace): A list of cutoffs to trial. If None,
+            a set of trial cutoffs will be generated based on the structure
+            (default).
+        supercell (ase.Atoms): Tolerance used to decide if a phonon mode
+            is imaginary, in THz.
+        fcs (hiphive.ForceConstants): Maximum number of imaginary modes allowed in the
+            the final fitted force constant solution. If this criteria is not
+            reached by any cutoff combination this FireTask will fizzle.
+        param (np.ndarray): array of force constant parameters
+    Optional parameter:
+        T_renorm (List): list of temperatures to perform renormalization - default is T_RENORM
+    """
+
+    required_params = ["cs","supercell","fcs","param"]
+    optional_params = ["T_renorm"]
+
+    @requires(hiphive, "hiphive is required for lattice dynamics workflow")
+    def run_task(self, fw_spec):
+        from hiphive.utilities import get_displacements
+
+        max_n_imaginary = self.get("max_n_imaginary", MAX_N_IMAGINARY)
+        max_imaginary_freq = self.get("max_imaginary_freq", MAX_IMAGINARY_FREQ)
+        imaginary_tol = self.get("imaginary_tol", IMAGINARY_TOL)
+        fit_method = self.get("T_renorm", T_RENORM)
+
+        all_structures = loadfn("perturbed_structures.json")
+        all_forces = loadfn("perturbed_forces.json")
+        structure_data = loadfn("structure_data.json")
+        parent_structure = structure_data["structure"]
+        supercell_matrix = structure_data["supercell_matrix"]
+        supercell_structure = structure_data["supercell_structure"]
+
+        structures = []
+        supercell_atoms = AseAtomsAdaptor.get_atoms(supercell_structure)
+        for structure, forces in zip(all_structures, all_forces):
+            atoms = AseAtomsAdaptor.get_atoms(structure)
+            displacements = get_displacements(atoms, supercell_atoms)
+            atoms.new_array("displacements", displacements)
+            atoms.new_array("forces", forces)
+            atoms.positions = supercell_atoms.get_positions()
+            structures.append(atoms)
+
+        cutoffs = self.get("cutoffs") or get_cutoffs(supercell_structure)
+        force_constants, fitting_data = fit_force_constants(
+            parent_structure,
+            supercell_matrix,
+            structures,
+            cutoffs,
+            imaginary_tol,
+            max_n_imaginary,
+            max_imaginary_freq,
+            fit_method,
+        )
+
+        dumpfn(fitting_data, "fitting_data.json")        
+
+        if force_constants is None:
+            # fitting failed
+            raise RuntimeError(
+                "Could not find a force constant solution with less than {} "
+                "imaginary modes.\n"
+                "Fitting results: {}".format(max_n_imaginary, fitting_data)
+            )
+        
+        else:
+            logger.info("Writing force constants.")
+            force_constants.write("force_constants.fcs")
+
+            atoms = AseAtomsAdaptor.get_atoms(parent_structure)
+            force_constants.write_to_shengBTE("FORCE_CONSTANTS_3RD", atoms)
+            force_constants.write_to_phonopy(
+                "FORCE_CONSTANTS_2ND", format="text"
+            )
+            
+
+        
 @explicit_serialize
 class ForceConstantsToDb(FiretaskBase):
     """
@@ -334,7 +426,7 @@ class RunShengBTE(FiretaskBase):
             "scalebroad": 0.5,
             "nonanalytic": False,
             "isotopes": False,
-            "temperature": self.get("temperature", DEFAULT_TEMPERATURE),
+            "temperature": self.get("temperature", T_QHA),
             "scell": np.diag(supercell_matrix).tolist(),
         }
         control_kwargs = self.get("control_kwargs") or {}
