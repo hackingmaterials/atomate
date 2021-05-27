@@ -6,11 +6,20 @@ import numpy as np
 import scipy as sp
 
 from atomate.utils.utils import get_logger
+
+from hiphive import (ForceConstants, ForceConstantPotential,
+                     enforce_rotational_sum_rules, ClusterSpace,
+                     StructureContainer)
 from hiphive.cutoffs import is_cutoff_allowed, estimate_maximum_cutoff
-from hiphive import ForceConstants
+from hiphive.fitting import Optimizer
+
 from pymatgen.core.structure import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 from pymatgen.io.phonopy import get_phonopy_structure
+
+from phonopy import Phonopy
+from phono3py.phonon3.gruneisen import Gruneisen
+
 
 __author__ = "Alex Ganose, Rees Chang, Junsoo Park"
 __email__ = "aganose@lbl.gov, rc564@cornell.edu, jsyony37@lbl.gov"
@@ -213,8 +222,6 @@ def _run_cutoffs(
     imaginary_tol,
     fit_kwargs
 ):
-    from hiphive.fitting import Optimizer
-    from hiphive import ForceConstantPotential, enforce_rotational_sum_rules
 
     logger.info(
         "Testing cutoffs {} out of {}: {}".format(i + 1, n_cutoffs, cutoffs)
@@ -273,7 +280,6 @@ def get_structure_container(
     Returns:
         A hiPhive StructureContainer.
     """
-    from hiphive import ClusterSpace, StructureContainer
 
     cs = ClusterSpace(structures[0], cutoffs)
     logger.debug(cs.__repr__())
@@ -308,7 +314,6 @@ def evaluate_force_constants(
         A tuple of the number of imaginary modes at Gamma, the minimum phonon
         frequency at Gamma, and the free energy, entropy, and heat capacity
     """
-    from phonopy import Phonopy
 
     fcs2 = fcs.get_fc_array(2)
     fcs3 = fcs.get_fc_array(3)
@@ -356,8 +361,6 @@ def gruneisen(
         bulk_mod: float, # in GPa
         vol: float # in A^3
 ) -> Tuple[List,List]:
-
-    from phono3py.phonon3.gruneisen import Gruneisen
     
     gruneisen = Gruneisen(fcs2,fcs3,phonopy.supercell,phonopy.primitive)
     gruneisen.set_sampling_mesh(mesh,is_gamma_center=True)
