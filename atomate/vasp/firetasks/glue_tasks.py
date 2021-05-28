@@ -17,7 +17,7 @@ import gzip
 import os
 import re
 
-from pymatgen import MPRester
+from pymatgen.ext.matproj import MPRester
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.core.structure import Structure
 
