@@ -169,7 +169,7 @@ def fit_force_constants(
         "heat_capacity": [],
         "fit_method": fit_method,
         "imaginary_tol": imaginary_tol,
-        "max_n_imaginary": max_n_imaginary,
+#        "max_n_imaginary": max_n_imaginary,
         "max_imaginary_freq": max_imaginary_freq,
     }
 
@@ -177,6 +177,7 @@ def fit_force_constants(
         "n_imaginary": np.inf,
         "rmse_test": np.inf,
         "force_constants": None,
+        "parameters":None,
         "cutoffs": None,
     }
     n_cutoffs = len(all_cutoffs)
