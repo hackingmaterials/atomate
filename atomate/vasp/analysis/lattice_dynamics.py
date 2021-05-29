@@ -34,7 +34,7 @@ T_QHA = [i*100 for i in range(16)]
 T_RENORM = [i*100 for i in range(0,16)]
 T_KLAT = [i*100 for i in range(0,16)]
 
-FIT_METHOD = "least-squares"
+FIT_METHOD = "rfe" #"least-squares"
 eV2J = 1.602e-19
 
 def get_cutoffs(supercell_structure: Structure):

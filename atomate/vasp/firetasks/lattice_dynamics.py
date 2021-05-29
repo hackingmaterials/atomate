@@ -39,7 +39,7 @@ from pymatgen.transformations.standard_transformations import (
 try:
     import hiphive
     from hiphive.utilities import get_displacements
-    from hiphive import Renormalization
+    from hiphive.renormalization import Renormalization
 except ImportError:
     hiphive = False
 
