@@ -18,6 +18,7 @@ from atomate.vasp.analysis.lattice_dynamics import (
     MAX_N_IMAGINARY,
     T_QHA,
     T_RENORM,
+    T_KLAT,
     fit_force_constants,
     get_cutoffs,
 )
