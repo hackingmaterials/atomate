@@ -111,7 +111,7 @@ class LatticeThermalConductivityFW(Firework):
         prev_calc_dir: Optional[str] = None,
         db_file: str = None,
         shengbte_cmd: str = SHENGBTE_CMD,
-        temperature: Union[float, dict] = DEFAULT_TEMPERATURE,
+        temperature: Union[float, dict] = T_KLAT,
         shengbte_control_kwargs: Optional[dict] = None,
         **kwargs
     ):
