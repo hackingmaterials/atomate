@@ -108,7 +108,7 @@ def fit_force_constants(
     structures: List["Atoms"],
     all_cutoffs: List[List[float]],
     imaginary_tol: float = IMAGINARY_TOL,
-    max_n_imaginary: int = MAX_N_IMAGINARY,
+#    max_n_imaginary: int = MAX_N_IMAGINARY,
     max_imaginary_freq: float = MAX_IMAGINARY_FREQ,
     fit_method: str = FIT_METHOD,
     n_jobs: int = -1,
@@ -189,7 +189,7 @@ def fit_force_constants(
 
     for result in cutoff_results:
         if result is None:
-            pass
+            continue
 
         fitting_data["cutoffs"].append(result["cutoffs"])
         fitting_data["rmse_test"].append(result["rmse_test"])
@@ -201,17 +201,17 @@ def fit_force_constants(
         fitting_data["heat_capcity"].append(result["heat_capacity"])
 
         if (
-            result["min_frequency"] > -np.abs(max_imaginary_freq)
+            result["rmse_test"] < best_fit["rmse_test"]
+#            and result["min_frequency"] > -np.abs(max_imaginary_freq)
 #            and result["n_imaginary"] <= max_n_imaginary
 #            and result["n_imaginary"] < best_fit["n_imaginary"]
-            and result["rmse_test"] < best_fit["rmse_test"]
         ):
             best_fit.update(result)
             fitting_data["best"] = result["cutoffs"]
 
     logger.info("Finished fitting force constants.")
 
-    return best_fit["force_constants"], fitting_data
+    return best_fit["force_constants"], best_fit["parameters"], best_fit["cluster_space"], fitting_data
 
 
 def _run_cutoffs(
@@ -262,7 +262,9 @@ def _run_cutoffs(
             "entropy": entropy,
             "heat_capacity": Cv,
             "thermal_expansion": cte,
-            "force_constants": fcp
+            "cluster_space": sc.cluster_space,
+            "parameters": parameters,
+            "force_constants": fcs
         }
     except Exception:
         return None
@@ -351,6 +353,52 @@ def evaluate_force_constants(
         dLfrac = np.zeros((len(T),3))
         
     return n_imaginary, min_frequency, free_energy, entropy, Cv, grun, cte, dLfrac
+
+
+def get_total_grun(
+        omega: np.ndarray,
+        grun: np.ndarray,
+        kweight: np.ndarray,
+        T: float
+) -> np.ndarray:
+    total = 0
+    weight = 0
+    nptk = omega.shape[0]
+    nbands = omega.shape[1]
+    omega = abs(omega)*1e12*2*np.pi
+    if T==0:
+        total = np.zeros((3,3))
+        grun_total_diag = np.zeros(3)
+    else:
+        for i in range(nptk):
+            for j in range(nbands):
+                x = hbar*omega[i,j]/(2.0*kB*T)
+                dBE = (x/np.sinh(x))**2
+                weight += dBE*kweight[i]
+                total += dBE*kweight[i]*grun[i,j]
+        total = total/weight
+        grun_total_diag = np.array([total[0,2],total[1,1],total[2,0]])
+
+        def percent_diff(a,b):
+            return abs((a-b)/b)
+        # This process preserves cell symmetry upon thermal expansion, i.e., it prevents
+        # symmetry-identical directions from inadvertently expanding by different ratios
+        # when the Gruneisen routine returns slighlty different ratios for those directions
+        if percent_diff(grun_total_diag[0],grun_total_diag[1]) < 0.1:
+            avg = np.mean((grun_total_diag[0],grun_total_diag[1]))
+            grun_total_diag[0] = avg
+            grun_total_diag[1] = avg
+        elif percent_diff(grun_total_diag[0],grun_total_diag[2]) < 0.1:
+            avg = np.mean((grun_total_diag[0],grun_total_diag[2]))
+            grun_total_diag[0] = avg
+            grun_total_diag[2] = avg
+        elif percent_diff(grun_total_diag[1],grun_total_diag[2]) < 0.1:
+            avg = np.mean((grun_total_diag[1],grun_total_diag[2]))
+            grun_total_diag[1] = avg
+            grun_total_diag[2] = avg
+        else:
+            pass
+    return grun_total_diag
 
 
 def gruneisen(
