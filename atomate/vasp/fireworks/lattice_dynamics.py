@@ -163,7 +163,7 @@ class RenormalizationFW(Firework):
         name="Renormalization",
         prev_calc_dir: Optional[str] = None,
         db_file: str = None,
-        temperature: Union[float, dict] = DEFAULT_TEMPERATURE,
+        temperature: Union[float, dict] = T_RENORM,
         shengbte_control_kwargs: Optional[dict] = None,
         **kwargs
     ):    
