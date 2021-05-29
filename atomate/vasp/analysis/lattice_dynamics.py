@@ -35,8 +35,10 @@ logger = get_logger(__name__)
 MAX_IMAGINARY_FREQ = 10  # in THz
 IMAGINARY_TOL = 0.025  # in THz
 MAX_N_IMAGINARY = np.inf
+
 T_QHA = [i*100 for i in range(16)]
-T_RENORM = [i*100 for i in range(0,16,3)]
+T_RENORM = [i*100 for i in range(0,16)]
+T_KLAT = [i*100 for i in range(0,16)]
 
 FIT_METHOD = "least-squares"
 eV2J = 1.602e-19

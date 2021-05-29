@@ -11,11 +11,11 @@ from atomate.vasp.analysis.lattice_dynamics import (
     MAX_IMAGINARY_FREQ,
     MAX_N_IMAGINARY,
     T_QHA,
-    T_RENORM
+    T_RENORM,
+    T_KLAT
 )
 from atomate.vasp.config import SHENGBTE_CMD
 from atomate.vasp.firetasks.lattice_dynamics import (
-    DEFAULT_TEMPERATURE,
     CollectPerturbedStructures,
     ForceConstantsToDb,
     RunHiPhive,
@@ -168,17 +168,17 @@ class RenormalizationFW(Firework):
         **kwargs
     ):    
     
-    # files needed to run renormalization
-    files = ["cluster_space.cs","parameters","force_constants.fcs"]
-    
-    if prev_calc_dir:
-        copy_files = CopyFiles(from_dir=prev_calc_dir, files_to_copy=files)
-    else:
-        copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
-
-    fit_renorm_constants = RunHiPhiveRenorm(
-        cs=cluster_space.cs,
-        param=parameters,
-        fcs=force_constants.fcs,
-        T_renorm=T_renorm,
-    )        
+        # files needed to run renormalization
+        files = ["cluster_space.cs","parameters","force_constants.fcs"]
+        
+        if prev_calc_dir:
+            copy_files = CopyFiles(from_dir=prev_calc_dir, files_to_copy=files)
+        else:
+            copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
+            
+            fit_renorm_constants = RunHiPhiveRenorm(
+                cs=cluster_space.cs,
+                param=parameters,
+                fcs=force_constants.fcs,
+                T_renorm=T_renorm,
+            )        
