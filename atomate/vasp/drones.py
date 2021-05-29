@@ -575,6 +575,7 @@ class VaspDrone(AbstractDrone):
 
         # perform Bader analysis using Henkelman bader
         if self.parse_bader and "chgcar" in d["output_file_paths"]:
+            print(self.parse_bader)
             suffix = "" if taskname == "standard" else f".{taskname}"
             bader = bader_analysis_from_path(dir_name, suffix=suffix)
             d["bader"] = bader

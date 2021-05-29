@@ -144,9 +144,8 @@ class RunHiPhive(FiretaskBase):
 
     @requires(hiphive, "hiphive is required for lattice dynamics workflow")
     def run_task(self, fw_spec):
-        from hiphive.utilities import get_displacements
 
-        max_n_imaginary = self.get("max_n_imaginary", MAX_N_IMAGINARY)
+#        max_n_imaginary = self.get("max_n_imaginary", MAX_N_IMAGINARY)
         max_imaginary_freq = self.get("max_imaginary_freq", MAX_IMAGINARY_FREQ)
         imaginary_tol = self.get("imaginary_tol", IMAGINARY_TOL)
         fit_method = self.get("fit_method", FIT_METHOD)
@@ -169,36 +168,42 @@ class RunHiPhive(FiretaskBase):
             structures.append(atoms)
 
         cutoffs = self.get("cutoffs") or get_cutoffs(supercell_structure)
-        force_constants, fitting_data = fit_force_constants(
+        fcs, param, cs, fitting_data = fit_force_constants(
             parent_structure,
             supercell_matrix,
             structures,
             cutoffs,
             imaginary_tol,
-            max_n_imaginary,
+#            max_n_imaginary,
             max_imaginary_freq,
             fit_method,
         )
 
         dumpfn(fitting_data, "fitting_data.json")
 
-        if force_constants is None:
-            # fitting failed
-            raise RuntimeError(
-                "Could not find a force constant solution with less than {} "
-                "imaginary modes.\n"
-                "Fitting results: {}".format(max_n_imaginary, fitting_data)
-            )
+#        if force_constants is None:
+#            # fitting failed
+#            raise RuntimeError(
+#                "Could not find a force constant solution with less than {} "
+#                "imaginary modes.\n"
+#                "Fitting results: {}".format(max_n_imaginary, fitting_data)
+#            )
 
-        else:
-            logger.info("Writing force constants.")
-            force_constants.write("force_constants.fcs")
+        logger.info("Writing cluster space and force_constants")
+        fcs.write("force_constants.fcs")
+        np.savetxt('parameters',parameters)
+        cs.write('cluster_space.cs')
 
+        if fitting_data["n_imaginary"] == 0:
             atoms = AseAtomsAdaptor.get_atoms(parent_structure)
-            force_constants.write_to_shengBTE("FORCE_CONSTANTS_3RD", atoms)
-            force_constants.write_to_phonopy(
-                "FORCE_CONSTANTS_2ND", format="text"
-            )
+            fcs.write_to_shengBTE("FORCE_CONSTANTS_3RD", atoms)
+            fcs.write_to_phonopy("FORCE_CONSTANTS_2ND", format="text")
+        elif fitting_data["n_imaginary"] > 0 and renormalization:
+            logger.info("Imaginary modes exist!")
+            logger.info("Performing phonon renormalization at temperatures {}".format(T_renorm))
+            renorm = Renormalization(cs,fcs,param,T)
+        else:
+            logger.info("Imaginary modes exist! ShengBTE files not written. Not performing renormalization.")
 
 
 
@@ -215,8 +220,6 @@ class RunHiPhiveRenorm(FiretaskBase):
         cs (hiphive.ClusterSpace): A list of cutoffs to trial. If None,
             a set of trial cutoffs will be generated based on the structure
             (default).
-        supercell (ase.Atoms): Tolerance used to decide if a phonon mode
-            is imaginary, in THz.
         fcs (hiphive.ForceConstants): Maximum number of imaginary modes allowed in the
             the final fitted force constant solution. If this criteria is not
             reached by any cutoff combination this FireTask will fizzle.
@@ -225,12 +228,11 @@ class RunHiPhiveRenorm(FiretaskBase):
         T_renorm (List): list of temperatures to perform renormalization - default is T_RENORM
     """
 
-    required_params = ["cs","supercell","fcs","param"]
+    required_params = ["cs","fcs","param"]
     optional_params = ["T_renorm"]
 
     @requires(hiphive, "hiphive is required for lattice dynamics workflow")
     def run_task(self, fw_spec):
-        from hiphive.utilities import get_displacements
 
         max_n_imaginary = self.get("max_n_imaginary", MAX_N_IMAGINARY)
         max_imaginary_freq = self.get("max_imaginary_freq", MAX_IMAGINARY_FREQ)

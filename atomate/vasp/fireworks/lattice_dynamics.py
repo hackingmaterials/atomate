@@ -10,6 +10,8 @@ from atomate.vasp.analysis.lattice_dynamics import (
     IMAGINARY_TOL,
     MAX_IMAGINARY_FREQ,
     MAX_N_IMAGINARY,
+    T_QHA,
+    T_RENORM
 )
 from atomate.vasp.config import SHENGBTE_CMD
 from atomate.vasp.firetasks.lattice_dynamics import (
@@ -22,8 +24,8 @@ from atomate.vasp.firetasks.lattice_dynamics import (
     MESH_DENSITY)
 from fireworks import Firework
 
-__author__ = "Alex Ganose"
-__email__ = "aganose@lbl.gov"
+__author__ = "Alex Ganose, Junsoo Park"
+__email__ = "aganose@lbl.gov, jsyony37@lbl.gov"
 
 
 class FitForceConstantsFW(Firework):
@@ -148,8 +150,6 @@ class RenormalizationFW(Firework):
             information. Will override ``parents`` when collecting the force
             constants to run ShengBTE.
         db_file: Path to a db file.
-        shengbte_cmd: The name of the shengbte executable to run. Supports
-            env_chk.
         temperature: The temperature to perform phonon renormalization at
             Can be given as a single float, or a dictionary with the keys 
             "min", "max", "step".
@@ -163,28 +163,22 @@ class RenormalizationFW(Firework):
         name="Renormalization",
         prev_calc_dir: Optional[str] = None,
         db_file: str = None,
-        shengbte_cmd: str = SHENGBTE_CMD,
         temperature: Union[float, dict] = DEFAULT_TEMPERATURE,
         shengbte_control_kwargs: Optional[dict] = None,
         **kwargs
     ):    
     
-    # files needed to run ShengBTE                                                                                                                                                                      
-    files = [
-        "structure_data.json",
-        "FORCE_CONSTANTS_2ND",
-        "FORCE_CONSTANTS_3RD",
-    ]
+    # files needed to run renormalization
+    files = ["cluster_space.cs","parameters","force_constants.fcs"]
     
     if prev_calc_dir:
         copy_files = CopyFiles(from_dir=prev_calc_dir, files_to_copy=files)
     else:
         copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
 
-    fit_constants = RunHiPhiveRenorm(
-        cutoffs=cutoffs,
-        imaginary_tol=imaginary_tol,
-        max_n_imaginary=max_n_imaginary,
-        max_imaginary_freq=max_imaginary_freq,
-        fit_method=fit_method,
+    fit_renorm_constants = RunHiPhiveRenorm(
+        cs=cluster_space.cs,
+        param=parameters,
+        fcs=force_constants.fcs,
+        T_renorm=T_renorm,
     )        
