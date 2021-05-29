@@ -177,7 +177,12 @@ def fit_force_constants(
 
     best_fit = {
         "n_imaginary": np.inf,
+<<<<<<< HEAD
         "free_energy": np.inf,
+=======
+        "rmse_test": np.inf,
+        "cluster_space": None,
+>>>>>>> cd00c732 (cluster_space to best_fit)
         "force_constants": None,
         "parameters":None,
         "cutoffs": None,
