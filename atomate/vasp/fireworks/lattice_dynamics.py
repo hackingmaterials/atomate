@@ -69,6 +69,7 @@ class FitForceConstantsFW(Firework):
         **kwargs
     ):
         collect_structures = CollectPerturbedStructures()
+        logger.info("INPUT CUTOFF \n {}".format(cutoffs))
         fit_constants = RunHiPhive(
             cutoffs=cutoffs,
             imaginary_tol=imaginary_tol,

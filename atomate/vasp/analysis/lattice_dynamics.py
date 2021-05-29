@@ -115,7 +115,7 @@ def fit_force_constants(
     fit_method: str = FIT_METHOD,
     n_jobs: int = -1,
     fit_kwargs: Optional[Dict] = None
-) -> Tuple["SortedForceConstants", Dict]:
+) -> Tuple["SortedForceConstants", np.ndarray, ClusterSpace, Dict]:
     """
     Fit force constants using hiphive and select the optimum cutoff values.
 
@@ -153,8 +153,8 @@ def fit_force_constants(
 
     Returns:
         A tuple of the best fitted force constants as a hiphive
-        ``SortedForceConstants`` object and a dictionary of information on the
-        fitting process.
+        ``SortedForceConstants`` object, array of parameters, cluster space,
+        and a dictionary of information on the fitting results.
     """
     logger.info("Starting force constant fitting.")
 
@@ -183,14 +183,17 @@ def fit_force_constants(
     }
     n_cutoffs = len(all_cutoffs)
 
-    fit_kwargs = fit_kwargs if fit_kwargs else {}
-    if fit_method == "rfe" and n_jobs == -1:
-        fit_kwargs["n_jobs"] = 1
+#    fit_kwargs = fit_kwargs if fit_kwargs else {}
+#    if fit_method == "rfe" and n_jobs == -1:
+#        fit_kwargs["n_jobs"] = 1
 
+    logger.info('cutoff_results')
     cutoff_results = Parallel(n_jobs=-1, backend="multiprocessing")(delayed(_run_cutoffs)(
         i, cutoffs, n_cutoffs, parent_structure, structures, supercell_matrix,
         fit_method, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
 
+    logger.info(cutoff_results)
+    
     for result in cutoff_results:
         if result is None:
             continue
@@ -243,19 +246,24 @@ def _run_cutoffs(
 
     try:
         sc = get_structure_container(cutoffs, structures)
+        logger.info('{}, {}: FINE UNTIL SC'.format(i,cutoffs))
         opt = Optimizer(sc.get_fit_data(), fit_method, **fit_kwargs)
+        logger.info('{}, {}: FINE UNTIL OPT'.format(i,cutoffs))
         opt.train()
+        logger.info('{}, {}: FINE UNTIL TRAIN'.format(i,cutoffs))
 
         parameters = enforce_rotational_sum_rules(
             sc.cluster_space, opt.parameters, ["Huang", "Born-Huang"]
         )
+        logger.info('{}, {}: FINE UNTIL SUM RULE'.format(i,cutoffs))
         fcp = ForceConstantPotential(sc.cluster_space, parameters)
+        logger.info('{}, {}: FINE UNTIL FCP'.format(i,cutoffs))
         fcs = fcp.get_force_constants(supercell_atoms)
-
-#        phonopy_fcs = fcs.get_fc_array(order=2)
+        logger.info('{}, {}: FINE UNTIL FCS'.format(i,cutoffs))
         n_imaginary, min_freq, free_energy, entropy, Cv, grun, cte, dLfrac = evaluate_force_constants(
             parent_structure, supercell_matrix, fcs, T_QHA, imaginary_tol
         )
+        logger.info('evaluate_force_constants success!')
         return {
             "cutoffs": cutoffs,
             "rmse_test": opt.rmse_test,

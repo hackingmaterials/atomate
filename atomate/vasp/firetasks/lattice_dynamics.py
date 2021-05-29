@@ -20,7 +20,7 @@ from atomate.vasp.analysis.lattice_dynamics import (
     T_RENORM,
     T_KLAT,
     fit_force_constants,
-    get_cutoffs,
+    get_cutoffs
 )
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import VaspDrone
@@ -157,6 +157,7 @@ class RunHiPhive(FiretaskBase):
         parent_structure = structure_data["structure"]
         supercell_matrix = structure_data["supercell_matrix"]
         supercell_structure = structure_data["supercell_structure"]
+        cutoffs = self.get("cutoffs") or get_cutoffs(supercell_structure)
 
         structures = []
         supercell_atoms = AseAtomsAdaptor.get_atoms(supercell_structure)
@@ -168,7 +169,13 @@ class RunHiPhive(FiretaskBase):
             atoms.positions = supercell_atoms.get_positions()
             structures.append(atoms)
 
-        cutoffs = self.get("cutoffs") or get_cutoffs(supercell_structure)
+        logger.info(parent_structure)
+        logger.info(supercell_structure)
+        logger.info(fit_method)
+        from_get_cutoffs = get_cutoffs(supercell_structure)
+        logger.info('SELF.GET_CUTOFFS \n {}'.format(self.get("cutoffs")))
+        logger.info('FROM GET_CUTOFFS \n {}'.format(from_get_cutoffs))
+        logger.info('FINAL INPUT CUTOFFS \n {}'.format(cutoffs))
         fcs, param, cs, fitting_data = fit_force_constants(
             parent_structure,
             supercell_matrix,
@@ -177,7 +184,7 @@ class RunHiPhive(FiretaskBase):
             imaginary_tol,
 #            max_n_imaginary,
             max_imaginary_freq,
-            fit_method,
+            fit_method
         )
 
         dumpfn(fitting_data, "fitting_data.json")
@@ -191,20 +198,18 @@ class RunHiPhive(FiretaskBase):
 #            )
 
         logger.info("Writing cluster space and force_constants")
+        logger.info("{}".format(type(fcs)))
         fcs.write("force_constants.fcs")
-        np.savetxt('parameters',parameters)
+        np.savetxt('parameters.txt',parameters)
         cs.write('cluster_space.cs')
 
         if fitting_data["n_imaginary"] == 0:
+            logger.info("No imaginary modes! Writing ShengBTE files")
             atoms = AseAtomsAdaptor.get_atoms(parent_structure)
             fcs.write_to_shengBTE("FORCE_CONSTANTS_3RD", atoms)
             fcs.write_to_phonopy("FORCE_CONSTANTS_2ND", format="text")
-        elif fitting_data["n_imaginary"] > 0 and renormalization:
-            logger.info("Imaginary modes exist!")
-            logger.info("Performing phonon renormalization at temperatures {}".format(T_renorm))
-            renorm = Renormalization(cs,fcs,param,T)
-        else:
-            logger.info("Imaginary modes exist! ShengBTE files not written. Not performing renormalization.")
+        elif fitting_data["n_imaginary"] > 0:
+            logger.info("Imaginary modes exist! ShengBTE files not written. You may want to perform phonon renormalization.")
 
 
 
@@ -238,7 +243,7 @@ class RunHiPhiveRenorm(FiretaskBase):
         max_n_imaginary = self.get("max_n_imaginary", MAX_N_IMAGINARY)
         max_imaginary_freq = self.get("max_imaginary_freq", MAX_IMAGINARY_FREQ)
         imaginary_tol = self.get("imaginary_tol", IMAGINARY_TOL)
-        fit_method = self.get("T_renorm", T_RENORM)
+        T_renorm = self.get("T_renorm", T_RENORM)
 
         all_structures = loadfn("perturbed_structures.json")
         all_forces = loadfn("perturbed_forces.json")
@@ -264,7 +269,7 @@ class RunHiPhiveRenorm(FiretaskBase):
             structures,
             cutoffs,
             imaginary_tol,
-            max_n_imaginary,
+#            max_n_imaginary,
             max_imaginary_freq,
             fit_method,
         )

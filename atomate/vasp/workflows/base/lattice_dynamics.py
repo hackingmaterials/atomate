@@ -156,6 +156,8 @@ def get_lattice_dynamics_wf(
     )
     wf.append_wf(Workflow.from_Firework(fw_fit_force_constant), wf.leaf_fw_ids)
 
+    # RenormalizeFW(pass_inputs like bulk modulus)
+    
     # 3. Lattice thermal conductivity calculation (optional)
     if calculate_lattice_thermal_conductivity:
         fw_lattice_conductivity = LatticeThermalConductivityFW(
