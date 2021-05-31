@@ -15,7 +15,7 @@ from atomate.vasp.analysis.lattice_dynamics import (
     FIT_METHOD,
     IMAGINARY_TOL,
     MAX_IMAGINARY_FREQ,
-    MAX_N_IMAGINARY,
+#    MAX_N_IMAGINARY,
     T_QHA,
     T_RENORM,
     T_KLAT,
@@ -41,6 +41,7 @@ try:
     from hiphive.utilities import get_displacements
     from hiphive.renormalization import Renormalization
 except ImportError:
+    logger.info('Could not import hiphive!')
     hiphive = False
 
 
@@ -169,8 +170,8 @@ class RunHiPhive(FiretaskBase):
             atoms.positions = supercell_atoms.get_positions()
             structures.append(atoms)
 
-        logger.info(parent_structure)
-        logger.info(supercell_structure)
+        logger.info('PARENT \n {}'.format(parent_structure))
+        logger.info('SUPERCELL \n {}'.format(supercell_structure))
         logger.info(fit_method)
         from_get_cutoffs = get_cutoffs(supercell_structure)
         logger.info('SELF.GET_CUTOFFS \n {}'.format(self.get("cutoffs")))

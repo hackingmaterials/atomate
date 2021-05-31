@@ -34,7 +34,7 @@ logger = get_logger(__name__)
 
 MAX_IMAGINARY_FREQ = 10  # in THz
 IMAGINARY_TOL = 0.025  # in THz
-MAX_N_IMAGINARY = np.inf
+#MAX_N_IMAGINARY = np.inf
 
 T_QHA = [i*100 for i in range(16)]
 T_RENORM = [i*100 for i in range(0,16)]
@@ -100,7 +100,17 @@ def get_cutoffs(structure: Structure):
     range_three = np.arange(mins[3], mins[3] + inc[3] + steps[3], steps[3])
     range_four = np.arange(mins[4], mins[4] + inc[4] + steps[4], steps[4])
 
+<<<<<<< HEAD
     return list(map(list, product(range_two, range_three, range_four)))
+=======
+    cutoffs = np.array(list(map(list, product(range_two, range_three, range_four))))
+    logger.info('CUTOFFS \n {}'.format(cutoffs))
+    max_cutoff = estimate_maximum_cutoff(AseAtomsAdaptor.get_atoms(supercell_structure))
+    logger.info('MAX_CUTOFF \n {}'.format(max_cutoff))    
+    good_cutoffs = np.all(cutoffs < np.around(max_cutoff, 4) - 0.0001, axis=1)
+    logger.info('GOOD CUTOFFS \n {}'.format(good_cutoffs))
+    return cutoffs[good_cutoffs].tolist()
+>>>>>>> c094a175 (cutoff vs cell_size)
 
 
 def fit_force_constants(

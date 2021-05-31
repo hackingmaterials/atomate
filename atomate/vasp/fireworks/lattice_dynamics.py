@@ -75,7 +75,7 @@ class FitForceConstantsFW(Firework):
             imaginary_tol=imaginary_tol,
             max_n_imaginary=max_n_imaginary,
             max_imaginary_freq=max_imaginary_freq,
-            fit_method=fit_method,
+            fit_method=fit_method
         )
         to_db = ForceConstantsToDb(
             db_file=db_file, mesh_density=mesh_density, additional_fields={}
@@ -170,16 +170,27 @@ class RenormalizationFW(Firework):
     ):    
     
         # files needed to run renormalization
-        files = ["cluster_space.cs","parameters","force_constants.fcs"]
+        files = ["cluster_space.cs","parameters.txt","force_constants.fcs"]
         
         if prev_calc_dir:
             copy_files = CopyFiles(from_dir=prev_calc_dir, files_to_copy=files)
         else:
             copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
-            
-            fit_renorm_constants = RunHiPhiveRenorm(
-                cs=cluster_space.cs,
-                param=parameters,
-                fcs=force_constants.fcs,
-                T_renorm=T_renorm,
-            )        
+
+        cs = ClusterSpace.read('cluster_space.cs')
+        fcs = ForceConstants.read('force_constants.fcs')
+        param = np.loadtxt('parameters.txt')
+        renorm_force_constants = RunHiPhiveRenorm(
+            cs=cluster_space.cs,
+            param=parameters,
+            fcs=force_constants.fcs,
+            T_renorm=T_renorm
+        )        
+
+        to_db = ForceConstantsToDb(
+            db_file=db_file, mesh_density=mesh_density, additional_fields={}
+	)
+        pass_locs = PassCalcLocs(name=name)
+
+	tasks = [collect_structures, renorm_force_constants, to_db, pass_locs]
+        super().__init__(tasks, name=name, **kwargs)
