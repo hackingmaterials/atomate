@@ -228,7 +228,7 @@ def get_perturbed_structure_wf(
     }
 
     if supercell_matrix is None:
-        supercell_matrix = np.eye(3)
+        supercell_matrix = np.eye(4)
 
     supercell_matrix = np.asarray(supercell_matrix).tolist()
     natoms = len(structure * supercell_matrix)
