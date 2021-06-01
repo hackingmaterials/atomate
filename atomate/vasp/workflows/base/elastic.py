@@ -39,22 +39,22 @@ def get_wf_elastic_constant(
     """
     Returns a workflow to calculate elastic constants.
 
-    Firework 1 : write vasp input set for structural relaxation,
-                 run vasp,
-                 pass run location,
-                 database insertion.
+    Firework 1: write vasp input set for structural relaxation,
+                run vasp,
+                pass run location,
+                database insertion.
 
-    Firework 2 - number of total deformations: Static runs on the deformed structures
+    Firework 2 - number of total deformations: static runs on the deformed structures
 
-    last Firework : Analyze Stress/Strain data and fit the elastic tensor
+    last Firework: analyze stress/strain data and fit the elastic tensor
 
     Args:
         structure (Structure): input structure to be optimized and run.
         strain_states (list of Voigt-notation strains): list of ratios of nonzero elements
-            of Voigt-notation strain, e. g. [(1, 0, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0), etc.].
+            of Voigt-notation strain, e.g. [(1, 0, 0, 0, 0, 0), (0, 1, 0, 0, 0, 0), etc.].
         stencils (list of floats, or list of list of floats): values of strain to multiply
-            by for each strain state, i. e. stencil for the perturbation along the strain
-            state direction, e. g. [-0.01, -0.005, 0.005, 0.01].  If a list of lists,
+            by for each strain state, i.e. stencil for the perturbation along the strain
+            state direction, e.g. [-0.01, -0.005, 0.005, 0.01].  If a list of lists,
             stencils must correspond to each strain state provided.
         db_file (str): path to file containing the database credentials.
         conventional (bool): flag to convert input structure to conventional structure,
@@ -65,12 +65,12 @@ def get_wf_elastic_constant(
             set with ionic relaxation parameters set.  Take care if replacing this,
             default ensures that ionic relaxation is done and that stress is calculated
             for each vasp run.
-        analysis (bool): flag to indicate whether analysis task should be added
-            and stresses and strains passed to that task
-        sym_reduce (bool): Whether or not to apply symmetry reductions
-        tag (str):
+        analysis (bool): flag to indicate whether analysis task should be added and
+            stresses and strains passed to that task.
+        sym_reduce (bool): whether or not to apply symmetry reductions.
+        tag (str): tag for the fireworks.
         copy_vasp_outputs (bool): whether or not to copy previous vasp outputs.
-        kwargs (keyword arguments): additional kwargs to be passed to get_wf_deformations
+        kwargs (keyword arguments): additional kwargs to be passed to get_wf_deformations.
 
     Returns:
         Workflow
@@ -79,7 +79,7 @@ def get_wf_elastic_constant(
     if conventional:
         structure = SpacegroupAnalyzer(structure).get_conventional_standard_structure()
 
-    uis_elastic = {"IBRION": 2, "NSW": 99, "ISIF": 2, "ISTART": 1, "PREC": "High"}
+    uis_elastic = {"IBRION": 2, "NSW": 99, "ISIF": 2, "ISTART": 1}
     vis = vasp_input_set or MPStaticSet(structure, user_incar_settings=uis_elastic)
     strains = []
     if strain_states is None:
@@ -183,7 +183,8 @@ def get_default_strain_states(order=2):
             )
             if order > 4:
                 raise ValueError(
-                    "Standard deformations for tensors higher than rank 4 not yet determined"
+                    "Standard deformations for tensors higher than rank 4 not yet "
+                    "determined."
                 )
     strain_states = np.zeros((len(inds), 6))
     for n, i in enumerate(inds):
