@@ -55,13 +55,13 @@ def get_cutoffs(structure: Structure):
     ------ -----------
     Period 2ND 3RD 4TH
     ====== === === ===
-     1     5.5 3.0 3.0
-     2     5.5 3.0 3.0
-     3     6.5 4.0 3.5
-     4     7.5 5.0 4.0
-     5     8.5 6.0 4.5
-     6     9.5 7.0 5.0
-     7     9.5 7.0 5.0
+     1     5.0 3.0 2.0
+     2     5.5 3.5 2.5
+     3     6.0 4.0 3.0
+     4     6.5 4.5 3.0
+     5     7.0 5.0 3.5
+     6     8.0 5.5 4.0
+     7     9.0 6.0 4.5
     ====== === === ===
 
     The maximum cutoff for each order is determined by the minimum cutoff and
@@ -84,9 +84,9 @@ def get_cutoffs(structure: Structure):
     """
     # indexed as min_cutoffs[order][period]
     min_cutoffs = {
-        2: {1: 5.5, 2: 5.5, 3: 6.5, 4: 7.5, 5: 8.5, 6: 9.5, 7: 9.5},
-        3: {1: 3.0, 2: 3.0, 3: 4.0, 4: 5.0, 5: 6.0, 6: 7.0, 7: 7.0},
-        4: {1: 3.0, 2: 3.0, 3: 3.5, 4: 4.0, 5: 4.5, 6: 5.0, 7: 5.0},
+        2: {1: 5.0, 2: 5.5, 3: 6.0, 4: 6.5, 5: 7.0, 6: 8.0, 7: 9.0},
+        3: {1: 3.0, 2: 3.5, 3: 4.0, 4: 4.5, 5: 5.0, 6: 5.5, 7: 6.0},
+        4: {1: 2.0, 2: 2.5, 3: 3.0, 4: 3.0, 5: 3.5, 6: 4.0, 7: 4.5},
     }
     inc = {2: 3, 3: 1.5, 4: 1}
     steps = {2: 0.5, 3: 0.25, 4: 0.25}
@@ -104,11 +104,9 @@ def get_cutoffs(structure: Structure):
     return list(map(list, product(range_two, range_three, range_four)))
 =======
     cutoffs = np.array(list(map(list, product(range_two, range_three, range_four))))
-    logger.info('CUTOFFS \n {}'.format(cutoffs))
     max_cutoff = estimate_maximum_cutoff(AseAtomsAdaptor.get_atoms(supercell_structure))
     logger.info('MAX_CUTOFF \n {}'.format(max_cutoff))    
     good_cutoffs = np.all(cutoffs < np.around(max_cutoff, 4) - 0.0001, axis=1)
-    logger.info('GOOD CUTOFFS \n {}'.format(good_cutoffs))
     return cutoffs[good_cutoffs].tolist()
 >>>>>>> c094a175 (cutoff vs cell_size)
 
@@ -118,6 +116,7 @@ def fit_force_constants(
     supercell_matrix: np.ndarray,
     structures: List["Atoms"],
     all_cutoffs: List[List[float]],
+    bulk_modulus: float,
     imaginary_tol: float = IMAGINARY_TOL,
 #    max_n_imaginary: int = MAX_N_IMAGINARY,
     max_imaginary_freq: float = MAX_IMAGINARY_FREQ,
@@ -208,16 +207,15 @@ def fit_force_constants(
     for i, cutoffs in enumerate(all_cutoffs):
 =======
 
-#    fit_kwargs = fit_kwargs if fit_kwargs else {}
-#    if fit_method == "rfe" and n_jobs == -1:
-#        fit_kwargs["n_jobs"] = 1
+    fit_kwargs = fit_kwargs if fit_kwargs else {}
+    if fit_method == "rfe" and n_jobs == -1:
+        fit_kwargs["n_jobs"] = 1
 
-    logger.info('cutoff_results')
-    cutoff_results = Parallel(n_jobs=-1, backend="multiprocessing")(delayed(_run_cutoffs)(
-        i, cutoffs, n_cutoffs, parent_structure, structures, supercell_matrix,
+    cutoff_results = Parallel(n_jobs=5, backend="multiprocessing")(delayed(_run_cutoffs)(
+        i, cutoffs, n_cutoffs, parent_structure, structures, supercell_matrix, bulk_modulus,
         fit_method, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
 
-    logger.info(cutoff_results)
+    logger.info('CUTOFF RESULTS \n {}'.format(cutoff_results))
     
     for result in cutoff_results:
         if result is None:
@@ -253,6 +251,7 @@ def _run_cutoffs(
     parent_structure,
     structures,
     supercell_matrix,
+    bulk_modulus,
     fit_method,
     imaginary_tol,
     fit_kwargs
@@ -268,6 +267,7 @@ def _run_cutoffs(
         logger.info(
             "Testing cutoffs {} out of {}: {}".format(i, n_cutoffs, cutoffs)
         )
+<<<<<<< HEAD
         sc = get_structure_container(cutoffs, structures)
 <<<<<<< HEAD
         opt = Optimizer(sc.get_fit_data(), fit_method)
@@ -276,20 +276,32 @@ def _run_cutoffs(
         opt = Optimizer(sc.get_fit_data(), fit_method, **fit_kwargs)
         logger.info('{}, {}: FINE UNTIL OPT'.format(i,cutoffs))
 >>>>>>> fddd9681 (get_cutoffs)
+=======
+        return None
+
+    try:
+        sc, cs = get_structure_container(cutoffs, structures)
+        ncut = cs.n_dofs
+        logger.info('SC and CS generated for cutoff: {}, {}'.format(i,cutoffs))
+        opt = Optimizer(sc.get_fit_data(),
+                        fit_method,
+                        [0,ncut],
+                        **fit_kwargs)
+        logger.info('Optimizer set up for cutoff: {}, {}'.format(i,cutoffs))
+>>>>>>> 79348b89 (bulk_mod input)
         opt.train()
-        logger.info('{}, {}: FINE UNTIL TRAIN'.format(i,cutoffs))
+        logger.info('Training complete for cutoff: {}, {}'.format(i,cutoffs))
 
         parameters = enforce_rotational_sum_rules(
             sc.cluster_space, opt.parameters, ["Huang", "Born-Huang"]
         )
-        logger.info('{}, {}: FINE UNTIL SUM RULE'.format(i,cutoffs))
         fcp = ForceConstantPotential(sc.cluster_space, parameters)
-        logger.info('{}, {}: FINE UNTIL FCP'.format(i,cutoffs))
         fcs = fcp.get_force_constants(supercell_atoms)
-        logger.info('{}, {}: FINE UNTIL FCS'.format(i,cutoffs))
+        logger.info('FCS generated for cutoff {}, {}'.format(i,cutoffs))
         n_imaginary, min_freq, free_energy, entropy, Cv, grun, cte, dLfrac = evaluate_force_constants(
-            parent_structure, supercell_matrix, fcs, T_QHA, imaginary_tol
+            parent_structure, supercell_matrix, fcs, bulk_modulus, T_QHA, imaginary_tol
         )
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 
@@ -322,6 +334,9 @@ def _run_cutoffs(
 =======
         logger.info('evaluate_force_constants success!')
 >>>>>>> fddd9681 (get_cutoffs)
+=======
+        logger.info('evaluate_force_constants success: {}, {}'.format(i,cutoffs))
+>>>>>>> 79348b89 (bulk_mod input)
         return {
             "cutoffs": cutoffs,
             "rmse_test": opt.rmse_test,
@@ -356,7 +371,7 @@ def get_structure_container(
         A hiPhive StructureContainer.
     """
 
-    cs = ClusterSpace(structures[0], cutoffs)
+    cs = ClusterSpace(structures[0], cutoffs, symprec=1e-3, acoustic_sum_rules=True)
     logger.debug(cs.__repr__())
 
     sc = StructureContainer(cs)
@@ -364,13 +379,14 @@ def get_structure_container(
         sc.add_structure(structure)
     logger.debug(sc.__repr__())
 
-    return sc
+    return sc, cs
 
 
 def evaluate_force_constants(
     structure: Structure,
     supercell_matrix: np.ndarray,
-    force_constants: ForceConstants,
+    fcs: ForceConstants,
+    bulk_modulus: float,
     T: List,
     imaginary_tol: float = IMAGINARY_TOL
 ) -> Tuple[int, float, List, List, List]:
@@ -390,40 +406,54 @@ def evaluate_force_constants(
         frequency at Gamma, and the free energy, entropy, and heat capacity
     """
 
+    logger.info('EVALUATE FC STARTING')
     fcs2 = fcs.get_fc_array(2)
     fcs3 = fcs.get_fc_array(3)
     parent_phonopy = get_phonopy_structure(structure)
     phonopy = Phonopy(parent_phonopy, supercell_matrix=supercell_matrix)
     vol = phonopy.primitive.get_volume()
     natom = phonopy.primitive.get_number_of_atoms()
+    mesh = supercell_matrix.diagonal()*5
     
     phonopy.set_force_constants(fcs2)
-    phonopy.run_mesh(is_gamma_center=True)
+    logger.info('FCS2 SET')
+    phonopy.set_mesh(mesh,is_eigenvectors=True,is_mesh_symmetry=False) #run_mesh(is_gamma_center=True)
+    logger.info('MESH SET')
     phonopy.run_thermal_properties(temperatures=T)
+    logger.info('Thermal properties successfully run!')
 
-    free_energy = phonopy.get_thermal_properties_dict()["free_energy"]
+    _, free_energy, entropy, Cv = phonopy.get_thermal_properties()
     free_energy *= 1000/sp.constants.Avogadro/eV2J/natom # kJ/mol to eV/atom
-    entropy = phonopy.get_thermal_properties_dict()["entropy"]
     entropy *= 1/sp.constants.Avogadro/eV2J/natom # J/K/mol to eV/K/atom
-    Cv = phonopy.get_thermal_properties_dict()["heat_capacity"]
     Cv *= 1/sp.constants.Avogadro/eV2J/natom # J/K/mol to eV/K/atom
+    logger.info('Units converted!')
     
     freq = phonopy.mesh.frequencies # in THz
     # find imaginary modes at gamma
 #    phonopy.run_qpoints([0, 0, 0])
 #    gamma_eigs = phonopy.get_qpoints_dict()["frequencies"]
+    logger.info('FREQ \n {}:'.format(freq))
     n_imaginary = int(np.sum(freq < -np.abs(imaginary_tol)))
-    min_frequency = np.min(freq)
+    logger.info('N_IMAGINARY: {}'.format(n_imaginary))
+    min_freq = np.min(freq)
 
-    if n_imeginary > 0:
-        grun, cte = gruneisen(phonopy,fcs2,fcs3,mesh,T,Cv,bulk_mod,vol)
+    if n_imeginary > 0 and bulk_modulus is not None:
+        logger.info('No imaginary modes! Computing Gruneisen and thermal expansion.')
+        grun, cte = gruneisen(phonopy,fcs2,fcs3,mesh,T,Cv,bulk_modulus,vol)
         dLfrac = thermal_expansion(T,cte)
+    elif n_imeginary > 0 and bulk_modulus is None: # need bulk modulus input
+        logger.warning('No imaginary modes, but bulk modulus is not supplied!')
+        logger.warning('Gruneisen and thermal expansion are not calculated.')
+        grun = np.zeros((len(T),3))
+        cte = np.zeros((len(T),3))
+        dLfrac = np.zeros((len(T),3))
     else: # do not calculate these if imaginary modes exist
+        logger.warning('Imaginary modes found!')
         grun = np.zeros((len(T),3))
         cte = np.zeros((len(T),3))
         dLfrac = np.zeros((len(T),3))
         
-    return n_imaginary, min_frequency, free_energy, entropy, Cv, grun, cte, dLfrac
+    return n_imaginary, min_freq, free_energy, entropy, Cv, grun, cte, dLfrac
 
 
 def get_total_grun(

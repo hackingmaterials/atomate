@@ -156,8 +156,8 @@ class RunHiPhive(FiretaskBase):
         all_forces = loadfn("perturbed_forces.json")
         structure_data = loadfn("structure_data.json")
         parent_structure = structure_data["structure"]
-        supercell_matrix = structure_data["supercell_matrix"]
         supercell_structure = structure_data["supercell_structure"]
+        supercell_matrix = np.array(structure_data["supercell_matrix"])
         cutoffs = self.get("cutoffs") or get_cutoffs(supercell_structure)
 
         structures = []
@@ -172,7 +172,8 @@ class RunHiPhive(FiretaskBase):
 
         logger.info('PARENT \n {}'.format(parent_structure))
         logger.info('SUPERCELL \n {}'.format(supercell_structure))
-        logger.info(fit_method)
+        logger.info('SUPERCELL MATRIX \n {}'.format(supercell_matrix))
+        logger.info('FIT_METHOD {}'.format(fit_method))
         from_get_cutoffs = get_cutoffs(supercell_structure)
         logger.info('SELF.GET_CUTOFFS \n {}'.format(self.get("cutoffs")))
         logger.info('FROM GET_CUTOFFS \n {}'.format(from_get_cutoffs))
@@ -182,6 +183,7 @@ class RunHiPhive(FiretaskBase):
             supercell_matrix,
             structures,
             cutoffs,
+            bulk_modulus,
             imaginary_tol,
 #            max_n_imaginary,
             max_imaginary_freq,
@@ -269,6 +271,7 @@ class RunHiPhiveRenorm(FiretaskBase):
             supercell_matrix,
             structures,
             cutoffs,
+            bulk_modulus,
             imaginary_tol,
 #            max_n_imaginary,
             max_imaginary_freq,
