@@ -8,7 +8,7 @@ import numpy as np
 from atomate.utils.utils import get_logger
 from atomate.vasp.config import DB_FILE, SHENGBTE_CMD, VASP_CMD
 from atomate.vasp.firetasks import pass_vasp_result
-from atomate.vasp.firetasks.lattice_dynamics import DEFAULT_TEMPERATURE
+from atomate.vasp.firetasks.lattice_dynamics import T_KLAT
 from atomate.vasp.fireworks.core import TransmuterFW
 from atomate.vasp.fireworks.lattice_dynamics import (
     FitForceConstantsFW,
@@ -54,6 +54,7 @@ _WF_VERSION = 0.1
 
 def get_lattice_dynamics_wf(
     structure: Structure,
+    bulk_modulus: float = None
     common_settings: Dict = None,
     vasp_input_set: Optional[VaspInputSet] = None,
     copy_vasp_outputs: bool = False,
@@ -61,7 +62,7 @@ def get_lattice_dynamics_wf(
     num_supercell_kwargs: Optional[dict] = None,
     perturbed_structure_kwargs: Optional[dict] = None,
     calculate_lattice_thermal_conductivity: bool = False,
-    thermal_conductivity_temperature: Union[float, Dict] = DEFAULT_TEMPERATURE,
+    thermal_conductivity_temperature: Union[float, Dict] = T_Klat,
     shengbte_cmd: str = SHENGBTE_CMD,
     shengbte_fworker: Optional[str] = None,
 ):
@@ -122,11 +123,12 @@ def get_lattice_dynamics_wf(
     common_settings = _get_common_settings(common_settings)
     db_file = common_settings["DB_FILE"]
 
+
     if calculate_lattice_thermal_conductivity:
         if supercell_matrix_kwargs.get("force_diagonal", False):
             warnings.warn(
                 "Diagonal transformation required to calculate lattice thermal "
-                "conductivity using ShengBTE. Forcing diagonal matrix"
+                "conductivity using ShengBTE. Forcing diagonal matrix."
             )
         supercell_matrix_kwargs["force_diagonal"] = True
 
@@ -152,7 +154,7 @@ def get_lattice_dynamics_wf(
     # 2. Fit interatomic force constants from pertrubed structures
     allow_fizzled = {"_allow_fizzled_parents": True}
     fw_fit_force_constant = FitForceConstantsFW(
-        db_file=db_file, spec=allow_fizzled
+        db_file=db_file, spec=allow_fizzled, bulk_modulus=bulk_modulus
     )
     wf.append_wf(Workflow.from_Firework(fw_fit_force_constant), wf.leaf_fw_ids)
 
