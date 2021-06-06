@@ -303,7 +303,7 @@ def _run_cutoffs(
         sc = get_structure_container(cs, structures, separate_fit, ncut=n2nd, param2=None)
         opt = Optimizer(sc.get_fit_data(),
                         fit_method,
-                        [0,2nd],
+                        [0,n2nd],
                         **fit_kwargs)
 <<<<<<< HEAD
         logger.info('Optimizer set up for cutoff: {}, {}'.format(i,cutoffs))
@@ -317,7 +317,7 @@ def _run_cutoffs(
         sc = get_structure_container(cs, structures, separate_fit, ncut=n2nd, param2=param2)
         opt = Optimizer(sc.get_fit_data(),
                         fit_method,
-                        [2nd,nall],
+                        [n2nd,nall],
                         **fit_kwargs)
         opt.train()
         param_anharmonic = opt.parameters # anharmonic force constant parameters
