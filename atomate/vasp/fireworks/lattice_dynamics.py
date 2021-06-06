@@ -8,8 +8,6 @@ from atomate.common.firetasks.glue_tasks import (
 from atomate.vasp.analysis.lattice_dynamics import (
     FIT_METHOD,
     IMAGINARY_TOL,
-    MAX_IMAGINARY_FREQ,
-    MAX_N_IMAGINARY,
     T_QHA,
     T_RENORM,
     T_KLAT
@@ -46,12 +44,6 @@ class FitForceConstantsFW(Firework):
         bulk_modulus: Must be supplied (in GPa) to copute thermal expansion
         imaginary_tol: Tolerance used to decide if a phonon mode is
             imaginary, in THz.
-        max_n_imaginary: Maximum number of imaginary modes allowed in the
-            final fitted force constant solution. If this criteria is not
-            reached by any cutoff combination the Firework will fizzle.
-        max_imaginary_freq: Maximum allowed imaginary frequency in the
-            final fitted force constant solution. If this criteria is not
-            reached by any cutoff combination this FireTask will fizzle.
         fit_method: Method used for fitting force constants. This can be
             any of the values allowed by the hiphive ``Optimizer`` class.
         mesh_density: The density of the q-point mesh used to calculate the
@@ -69,8 +61,6 @@ class FitForceConstantsFW(Firework):
         separate_fit: bool = False,
         bulk_modulus: float = None,
         imaginary_tol: float = IMAGINARY_TOL,
-        max_n_imaginary: int = MAX_N_IMAGINARY,
-        max_imaginary_freq: float = MAX_IMAGINARY_FREQ,
         fit_method: str = FIT_METHOD,
         mesh_density: float = MESH_DENSITY,
         **kwargs
@@ -82,8 +72,6 @@ class FitForceConstantsFW(Firework):
             separate_fit=separate_fit,
             bulk_modulus=bulk_modulus,
             imaginary_tol=imaginary_tol,
-#            max_n_imaginary=max_n_imaginary,
-#            max_imaginary_freq=max_imaginary_freq,
             fit_method=fit_method
         )
         to_db = ForceConstantsToDb(
