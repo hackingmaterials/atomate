@@ -201,5 +201,5 @@ class RenormalizationFW(Firework):
 	)
         pass_locs = PassCalcLocs(name=name)
 
-	tasks = [renorm_force_constants, to_db, pass_locs]
+        tasks = [renorm_force_constants, to_db, pass_locs]
         super().__init__(tasks, name=name, **kwargs)
