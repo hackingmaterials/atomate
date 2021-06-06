@@ -67,7 +67,7 @@ class FitForceConstantsFW(Firework):
         db_file: str = None,
         cutoffs: Optional[List[List[float]]] = None,
         separate_fit: bool = False,
-        bulk_modulus:float = None,
+        bulk_modulus: float = None,
         imaginary_tol: float = IMAGINARY_TOL,
         max_n_imaginary: int = MAX_N_IMAGINARY,
         max_imaginary_freq: float = MAX_IMAGINARY_FREQ,
@@ -76,11 +76,10 @@ class FitForceConstantsFW(Firework):
         **kwargs
     ):
         collect_structures = CollectPerturbedStructures()
-        logger.info("INPUT CUTOFF \n {}".format(cutoffs))
         
         fit_force_constants = RunHiPhive(
             cutoffs=cutoffs,
-            separate_fit=separate_fit
+            separate_fit=separate_fit,
             bulk_modulus=bulk_modulus,
             imaginary_tol=imaginary_tol,
 #            max_n_imaginary=max_n_imaginary,

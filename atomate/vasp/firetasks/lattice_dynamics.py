@@ -205,7 +205,7 @@ class RunHiPhive(FiretaskBase):
         )
         anharmonic_data, phonopy = anharmonic_properties(
             phonopy, fcs, T_QHA, thermal_data["heat_capacity"],
-            thermal_data["n_imaginary"], bulk_modulus=bulk_modulus
+            thermal_data["n_imaginary"], bulk_modulus
         )
 
         fitting_data["n_imaginary"] = thermal_data.pop("n_imaginary")
