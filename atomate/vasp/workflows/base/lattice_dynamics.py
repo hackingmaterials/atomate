@@ -55,7 +55,7 @@ _WF_VERSION = 0.1
 
 def get_lattice_dynamics_wf(
     structure: Structure,
-    separate_fit: bool = False
+    separate_fit: bool = False,
     bulk_modulus: float = None,
     common_settings: Dict = None,
     vasp_input_set: Optional[VaspInputSet] = None,
