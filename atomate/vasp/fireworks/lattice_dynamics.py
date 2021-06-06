@@ -19,6 +19,7 @@ from atomate.vasp.firetasks.lattice_dynamics import (
     CollectPerturbedStructures,
     ForceConstantsToDb,
     RunHiPhive,
+    RunHiPhiveRenorm,
     RunShengBTE,
     ShengBTEToDb,
     MESH_DENSITY)
@@ -39,6 +40,10 @@ class FitForceConstantsFW(Firework):
         db_file: Path to a db file.
         cutoffs: A list of cutoffs to trial. If None, a set of trial cutoffs
             will be generated based on the structure (default).
+        separate_fit: If True, harmonic and anharmonic force constants are fit
+            separately and sequentially, harmonic first then anharmonic. If
+            False, then they are all fit in one go. Default is False.
+        bulk_modulus: Must be supplied (in GPa) to copute thermal expansion
         imaginary_tol: Tolerance used to decide if a phonon mode is
             imaginary, in THz.
         max_n_imaginary: Maximum number of imaginary modes allowed in the
@@ -61,6 +66,7 @@ class FitForceConstantsFW(Firework):
         parents: Optional[Union[Firework, List[Firework]]] = None,
         db_file: str = None,
         cutoffs: Optional[List[List[float]]] = None,
+        separate_fit: bool = False,
         bulk_modulus:float = None,
         imaginary_tol: float = IMAGINARY_TOL,
         max_n_imaginary: int = MAX_N_IMAGINARY,
@@ -71,20 +77,22 @@ class FitForceConstantsFW(Firework):
     ):
         collect_structures = CollectPerturbedStructures()
         logger.info("INPUT CUTOFF \n {}".format(cutoffs))
-        fit_constants = RunHiPhive(
+        
+        fit_force_constants = RunHiPhive(
             cutoffs=cutoffs,
+            separate_fit=separate_fit
             bulk_modulus=bulk_modulus,
             imaginary_tol=imaginary_tol,
-            max_n_imaginary=max_n_imaginary,
-            max_imaginary_freq=max_imaginary_freq,
+#            max_n_imaginary=max_n_imaginary,
+#            max_imaginary_freq=max_imaginary_freq,
             fit_method=fit_method
         )
         to_db = ForceConstantsToDb(
-            db_file=db_file, mesh_density=mesh_density, additional_fields={}
+            db_file=db_file, renormalized=False, mesh_density=mesh_density, additional_fields={}
         )
         pass_locs = PassCalcLocs(name=name)
 
-        tasks = [collect_structures, fit_constants, to_db, pass_locs]
+        tasks = [collect_structures, fit_force_constants, to_db, pass_locs]
         super().__init__(tasks, parents=parents, name=name, **kwargs)
 
 
@@ -167,7 +175,6 @@ class RenormalizationFW(Firework):
         prev_calc_dir: Optional[str] = None,
         db_file: str = None,
         temperature: Union[float, dict] = T_RENORM,
-        shengbte_control_kwargs: Optional[dict] = None,
         **kwargs
     ):    
     
@@ -182,17 +189,18 @@ class RenormalizationFW(Firework):
         cs = ClusterSpace.read('cluster_space.cs')
         fcs = ForceConstants.read('force_constants.fcs')
         param = np.loadtxt('parameters.txt')
+        
         renorm_force_constants = RunHiPhiveRenorm(
-            cs=cluster_space.cs,
-            param=parameters,
-            fcs=force_constants.fcs,
+            cs=cs,
+            param=param,
+            fcs=fcs,
             T_renorm=T_renorm
         )        
 
         to_db = ForceConstantsToDb(
-            db_file=db_file, mesh_density=mesh_density, additional_fields={}
+            db_file=db_file, renormalized=True, mesh_density=mesh_density, additional_fields={}
 	)
         pass_locs = PassCalcLocs(name=name)
 
-	tasks = [collect_structures, renorm_force_constants, to_db, pass_locs]
+	tasks = [renorm_force_constants, to_db, pass_locs]
         super().__init__(tasks, name=name, **kwargs)

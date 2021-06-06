@@ -4,11 +4,12 @@ from copy import deepcopy
 from typing import Dict, List, Optional, Union
 
 import numpy as np
+from monty.serialization import loadfn, dumpfn
 
 from atomate.utils.utils import get_logger
 from atomate.vasp.config import DB_FILE, SHENGBTE_CMD, VASP_CMD
 from atomate.vasp.firetasks import pass_vasp_result
-from atomate.vasp.firetasks.lattice_dynamics import T_KLAT
+from atomate.vasp.firetasks.lattice_dynamics import T_KLAT, T_RENORM
 from atomate.vasp.fireworks.core import TransmuterFW
 from atomate.vasp.fireworks.lattice_dynamics import (
     FitForceConstantsFW,
@@ -54,7 +55,8 @@ _WF_VERSION = 0.1
 
 def get_lattice_dynamics_wf(
     structure: Structure,
-    bulk_modulus: float = None
+    separate_fit: bool = False
+    bulk_modulus: float = None,
     common_settings: Dict = None,
     vasp_input_set: Optional[VaspInputSet] = None,
     copy_vasp_outputs: bool = False,
@@ -62,7 +64,9 @@ def get_lattice_dynamics_wf(
     num_supercell_kwargs: Optional[dict] = None,
     perturbed_structure_kwargs: Optional[dict] = None,
     calculate_lattice_thermal_conductivity: bool = False,
-    thermal_conductivity_temperature: Union[float, Dict] = T_Klat,
+    thermal_conductivity_temperature: Union[float, Dict] = T_KLAT,
+    renormalize: bool =	False,
+    renormalization_temperature: Union[float, Dict] = T_RENORM,
     shengbte_cmd: str = SHENGBTE_CMD,
     shengbte_fworker: Optional[str] = None,
 ):
@@ -109,9 +113,15 @@ def get_lattice_dynamics_wf(
         calculate_lattice_thermal_conductivity: If True and force constant
             fitting does not return imaginary modes, then use ShengBTE to
             calculate the lattice thermal conductivity.
-        thermal_conductivity_temperature: The temperature to calculate the
+        renormalize: If True and force constant fitting returns imaginary modes, 
+            then use HiPhiveRenorm to obtain phonons and force constants at
+            finite temperatures, which at some temperatures are hopefully real.
+        thermal_conductivity_temperature: The temperature at which to calculate
             lattice thermal conductivity for. Can be given as a single float, or
             a dictionary with the keys "min", "max", "step".
+        renormalization_temperature: The temperature at which to perform phonon 
+            renormalization. Can be given as a single float, or a dictionary
+            with the keys "min", "max", "step".
         shengbte_cmd: Command to run ShengBTE. Supports env_chk.
         shengbte_fworker: If None, the ShengBTE firework's fworker will be set
             to all the previous fireworks' fworker. If str, the ShengBTE
@@ -154,13 +164,23 @@ def get_lattice_dynamics_wf(
     # 2. Fit interatomic force constants from pertrubed structures
     allow_fizzled = {"_allow_fizzled_parents": True}
     fw_fit_force_constant = FitForceConstantsFW(
-        db_file=db_file, spec=allow_fizzled, bulk_modulus=bulk_modulus
+        db_file=db_file, spec=allow_fizzled,
+        separate_fit=separate_fit, bulk_modulus=bulk_modulus
     )
     wf.append_wf(Workflow.from_Firework(fw_fit_force_constant), wf.leaf_fw_ids)
 
-    # RenormalizeFW(pass_inputs like bulk modulus)
-    
-    # 3. Lattice thermal conductivity calculation (optional)
+    # 3. RenormalizeFW (pass_inputs like bulk modulus)
+#    fitting_data = loadfn(fitting_data, "fitting_data.json")
+#    if fitting_data["n_imaginary"] > 0 and renormalize:
+#        fw_renormalization = RenormalizationFW(
+#            db_file=db_file,
+#            temperature=renormalization_temperature
+#        )
+#        wf.append_wf(
+#            Workflow.from_Firework(fw_fw_renormalization), [wf.fws[-1].fw_id]
+#        )
+
+    # 4. Lattice thermal conductivity calculation (optional)
     if calculate_lattice_thermal_conductivity:
         fw_lattice_conductivity = LatticeThermalConductivityFW(
             db_file=db_file,
