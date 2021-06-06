@@ -463,10 +463,12 @@ def get_structure_container(
             sc.add_structure(structure)
         else: # fit separately
             if param2 is None: # for harmonic fitting
-                sc.add_structure(structure) if mean_displacements <= 0.05
+                if mean_displacements <= 0.05:
+                    sc.add_structure(structure) 
             else: # for anharmonic fitting
-                sc.add_structure(structure) if mean_displacements >= 0.2
-                saved_structures.append(structure) if mean_displacements >= 0.2
+                if mean_displacements >= 0.15:
+                    sc.add_structure(structure) 
+                    saved_structures.append(structure) 
     if separate_fit and param2 is not None:
         A_mat = sc.get_fit_data()[0] # displacement matrix
         f_vec = sc.get_fit_data()[1] # force vector
