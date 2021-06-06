@@ -18,8 +18,6 @@ from atomate.vasp.drones import VaspDrone
 from atomate.vasp.analysis.lattice_dynamics import (
     FIT_METHOD,
     IMAGINARY_TOL,
-#    MAX_IMAGINARY_FREQ,
-#    MAX_N_IMAGINARY,
     T_QHA,
     T_RENORM,
     T_KLAT,
@@ -134,12 +132,6 @@ class RunHiPhive(FiretaskBase):
             False, then they are all fit in one go. Default is False.
         imaginary_tol (float): Tolerance used to decide if a phonon mode
             is imaginary, in THz.
-        max_n_imaginary (int): Maximum number of imaginary modes allowed in the
-            the final fitted force constant solution. If this criteria is not
-            reached by any cutoff combination this FireTask will fizzle.
-        max_imaginary_freq (float): Maximum allowed imaginary frequency in the
-            final fitted force constant solution. If this criteria is not
-            reached by any cutoff combination this FireTask will fizzle.
         fit_method (str): Method used for fitting force constants. This can be
             any of the values allowed by the hiphive ``Optimizer`` class.
     """
@@ -149,16 +141,12 @@ class RunHiPhive(FiretaskBase):
         "separate_fit",
         "bulk_modulus",
         "imaginary_tol",
-#        "max_n_imaginary",
-#        "max_imaginary_freq",
         "fit_method",
     ]
 
     @requires(hiphive, "hiphive is required for lattice dynamics workflow")
     def run_task(self, fw_spec):
 
-#        max_n_imaginary = self.get("max_n_imaginary", MAX_N_IMAGINARY)
-#        max_imaginary_freq = self.get("max_imaginary_freq", MAX_IMAGINARY_FREQ)
         imaginary_tol = self.get("imaginary_tol", IMAGINARY_TOL)
         fit_method = self.get("fit_method", FIT_METHOD)
         separate_fit = self.get('separate_fit', False)
@@ -195,8 +183,6 @@ class RunHiPhive(FiretaskBase):
             cutoffs,
             separate_fit,
             imaginary_tol,
-#            max_n_imaginary,
-#            max_imaginary_freq,
             fit_method
         )
 
@@ -268,8 +254,6 @@ class RunHiPhiveRenorm(FiretaskBase):
     @requires(hiphive, "hiphive is required for lattice dynamics workflow")
     def run_task(self, fw_spec):
 
-#        max_n_imaginary = self.get("max_n_imaginary", MAX_N_IMAGINARY)
-#        max_imaginary_freq = self.get("max_imaginary_freq", MAX_IMAGINARY_FREQ)
         imaginary_tol = self.get("imaginary_tol", IMAGINARY_TOL)
         fit_method = self.get("fit_method", FIT_METHOD)
 

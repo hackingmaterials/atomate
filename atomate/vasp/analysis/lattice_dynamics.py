@@ -40,8 +40,6 @@ __email__ = "aganose@lbl.gov, rc564@cornell.edu, jsyony37@lbl.gov"
 logger = get_logger(__name__)
 
 IMAGINARY_TOL = 0.025  # in THz
-#MAX_N_IMAGINARY = np.inf
-#MAX_IMAGINARY_FREQ = 10  # in THz
 
 T_QHA = [i*100 for i in range(16)]
 T_RENORM = [i*100 for i in range(0,16)]
@@ -136,8 +134,6 @@ def fit_force_constants(
     all_cutoffs: List[List[float]],
     separate_fit: bool,
     imaginary_tol: float = IMAGINARY_TOL,
-#    max_n_imaginary: int = MAX_N_IMAGINARY,
-#    max_imaginary_freq: float = MAX_IMAGINARY_FREQ,
     fit_method: str = FIT_METHOD,
 <<<<<<< HEAD
 ) -> Tuple["SortedForceConstants", Dict]:
