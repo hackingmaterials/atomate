@@ -151,7 +151,7 @@ def get_lattice_dynamics_wf(
         n_supercells = get_num_supercells(supercell, **num_supercell_kwargs)
         perturbed_structure_kwargs["n_configs_per_std"] = n_supercells
 
-    # 1. Perturb supercell and calculae forces
+    # 1. Perturb supercell and calculate forces
     wf = get_perturbed_structure_wf(
         structure,
         supercell_matrix=supercell_matrix,
