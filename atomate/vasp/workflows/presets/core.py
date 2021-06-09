@@ -884,8 +884,8 @@ def wf_lattice_dynamics(
 
     wf_ld = get_lattice_dynamics_wf(
         structure,
-        separate_fit: bool = separate_fit,
-        bulk_modulus: float = bulk_modulus,
+        separate_fit = separate_fit,
+        bulk_modulus = bulk_modulus,
         common_settings=c,
         supercell_matrix_kwargs: supercell_matrix_kwargs,
         num_supercell_kwargs: num_supercell_kwargs,
