@@ -832,6 +832,12 @@ def wf_lattice_dynamics(
     separate_fit: bool = False,
     bulk_modulus: float = None,
     c: Optional[dict] = None,
+    supercell_matrix_kwargs: Optional[dict] = None,
+    num_supercell_kwargs: Optional[dict] = None,
+    calculate_lattice_thermal_conductivity=True,
+    thermal_conductivity_temperature=None,
+    renormalize=False,
+    renormalization_temperature=None,        
     **ld_kwargs
 ) -> Workflow:
     """
@@ -881,7 +887,12 @@ def wf_lattice_dynamics(
         separate_fit: bool = separate_fit,
         bulk_modulus: float = bulk_modulus,
         common_settings=c,
-        calculate_lattice_thermal_conductivity=True,
+        supercell_matrix_kwargs: supercell_matrix_kwargs,
+        num_supercell_kwargs: num_supercell_kwargs,
+        calculate_lattice_thermal_conductivity=calculate_lattice_thermal_conductivity,
+        thermal_conductivity_temperature=thermal_conductivity_temperature,
+        renormalize=renormalize,
+        renormalization_temperature=renormalization_temperature,
         copy_vasp_outputs=True,
         **ld_kwargs
     )
