@@ -848,8 +848,10 @@ def wf_nudged_elastic_band(structures, parent, c=None):
     return wf
 
 
-def wf_lattice_thermal_conductivity(
+def wf_lattice_dynamics(
     structure: Structure,
+    separate_fit: bool = False,
+    bulk_modulus: float = None,
     c: Optional[dict] = None,
     **ld_kwargs
 ) -> Workflow:
@@ -870,13 +872,14 @@ def wf_lattice_thermal_conductivity(
     """
     optimize_uis = {
         "LAECHG": False,
-        'ENCUT': 700,
+        'ENCUT': 520,
         'ADDGRID': True,
         'EDIFFG': -5e-4,
         'PREC': 'Accurate',
         "LREAL": False,
         'EDIFF': 1e-8,
         "ISMEAR": 0,
+        "SIGMA": 0.1,
         'LCHARG': False,
         'LASPH': True
     }
@@ -896,6 +899,8 @@ def wf_lattice_thermal_conductivity(
 
     wf_ld = get_lattice_dynamics_wf(
         structure,
+        separate_fit: bool = separate_fit,
+        bulk_modulus: float = bulk_modulus,
         common_settings=c,
         calculate_lattice_thermal_conductivity=True,
         copy_vasp_outputs=True,

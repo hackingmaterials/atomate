@@ -10,7 +10,7 @@ from atomate.utils.utils import get_logger
 from atomate.vasp.config import DB_FILE, SHENGBTE_CMD, VASP_CMD
 from atomate.vasp.firetasks import pass_vasp_result
 from atomate.vasp.firetasks.lattice_dynamics import T_KLAT, T_RENORM
-from atomate.vasp.fireworks.core import TransmuterFW
+from atomate.vasp.fireworks.core import TransmuterFW, OptimizeFW
 from atomate.vasp.fireworks.lattice_dynamics import (
     FitForceConstantsFW,
     LatticeThermalConductivityFW,
@@ -31,12 +31,13 @@ __date__ = "February 2020"
 logger = get_logger(__name__)
 
 _static_user_incar_settings = {
+    "PREC": "Accurate",
     "ADDGRID": True,
     "LCHARG": False,
-    "ENCUT": 700,
+    "ENCUT": 520,
     "ISMEAR": 0,
-    "EDIFF": 1e-8,
-    "PREC": "Accurate",
+    "SIGMA": 0.1,
+    "EDIFF": 1e-6,
     "LAECHG": False,
     "LREAL": False,
     "LASPH": True,
@@ -150,7 +151,7 @@ def get_lattice_dynamics_wf(
         n_supercells = get_num_supercells(supercell, **num_supercell_kwargs)
         perturbed_structure_kwargs["n_configs_per_std"] = n_supercells
 
-    # 1. Start by pertrubing supercell and calculating forces
+    # 1. Perturb supercell and calculae forces
     wf = get_perturbed_structure_wf(
         structure,
         supercell_matrix=supercell_matrix,
@@ -180,7 +181,7 @@ def get_lattice_dynamics_wf(
 #            Workflow.from_Firework(fw_fw_renormalization), [wf.fws[-1].fw_id]
 #        )
 
-    # 4. Lattice thermal conductivity calculation (optional)
+    # 4. Lattice thermal conductivity calculation
     if calculate_lattice_thermal_conductivity:
         fw_lattice_conductivity = LatticeThermalConductivityFW(
             db_file=db_file,
