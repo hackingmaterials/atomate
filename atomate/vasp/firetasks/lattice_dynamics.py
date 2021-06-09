@@ -10,6 +10,7 @@ from joblib import Parallel, delayed
 
 from monty.dev import requires
 from monty.serialization import dumpfn, loadfn
+from monty.json import jsanitize
 from pymongo import ReturnDocument
 
 from atomate.utils.utils import env_chk, get_logger
@@ -170,12 +171,6 @@ class RunHiPhive(FiretaskBase):
             atoms.positions = supercell_atoms.get_positions()
             structures.append(atoms)
 
-        logger.info('PARENT \n {}'.format(parent_structure))
-        logger.info('SUPERCELL \n {}'.format(supercell_structure))
-        logger.info('SUPERCELL MATRIX \n {}'.format(supercell_matrix))
-        logger.info('FIT_METHOD {}'.format(fit_method))
-        logger.info('FINAL INPUT CUTOFFS \n {}'.format(cutoffs))
-        
         fcs, param, cs, fitting_data = fit_force_constants(
             parent_structure,
             supercell_matrix,
@@ -186,6 +181,12 @@ class RunHiPhive(FiretaskBase):
             fit_method
         )
 
+        if fcs is None:
+            # fitting failed for some reason
+            raise RuntimeError(
+                "Could not find a force constant solution"
+            )
+        
         thermal_data, phonopy = harmonic_properties(
             parent_structure, supercell_matrix, fcs, T_QHA, imaginary_tol
         )
@@ -199,14 +200,6 @@ class RunHiPhive(FiretaskBase):
         dumpfn(fitting_data, "fitting_data.json")
         dumpfn(thermal_data, "thermal_data_qha.json")
 
-#        if force_constants is None:
-#            # fitting failed
-#            raise RuntimeError(
-#                "Could not find a force constant solution with less than {} "
-#                "imaginary modes.\n"
-#                "Fitting results: {}".format(max_n_imaginary, fitting_data)
-#            )
-
         logger.info("Writing cluster space and force_constants")
         logger.info("{}".format(type(fcs)))
         fcs.write("force_constants.fcs")
@@ -218,8 +211,8 @@ class RunHiPhive(FiretaskBase):
             atoms = AseAtomsAdaptor.get_atoms(parent_structure)
             fcs.write_to_shengBTE("FORCE_CONSTANTS_3RD", atoms, order=3)
             fcs.write_to_phonopy("FORCE_CONSTANTS_2ND", format="text")
-        elif n_imaginary > 0:
-            logger.info("Imaginary modes exist! ShengBTE files not written. You may want to perform phonon renormalization.")
+        else:
+            logger.info("ShengBTE files not written due to imaginary modes. You may want to perform phonon renormalization.")
 
 
 
@@ -371,66 +364,132 @@ class ForceConstantsToDb(FiretaskBase):
         supercell_structure = structure_data["supercell_structure"]
         supercell_matrix = structure_data["supercell_matrix"]
 
-        if renormalized: # FC from renormalization
-            thermal_data = loadfn("thermal_data_renorm.json")
-            temperature = thermal_data["temperature"]
-            for t, T in enumerate(temperature):
-                ## err should I collect results for all T and push data at once,
-                ## or push data for each T individually?
-                fcs = ForceConstants.read("force_constants_{}K.fcs")
-                phonopy_fc = fcs.get_fc_array(order=2)
-                dos_fsid, uniform_bs_fsid, lm_bs_fsid, fc_fsid = _get_fc_fsid(
-                    structure, supercell_matrix, phonopy_fc, mesh_density, mmdb
-                )
-                data = {
-                    "thermal_data": thermal_data,
-                    "force_constants_fs_id": fc_fsid,
-                    "tags": fw_spec.get("tags", None),
-                    "phonon_dos_fs_id": dos_fsid,
-                    "phonon_bandstructure_uniform_fs_id": uniform_bs_fsid,
-                    "phonon_bandstructure_line_fs_id": lm_bs_fsid,
-                    "created_at": datetime.utcnow(),
-                }
-                data.update(self.get("additional_fields", {}))                
-        else: # FC directly from fitting
-            fitting_data = loadfn("fitting_data.json")
-            thermal_data = loadfn("thermal_data_qha.json")
-            fcs = ForceConstants.read("force_constants.fcs")
+        fitting_data = loadfn("fitting_data.json")
+        thermal_data = loadfn("thermal_data_qha.json")
+        fcs = ForceConstants.read("force_constants.fcs")
+        
+        dos_fsid, uniform_bs_fsid, lm_bs_fsid, fc_fsid = _get_fc_fsid(
+            structure, supercell_matrix, fcs, mesh_density, mmdb
+        )
+        
+        data = {
+            "created_at": datetime.utcnow(),            
+            "tags": fw_spec.get("tags", None),
+            "formula_pretty": structure.composition.reduced_formula,            
+            "structure": structure.as_dict(),
+            "supercell_matrix": supercell_matrix,
+            "supercell_structure": supercell_structure.as_dict(),
+            "perturbed_structures": [s.as_dict() for s in structures],
+            "perturbed_forces": [f.tolist() for f in forces],
+            "fitting_data": fitting_data,
+            "thermal_data": thermal_data,
+            "force_constants_fs_id": fc_fsid,
+            "phonon_dos_fs_id": dos_fsid,
+            "phonon_bandstructure_uniform_fs_id": uniform_bs_fsid,
+            "phonon_bandstructure_line_fs_id": lm_bs_fsid,
+        }
+        data.update(self.get("additional_fields", {}))
 
-            dos_fsid, uniform_bs_fsid, lm_bs_fsid, fc_fsid = _get_fc_fsid(
-                structure, supercell_matrix, fcs, mesh_density, mmdb
-            )
-
-            data = {
-                "structure": structure.as_dict(),
-                "supercell_matrix": supercell_matrix,
-                "supercell_structure": supercell_structure.as_dict(),
-                "perturbed_structures": [s.as_dict() for s in structures],
-                "perturbed_forces": [f.tolist() for f in forces],
-                "fitting_data": fitting_data,
-                "thermal_data": thermal_data,
-                "force_constants_fs_id": fc_fsid,
-                "tags": fw_spec.get("tags", None),
-                "formula_pretty": structure.composition.reduced_formula,
-                "phonon_dos_fs_id": dos_fsid,
-                "phonon_bandstructure_uniform_fs_id": uniform_bs_fsid,
-                "phonon_bandstructure_line_fs_id": lm_bs_fsid,
-                "created_at": datetime.utcnow(),
-            }
-            data.update(self.get("additional_fields", {}))
-
-            # Get an id for the force constants
-            fitting_id = _get_fc_fitting_id(mmdb)
-            metadata = {"fc_fitting_id": fitting_id, "fc_fitting_dir": os.getcwd()}
-            data.update(metadata)
-            mmdb.db.lattice_dynamics.insert_many(data)  # WHAT TO DO HERE?
-#            mmdb.db.lattice_dynamics.insert_one(data)
+        # Get an id for the force constants
+        fitting_id = _get_fc_fitting_id(mmdb)
+        metadata = {"fc_fitting_id": fitting_id, "fc_fitting_dir": os.getcwd()}
+        data.update(metadata)
+        data = jsanitize(data,strict=True,allow_bson=True)
+        
+        mmdb.db.lattice_dynamics.insert_one(data)
             
         logger.info("Finished inserting force constants")
 
         return FWAction(update_spec=metadata)
 
 
+
+class ForceConstantsRenormToDb(FiretaskBase):
+    """
+    Add force constants, phonon band structure and density of states
+    to the database.
+
+    Assumes you are in a directory with the force constants, fitting
+    data, and structure data written to files.
+
+    Required parameters:
+        db_file (str): Path to DB file for the database that contains the
+            perturbed structure calculations.
+    Optional parameters:
+        renormalized (bool): Whether FC resulted from original fitting (False)
+            or renormalization process (True) determines how data are stored.
+            Default is False.                                                                                                                                                                                      mesh_density (float): The density of the q-point mesh used to calculate
+            the phonon density of states. See the docstring for the ``mesh``
+            argument in Phonopy.init_mesh() for more details.
+        additional_fields (dict): Additional fields added to the document, such
+            as user-defined tags, name, ids, etc.                                                                                                                                                              """
+
+    required_params = ["db_file"]
+    optional_params = ["renormalized","mesh_density", "additional_fields"]
+
+    @requires(hiphive, "hiphive is required for lattice dynamics workflow")
+    def run_task(self, fw_spec):
+
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+        renormalized = self.get("renormalized", False)
+        mesh_density = self.get("mesh_density", MESH_DENSITY)
+
+        structure_data = loadfn("structure_data.json")
+        forces = loadfn("perturbed_forces.json")
+        structures = loadfn("perturbed_structures.json")
+
+        structure = structure_data["structure"]
+        supercell_structure = structure_data["supercell_structure"]
+        supercell_matrix = structure_data["supercell_matrix"]
+
+        thermal_data = loadfn("thermal_data_renorm.json")
+        temperature = thermal_data["temperature"]
+
+        data = {
+            "created_at": datetime.utcnow(),
+            "tags": fw_spec.get("tags", None),
+            "formula_pretty": structure.composition.reduced_formula,
+            "structure": structure.as_dict(),
+            "thermal_data": thermal_data,
+            }
+        
+        temperature_to_keep = []
+        renormalized_data = []
+        for t, T in enumerate(temperature):
+            ## err should I collect results for all T and push data at once,                                                                                                                            
+            ## or push data for each T individually?                                                                                                                                                    
+            fcs = ForceConstants.read("force_constants_{}K.fcs")
+            phonopy_fc = fcs.get_fc_array(order=2)
+            dos_fsid, uniform_bs_fsid, lm_bs_fsid, fc_fsid = _get_fc_fsid(
+                structure, supercell_matrix, phonopy_fc, mesh_density, mmdb
+            )
+            
+            data_at_T = {
+                "force_constants_fs_id": fc_fsid,
+                "phonon_dos_fs_id": dos_fsid,
+                "phonon_bandstructure_uniform_fs_id": uniform_bs_fsid,
+                "phonon_bandstructure_line_fs_id": lm_bs_fsid,
+            }
+            temperature_to_keep.append(T)
+            renormalized_data.append(data_at_T)
+        data["temperatures"] = temperature_to_keep
+        data["renormalized_data"] = renormalized_data
+        data.update(self.get("additional_fields", {}))
+
+        # Get an id for the force constants
+        fitting_id = _get_fc_fitting_id(mmdb)
+        metadata = {"fc_fitting_id": fitting_id, "fc_fitting_dir": os.getcwd()}
+        data.update(metadata)
+        data = jsanitize(data,strict=True,allow_bson=True)
+
+        mmdb.db.renormalized_lattice_dynamics.insert_one(data)
+
+        logger.info("Finished inserting renormalized force constants")
+
+        return FWAction(update_spec=metadata)        
+
+    
 @explicit_serialize
 class RunShengBTE(FiretaskBase):
     """
@@ -458,12 +517,33 @@ class RunShengBTE(FiretaskBase):
         structure_data = loadfn("structure_data.json")
         structure = structure_data["structure"]
         supercell_matrix = structure_data["supercell_matrix"]
+        temperature = self.get("temperature", T_KLAT)
 
+        if isinstance(temperature, (int, float)):
+            self["t"] = temperature
+        elif isinstance(temperature, (list, np.ndarray)):
+            t_max = np.max(np.array(temperature))
+            t_min = np.min(np.array(temperature))
+            if t_min==0:
+                t_min = np.partition(temperature,1)[1]
+                t_step = (t_max-t_min)/(len(temperature)-2)
+            else:
+                t_step = (t_max-t_min)/(len(temperature)-1)
+            self["t_min"] = t_min
+            self["t_max"] = t_max
+            self["t_step"] = t_step
+        elif isinstance(temperature, dict):
+            self["t_min"] = temperature["min"]
+            self["t_max"] = temperature["max"]
+            self["t_step"] = temperature["step"]
+        else:
+            raise ValueError("Unsupported temperature type, must be float or dict")
+        
         control_dict = {
             "scalebroad": 0.5,
             "nonanalytic": False,
             "isotopes": False,
-            "temperature": self.get("temperature", T_QHA),
+            "temperature": self.get("temperature", T_KLAT),
             "scell": np.diag(supercell_matrix).tolist(),
         }
         control_kwargs = self.get("control_kwargs") or {}

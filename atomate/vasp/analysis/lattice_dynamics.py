@@ -36,8 +36,8 @@ logger = get_logger(__name__)
 IMAGINARY_TOL = 0.025  # in THz
 
 T_QHA = [i*100 for i in range(16)]
-T_RENORM = [i*100 for i in range(0,16)]
-T_KLAT = [i*100 for i in range(0,16)]
+T_RENORM = [0,100,200,300,500,700,1000,1500]#[i*100 for i in range(0,16)]
+T_KLAT = [i*100 for i in range(0,11)]
 
 FIT_METHOD = "rfe" #"least-squares"
 
@@ -239,7 +239,7 @@ def _run_cutoffs(
 ) -> Dict:
 
     logger.info(
-        "Testing cutoffs {} out of {}: {}".format(i + 1, n_cutoffs, cutoffs)
+        "Testing cutoffs {} out of {}: {}".format(i+1, n_cutoffs, cutoffs)
     )
     supercell_atoms = structures[0]
 
@@ -265,7 +265,7 @@ def _run_cutoffs(
         param_harmonic = opt.parameters # harmonic force constant parameters
         
         logger.info('Fitting anharmonic force constants separately')
-        sc = get_structure_container(cs, structures, separate_fit, ncut=n2nd, param2=param2)
+        sc = get_structure_container(cs, structures, separate_fit, ncut=n2nd, param2=param_harmonic)
         opt = Optimizer(sc.get_fit_data(),
                         fit_method,
                         [n2nd,nall],
@@ -289,32 +289,22 @@ def _run_cutoffs(
         logger.info('Training complete for cutoff: {}, {}'.format(i,cutoffs))
     
     parameters = enforce_rotational_sum_rules(
-        sc.cluster_space, parameters, ["Huang", "Born-Huang"]
+        cs, parameters, ["Huang", "Born-Huang"]
     )
     fcp = ForceConstantPotential(cs, parameters)
     fcs = fcp.get_force_constants(supercell_atoms)
     logger.info('FCS generated for cutoff {}, {}'.format(i,cutoffs))
 
-#    n_imaginary, min_freq, free_energy, entropy, Cv, grun, cte, dLfrac = evaluate_force_constants(
-#        parent_structure, supercell_matrix, fcs, bulk_modulus, T_QHA, imaginary_tol
-#    )
-
-    return {
-        "cutoffs": cutoffs,
-        "rmse_test": opt.rmse_test,
-#        "n_imaginary": n_imaginary,
-#        "min_frequency": min_freq,
-#        "temperature": T_QHA,
-#        "free_energy": free_energy,
-#        "entropy": entropy,
-#        "heat_capacity": Cv,
-#        "thermal_expansion": cte,
-        "cluster_space": sc.cluster_space,
-        "parameters": parameters,
-        "force_constants": fcs
-    }
-    #except Exception:
-    #    return None
+    try:
+        return {
+            "cutoffs": cutoffs,
+            "rmse_test": opt.rmse_test,
+            "cluster_space": sc.cluster_space,
+            "parameters": parameters,
+            "force_constants": fcs
+        }
+    except Exception:
+        return None
 
 
 def get_structure_container(
@@ -338,8 +328,11 @@ def get_structure_container(
 
     sc = StructureContainer(cs)
     saved_strutures = []
-    for structure in structures:
-        displacements = get_displacements(atoms, supercell_atoms)
+    structure_orig = structures[0]
+    for i, structure in enumerate(structures):
+        if i==0:
+            continue
+        displacements = get_displacements(structure_orig, structure)
         mean_displacements = np.linalg.norm(displacements,axis=1).mean()
         if not separate_fit: # fit all
             sc.add_structure(structure)
@@ -351,7 +344,7 @@ def get_structure_container(
                 if mean_displacements >= 0.15:
                     sc.add_structure(structure) 
                     saved_structures.append(structure) 
-    if separate_fit and param2 is not None:
+    if separate_fit and param2 is not None: # do after anharmonic fitting
         A_mat = sc.get_fit_data()[0] # displacement matrix
         f_vec = sc.get_fit_data()[1] # force vector
         new_force = f_vec - np.dot(A_mat[:,:ncut],param2) # subract harmonic forces
@@ -390,7 +383,7 @@ def harmonic_properties(
         frequency at Gamma, and the free energy, entropy, and heat capacity
     """
 
-    logger.info('Evaluating harmonic properties.')
+    logger.info('Evaluating harmonic properties...')
     fcs2 = fcs.get_fc_array(2)
     fcs3 = fcs.get_fc_array(3)
     parent_phonopy = get_phonopy_structure(structure)
@@ -439,7 +432,7 @@ def anharmonic_properties(
 ) -> Tuple[Dict, Phonopy]:
 
     if n_imaginary == 0:
-        logger.info('Evaluating anharmonic properties')
+        logger.info('Evaluating anharmonic properties...')
         fcs2 = fcs.get_fc_array(2)
         fcs3 = fcs.get_fc_array(3)
         grun, cte = gruneisen(phonopy,fcs2,fcs3,T,Cv,bulk_modulus=bulk_modulus)
@@ -492,20 +485,41 @@ def get_total_grun(
         # This process preserves cell symmetry upon thermal expansion, i.e., it prevents
         # symmetry-identical directions from inadvertently expanding by different ratios
         # when the Gruneisen routine returns slighlty different ratios for those directions
-        if percent_diff(grun_total_diag[0],grun_total_diag[1]) < 0.1:
-            avg = np.mean((grun_total_diag[0],grun_total_diag[1]))
-            grun_total_diag[0] = avg
-            grun_total_diag[1] = avg
-        elif percent_diff(grun_total_diag[0],grun_total_diag[2]) < 0.1:
-            avg = np.mean((grun_total_diag[0],grun_total_diag[2]))
-            grun_total_diag[0] = avg
-            grun_total_diag[2] = avg
-        elif percent_diff(grun_total_diag[1],grun_total_diag[2]) < 0.1:
-            avg = np.mean((grun_total_diag[1],grun_total_diag[2]))
-            grun_total_diag[1] = avg
-            grun_total_diag[2] = avg
-        else:
+        avg012 = np.mean((grun_total_diag[0],grun_total_diag[1],grun_total_diag[2]))
+        avg01 = np.mean((grun_total_diag[0],grun_total_diag[1]))
+        avg02 = np.mean((grun_total_diag[0],grun_total_diag[2]))
+        avg12 = np.mean((grun_total_diag[1],grun_total_diag[2]))
+        if percent_diff(grun_total_diag[0],avg012) < 0.1:
+            if percent_diff(grun_total_diag[1],avg012) < 0.1:
+                if percent_diff(grun_total_diag[2],avg012) < 0.1: # all siilar
+                    grun_total_diag[0] = avg012
+                    grun_total_diag[1] = avg012
+                    grun_total_diag[2] = avg012
+                elif percent_diff(grun_total_diag[2],avg02) < 0.1: # 0 and 2 similar
+                    grun_total_diag[0] = avg02
+                    grun_total_diag[2] = avg02
+                elif percent_diff(grun_total_diag[2],avg12) < 0.1: # 1 and 2 similar
+                    grun_total_diag[1] = avg12
+                    grun_total_diag[2] = avg12
+                else:
+                    pass
+            elif percent_diff(grun_total_diag[1],avg01) < 0.1: # 0 and 1 similar
+                grun_total_diag[0] = avg01
+                grun_total_diag[1] = avg01
+            elif percent_diff(grun_total_diag[1],avg12) < 0.1: # 1 and 2 similar
+                grun_total_diag[1] = avg12
+                grun_total_diag[2] = avg12
+            else:
+                pass
+        elif percent_diff(grun_total_diag[0],avg01) < 0.1: # 0 and 1 similar
+            grun_total_diag[0] = avg01
+            grun_total_diag[1] = avg01
+        elif percent_diff(grun_total_diag[0],avg02) < 0.1: # 0 and 2 similar
+            grun_total_diag[0] = avg02
+            grun_total_diag[2] = avg02
+        else: # nothing similar
             pass
+        
     return grun_total_diag
 
 
