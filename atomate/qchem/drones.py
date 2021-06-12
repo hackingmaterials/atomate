@@ -198,6 +198,9 @@ class QChemDrone(AbstractDrone):
             elif "ESP" in d_calc_final:
                 d["output"]["esp"] = d_calc_final["ESP"][-1]
 
+            if "nbo_data" in d_calc_final:
+                d["output"]["nbo"] = d_calc_final["nbo_data"]
+
             if d["output"]["job_type"] == "opt" or d["output"]["job_type"] == "optimization":
                 if "molecule_from_optimized_geometry" in d_calc_final:
                     d["output"]["optimized_molecule"] = d_calc_final[
