@@ -387,6 +387,26 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 1)
 
+    def test_assimilate_nbo(self):
+        drone = QChemDrone()
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "launcher_nbo"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False,
+        )
+        self.assertEqual(doc["input"]["job_type"], "opt")
+        self.assertEqual(doc["output"]["job_type"], "opt")
+        self.assertIn("nbo", doc["output"])
+        self.assertIn("custodian", doc)
+        self.assertIn("calcs_reversed", doc)
+        self.assertIn("initial_molecule", doc["input"])
+        self.assertIn("initial_molecule", doc["output"])
+        self.assertIn("last_updated", doc)
+        self.assertIn("dir_name", doc)
+        self.assertEqual(len(doc["calcs_reversed"]), 1)
+
+
     def test_sp_with_orig(self):
         drone = QChemDrone()
         doc = drone.assimilate(
