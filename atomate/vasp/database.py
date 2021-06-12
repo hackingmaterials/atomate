@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 This module defines the database classes.
 """
@@ -59,9 +58,7 @@ class VaspCalcDb(CalcDb):
         password=None,
         **kwargs,
     ):
-        super(VaspCalcDb, self).__init__(
-            host, port, database, collection, user, password, **kwargs
-        )
+        super().__init__(host, port, database, collection, user, password, **kwargs)
 
     def build_indexes(self, indexes=None, background=True):
         """

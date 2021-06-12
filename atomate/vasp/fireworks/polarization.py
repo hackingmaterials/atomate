@@ -29,7 +29,7 @@ class LcalcpolFW(Firework):
         end=None,
         this_image=0,
         nimages=5,
-        **kwargs
+        **kwargs,
     ):
         """
         Static Firework that calculates the dipole moment of structure or a
@@ -114,7 +114,7 @@ class LcalcpolFW(Firework):
                 parents=parents,
                 this_image=this_image,
                 nimages=nimages,
-                **kwargs
+                **kwargs,
             )
         else:
             vasp_input_set = MPStaticSet(structure, **vasp_input_set_params)
@@ -126,7 +126,7 @@ class LcalcpolFW(Firework):
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
                 parents=parents,
-                **kwargs
+                **kwargs,
             )
         t.extend(static.tasks)
 
@@ -148,18 +148,16 @@ class LcalcpolFW(Firework):
                 ModifyIncar(incar_update={"lcalcpol": True}),
                 RunVaspCustodian(vasp_cmd=vasp_cmd),
                 PassCalcLocs(name=name),
-                VaspToDb(
-                    db_file=db_file, additional_fields={"task_label": name}
-                ),
+                VaspToDb(db_file=db_file, additional_fields={"task_label": name}),
             ]
         )
 
         # Note, Outcar must have read_lcalcpol method for polarization
         # information to be processed. ...assuming VaspDrone will automatically
         # assimilate all properties of the Outcar.
-        super(LcalcpolFW, self).__init__(
+        super().__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
+            name=f"{structure.composition.reduced_formula}-{name}",
+            **kwargs,
         )

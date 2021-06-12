@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 import os
 import unittest
 
@@ -10,26 +7,37 @@ from pymatgen.transformations.standard_transformations import RotationTransforma
 
 from atomate.vasp.fireworks.core import *
 
-__author__ = 'Shyam Dwaraknath'
-__email__ = 'shyamd@lbl.gov'
+__author__ = "Shyam Dwaraknath"
+__email__ = "shyamd@lbl.gov"
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "..", "..", "test_files")
 
-DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
-VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+DEBUG_MODE = (
+    False  # If true, retains the database and output dirs at the end of the test
+)
+VASP_CMD = (
+    None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+)
 
 
 class TestCoreFireworks(unittest.TestCase):
     def setUp(self):
         coords = [[0, 0, 0], [0.75, 0.5, 0.75]]
-        lattice = Lattice([[3.8401979337, 0.00, 0.00], [1.9200989668, 3.3257101909, 0.00],
-                           [0.00, -2.2171384943, 3.1355090603]])
+        lattice = Lattice(
+            [
+                [3.8401979337, 0.00, 0.00],
+                [1.9200989668, 3.3257101909, 0.00],
+                [0.00, -2.2171384943, 3.1355090603],
+            ]
+        )
         self.structure = Structure(lattice, ["Si", "Si"], coords)
 
     def testOptimizeFW(self):
-        self.assertEqual(OptimizeFW(structure=self.structure).name, "Si-structure optimization")
+        self.assertEqual(
+            OptimizeFW(structure=self.structure).name, "Si-structure optimization"
+        )
 
     def testStaticFW(self):
         self.assertEqual(StaticFW(structure=self.structure).name, "Si-static")
@@ -47,8 +55,13 @@ class TestCoreFireworks(unittest.TestCase):
 
     def testHSEBSFW(self):
         opt_fw = OptimizeFW(self.structure)
-        self.assertEqual(HSEBSFW(structure=self.structure, parents=opt_fw).name, "Si-hse gap")
-        self.assertEqual(HSEBSFW(structure=self.structure, parents=opt_fw, mode="line").name, "Si-hse line")
+        self.assertEqual(
+            HSEBSFW(structure=self.structure, parents=opt_fw).name, "Si-hse gap"
+        )
+        self.assertEqual(
+            HSEBSFW(structure=self.structure, parents=opt_fw, mode="line").name,
+            "Si-hse line",
+        )
 
         hse_fw = HSEBSFW(prev_calc_dir="/")
         self.assertEqual(hse_fw.name, "unknown-hse gap")
@@ -62,8 +75,13 @@ class TestCoreFireworks(unittest.TestCase):
 
     def testNonSCFFW(self):
         opt_fw = OptimizeFW(self.structure)
-        self.assertEqual(NonSCFFW(structure=self.structure, parents=opt_fw).name, "Si-nscf uniform")
-        self.assertEqual(NonSCFFW(structure=self.structure, parents=opt_fw, mode="line").name, "Si-nscf line")
+        self.assertEqual(
+            NonSCFFW(structure=self.structure, parents=opt_fw).name, "Si-nscf uniform"
+        )
+        self.assertEqual(
+            NonSCFFW(structure=self.structure, parents=opt_fw, mode="line").name,
+            "Si-nscf line",
+        )
 
         nscf_fw = NonSCFFW(prev_calc_dir="/")
         self.assertEqual(nscf_fw.name, "unknown-nscf uniform")
@@ -92,7 +110,11 @@ class TestCoreFireworks(unittest.TestCase):
     def testRamanFW(self):
         opt_fw = OptimizeFW(structure=self.structure)
         self.assertEqual(
-            RamanFW(mode=1, displacement=0.01, structure=self.structure, parents=opt_fw).name, "Si-raman_1_0.01")
+            RamanFW(
+                mode=1, displacement=0.01, structure=self.structure, parents=opt_fw
+            ).name,
+            "Si-raman_1_0.01",
+        )
 
         raman_fw = RamanFW(mode=1, displacement=0.01, prev_calc_dir="/")
         self.assertEqual(raman_fw.name, "unknown-raman_1_0.01")
@@ -106,7 +128,10 @@ class TestCoreFireworks(unittest.TestCase):
 
     def testSOCFW(self):
         opt_fw = OptimizeFW(self.structure)
-        self.assertEqual(SOCFW(magmom=1, structure=self.structure, parents=opt_fw).name, "Si-spin-orbit coupling")
+        self.assertEqual(
+            SOCFW(magmom=1, structure=self.structure, parents=opt_fw).name,
+            "Si-spin-orbit coupling",
+        )
 
         soc_fw = SOCFW(magmom=1, prev_calc_dir="/")
         self.assertEqual(soc_fw.name, "unknown-spin-orbit coupling")
@@ -126,12 +151,19 @@ class TestCoreFireworks(unittest.TestCase):
         opt_fw = OptimizeFW(self.structure)
         self.assertEqual(
             TransmuterFW(
-                structure=self.structure, transformations=transformations, transformation_params=opts,
-                parents=opt_fw).name, "Si-structure transmuter")
+                structure=self.structure,
+                transformations=transformations,
+                transformation_params=opts,
+                parents=opt_fw,
+            ).name,
+            "Si-structure transmuter",
+        )
 
     def testBoltztrapFW(self):
         opt_fw = OptimizeFW(self.structure)
-        self.assertEqual(BoltztrapFW(structure=self.structure, parents=opt_fw).name, "Si-boltztrap")
+        self.assertEqual(
+            BoltztrapFW(structure=self.structure, parents=opt_fw).name, "Si-boltztrap"
+        )
 
         boltz_fw = BoltztrapFW(prev_calc_dir="/")
         self.assertEqual(boltz_fw.name, "unknown-boltztrap")

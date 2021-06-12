@@ -1,11 +1,7 @@
-# coding: utf-8
-
-
 import json
 import os
 import shutil
 import unittest
-from io import open
 
 from fireworks import LaunchPad
 from pymongo import MongoClient

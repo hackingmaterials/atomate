@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 """
 This module defines the gibbs free energy workflow.
 """
@@ -16,17 +13,31 @@ from atomate.utils.utils import get_logger
 from atomate.vasp.firetasks.parse_outputs import GibbsAnalysisToDb
 from atomate.vasp.workflows.base.deformations import get_wf_deformations
 
-__author__ = 'Kiran Mathew'
-__email__ = 'kmathew@lbl.gov'
+__author__ = "Kiran Mathew"
+__email__ = "kmathew@lbl.gov"
 
 logger = get_logger(__name__)
 
 
-def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_cmd="vasp",
-                             db_file=None, user_kpoints_settings=None, t_step=10, t_min=0,
-                             t_max=1000, mesh=(20, 20, 20), eos="vinet", qha_type="debye_model",
-                             pressure=0.0, poisson=0.25, anharmonic_contribution=False,
-                             metadata=None, tag=None):
+def get_wf_gibbs_free_energy(
+    structure,
+    deformations,
+    vasp_input_set=None,
+    vasp_cmd="vasp",
+    db_file=None,
+    user_kpoints_settings=None,
+    t_step=10,
+    t_min=0,
+    t_max=1000,
+    mesh=(20, 20, 20),
+    eos="vinet",
+    qha_type="debye_model",
+    pressure=0.0,
+    poisson=0.25,
+    anharmonic_contribution=False,
+    metadata=None,
+    tag=None,
+):
     """
     Returns quasi-harmonic gibbs free energy workflow.
     Note: phonopy package is required for the final analysis step if qha_type="phonopy"
@@ -70,26 +81,53 @@ def get_wf_gibbs_free_energy(structure, deformations, vasp_input_set=None, vasp_
         if qha_type not in ["debye_model"]:
             lepsilon = True
             try:
-                from phonopy import Phonopy
+                pass
             except ImportError:
-                raise RuntimeError("'phonopy' package is NOT installed but is required for the final "
-                                   "analysis step; you can alternatively switch to the qha_type to "
-                                   "'debye_model' which does not require 'phonopy'.")
-        vis_static = MPStaticSet(structure, force_gamma=True, lepsilon=lepsilon,
-                                 user_kpoints_settings=user_kpoints_settings)
+                raise RuntimeError(
+                    "'phonopy' package is NOT installed but is required for the final "
+                    "analysis step; you can alternatively switch to the qha_type to "
+                    "'debye_model' which does not require 'phonopy'."
+                )
+        vis_static = MPStaticSet(
+            structure,
+            force_gamma=True,
+            lepsilon=lepsilon,
+            user_kpoints_settings=user_kpoints_settings,
+        )
 
-    wf_gibbs = get_wf_deformations(structure, deformations, name="gibbs deformation",
-                                   vasp_cmd=vasp_cmd, db_file=db_file, tag=tag, metadata=metadata,
-                                   vasp_input_set=vis_static)
+    wf_gibbs = get_wf_deformations(
+        structure,
+        deformations,
+        name="gibbs deformation",
+        vasp_cmd=vasp_cmd,
+        db_file=db_file,
+        tag=tag,
+        metadata=metadata,
+        vasp_input_set=vis_static,
+    )
 
-    fw_analysis = Firework(GibbsAnalysisToDb(tag=tag, db_file=db_file, t_step=t_step, t_min=t_min,
-                                             t_max=t_max, mesh=mesh, eos=eos, qha_type=qha_type,
-                                             pressure=pressure, poisson=poisson, metadata=metadata,
-                                             anharmonic_contribution=anharmonic_contribution,),
-                           name="Gibbs Free Energy")
+    fw_analysis = Firework(
+        GibbsAnalysisToDb(
+            tag=tag,
+            db_file=db_file,
+            t_step=t_step,
+            t_min=t_min,
+            t_max=t_max,
+            mesh=mesh,
+            eos=eos,
+            qha_type=qha_type,
+            pressure=pressure,
+            poisson=poisson,
+            metadata=metadata,
+            anharmonic_contribution=anharmonic_contribution,
+        ),
+        name="Gibbs Free Energy",
+    )
 
     wf_gibbs.append_wf(Workflow.from_Firework(fw_analysis), wf_gibbs.leaf_fw_ids)
 
-    wf_gibbs.name = "{}:{}".format(structure.composition.reduced_formula, "gibbs free energy")
+    wf_gibbs.name = "{}:{}".format(
+        structure.composition.reduced_formula, "gibbs free energy"
+    )
 
     return wf_gibbs

@@ -395,7 +395,7 @@ class WriteVaspStaticFromPrev(FiretaskBase):
             sym_prec=self.get("sym_prec", 0.1),
             international_monoclinic=self.get("international_monoclinic", True),
             lepsilon=lepsilon,
-            **other_params
+            **other_params,
         )
 
         potcar_spec = self.get("potcar_spec", False)
@@ -487,7 +487,7 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
             mode=self.get("mode", "uniform"),
             nedos=self.get("nedos", 2001),
             optics=self.get("optics", False),
-            **self.get("other_params", {})
+            **self.get("other_params", {}),
         )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -542,7 +542,7 @@ class WriteVaspSOCFromPrev(FiretaskBase):
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
             international_monoclinic=self.get("international_monoclinic", True),
-            **self.get("other_params", {})
+            **self.get("other_params", {}),
         )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -582,7 +582,7 @@ class WriteVaspNMRFromPrev(FiretaskBase):
             mode=self.get("mode", "cs"),
             isotopes=self.get("isotopes", None),
             reciprocal_density=self.get("reciprocal_density", 100),
-            **self.get("other_params", {})
+            **self.get("other_params", {}),
         )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -626,7 +626,8 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
 
         transformations = []
         transformation_params = self.get(
-            "transformation_params", [{} for _ in range(len(self["transformations"]))],
+            "transformation_params",
+            [{} for _ in range(len(self["transformations"]))],
         )
         for t in self["transformations"]:
             found = False
@@ -637,7 +638,7 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
                 "site_transformations",
                 "standard_transformations",
             ]:
-                mod = import_module("pymatgen.transformations.{}".format(m))
+                mod = import_module(f"pymatgen.transformations.{m}")
 
                 try:
                     t_cls = getattr(mod, t)
@@ -647,7 +648,7 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
                     pass
 
             if not found:
-                raise ValueError("Could not find transformation: {}".format(t))
+                raise ValueError(f"Could not find transformation: {t}")
 
             t_obj = t_cls(**transformation_params.pop(0))
             transformations.append(t_obj)
