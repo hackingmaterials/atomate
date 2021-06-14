@@ -2,7 +2,7 @@ numpy==1.20.3
 scipy==1.6.3
 FireWorks==1.9.7
 pymatgen-analysis-diffusion==2021.4.29
-monty==2021.5.9
+monty==2021.6.10
 paramiko==2.7.2
 tqdm==4.61.0
 pybtex==0.24.0
