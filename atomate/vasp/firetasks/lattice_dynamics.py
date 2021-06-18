@@ -503,6 +503,8 @@ class RunShengBTE(FiretaskBase):
             env_chk.
 
     Optional parameters:
+        renormalized: boolean to denote whether force constants are from
+            phonon renormalization (True) or directly from fitting (False)  
         temperature (float or dict): The temperature to calculate the lattice
             thermal conductivity for. Can be given as a single float, or a
             dictionary with the keys "t_min", "t_max", "t_step".
