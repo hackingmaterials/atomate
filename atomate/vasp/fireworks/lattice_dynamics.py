@@ -137,8 +137,8 @@ class LatticeThermalConductivityFW(Firework):
                                   .format(temperature))
             run_shengbte = RunShengBTE(
                 shengbte_cmd=shengbte_cmd,
+                renormalized=renormalized,
                 temperature=temperature,
-                renormlized=renormalized,
                 control_kwargs=shengbte_control_kwargs,
             )
         else: # only the default files are needed
@@ -153,7 +153,7 @@ class LatticeThermalConductivityFW(Firework):
                 copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
             run_shengbte = RunShengBTE(
                 shengbte_cmd=shengbte_cmd,
-                renormlized=renormalized,
+                renormalized=renormalized,
                 temperature=temperature,
                 control_kwargs=shengbte_control_kwargs,
             )
