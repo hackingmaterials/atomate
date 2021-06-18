@@ -67,7 +67,7 @@ def get_lattice_dynamics_wf(
     calculate_lattice_thermal_conductivity: bool = False,
     thermal_conductivity_temperature: Union[float, Dict] = T_KLAT,
     renormalize: bool =	False,
-    renormalization_temperature: Union[float, Dict] = T_RENORM,
+    renormalization_temperature: Union[float, List, Dict] = T_RENORM,
     shengbte_cmd: str = SHENGBTE_CMD,
     shengbte_fworker: Optional[str] = None,
 ):
@@ -123,7 +123,7 @@ def get_lattice_dynamics_wf(
             lattice thermal conductivity for. Can be given as a single float, or
             a dictionary with the keys "min", "max", "step".
         renormalization_temperature: The temperature at which to perform phonon 
-            renormalization. Can be given as a single float, or a dictionary
+            renormalization. Can be given as a single float, list, or a dictionary
             with the keys "min", "max", "step".
         shengbte_cmd: Command to run ShengBTE. Supports env_chk.
         shengbte_fworker: If None, the ShengBTE firework's fworker will be set
