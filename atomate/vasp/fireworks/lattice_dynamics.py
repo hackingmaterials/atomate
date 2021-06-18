@@ -95,6 +95,8 @@ class LatticeThermalConductivityFW(Firework):
         db_file: Path to a db file.
         shengbte_cmd: The name of the shengbte executable to run. Supports
             env_chk.
+        renormalized: boolean to denote whether force constants are from 
+            phonon renormalization (True) or directly from fitting (False)
         temperature: The temperature to calculate the lattice thermal
             conductivity for. Can be given as a single float, or a
             dictionary with the keys "min", "max", "step".
