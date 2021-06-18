@@ -262,7 +262,7 @@ class RunHiPhiveRenorm(FiretaskBase):
         bulk_modulus = self.get("bulk_modulus")
         T_renorm = self.get("T_renorm", T_RENORM)
 
-        renorm_results = Parallel(n_jobs=2, backend="multiprocessing")(delayed(renormalization)(
+        renorm_results = Parallel(n_jobs=4, backend="multiprocessing")(delayed(renormalization)(
             parent_structure, supercell_matrix, cs, fcs, param, T, nconfig, conv_thresh, imaginary_tol
         ) for t, T in enumerate(T_renorm))
 
@@ -505,45 +505,50 @@ class RunShengBTE(FiretaskBase):
     Optional parameters:
         temperature (float or dict): The temperature to calculate the lattice
             thermal conductivity for. Can be given as a single float, or a
-            dictionary with the keys "min", "max", "step".
+            dictionary with the keys "t_min", "t_max", "t_step".
         control_kwargs (dict): Options to be included in the ShengBTE control
             file.
     """
 
     required_params = ["shengbte_cmd"]
-    optional_params = ["temperature", "control_kwargs"]
+    optional_params = ["renormalized","temperature", "control_kwargs"]
 
     def run_task(self, fw_spec):
         structure_data = loadfn("structure_data.json")
         structure = structure_data["structure"]
         supercell_matrix = structure_data["supercell_matrix"]
         temperature = self.get("temperature", T_KLAT)
+        renormalized = self.get("renormalized", False)
 
-        if isinstance(temperature, (int, float)):
+        if renormalized:
+            assert isinstance(temperature, (int, float))
             self["t"] = temperature
-        elif isinstance(temperature, (list, np.ndarray)):
-            t_max = np.max(np.array(temperature))
-            t_min = np.min(np.array(temperature))
-            if t_min==0:
-                t_min = np.partition(temperature,1)[1]
-                t_step = (t_max-t_min)/(len(temperature)-2)
-            else:
-                t_step = (t_max-t_min)/(len(temperature)-1)
-            self["t_min"] = t_min
-            self["t_max"] = t_max
-            self["t_step"] = t_step
-        elif isinstance(temperature, dict):
-            self["t_min"] = temperature["min"]
-            self["t_max"] = temperature["max"]
-            self["t_step"] = temperature["step"]
         else:
-            raise ValueError("Unsupported temperature type, must be float or dict")
+            if isinstance(temperature, (int, float)):
+                self["t"] = temperature
+            elif isinstance(temperature, (list, np.ndarray)):
+                t_max = np.max(np.array(temperature))
+                t_min = np.min(np.array(temperature))
+                if t_min==0:
+                    t_min = np.partition(temperature,1)[1]
+                    t_step = (t_max-t_min)/(len(temperature)-2)
+                else:
+                    t_step = (t_max-t_min)/(len(temperature)-1)
+                self["t_min"] = t_min
+                self["t_max"] = t_max
+                self["t_step"] = t_step
+            elif isinstance(temperature, dict):
+                self["t_min"] = temperature["t_min"]
+                self["t_max"] = temperature["t_max"]
+                self["t_step"] = temperature["t_step"]
+            else:
+                raise ValueError("Unsupported temperature type, must be float or dict")
         
         control_dict = {
             "scalebroad": 0.5,
             "nonanalytic": False,
             "isotopes": False,
-            "temperature": self.get("temperature", T_KLAT),
+            "temperature": temperature,
             "scell": np.diag(supercell_matrix).tolist(),
         }
         control_kwargs = self.get("control_kwargs") or {}

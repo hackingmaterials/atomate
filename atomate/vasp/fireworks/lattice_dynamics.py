@@ -109,27 +109,53 @@ class LatticeThermalConductivityFW(Firework):
         prev_calc_dir: Optional[str] = None,
         db_file: str = None,
         shengbte_cmd: str = SHENGBTE_CMD,
+        renormalized: bool = False,
         temperature: Union[float, dict] = T_KLAT,
         shengbte_control_kwargs: Optional[dict] = None,
         **kwargs
     ):
         # files needed to run ShengBTE
-        files = [
-            "structure_data.json",
-            "FORCE_CONSTANTS_2ND",
-            "FORCE_CONSTANTS_3RD",
-        ]
-
-        if prev_calc_dir:
-            copy_files = CopyFiles(from_dir=prev_calc_dir, files_to_copy=files)
-        else:
-            copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
-
-        run_shengbte = RunShengBTE(
-            shengbte_cmd=shengbte_cmd,
-            temperature=temperature,
-            control_kwargs=shengbte_control_kwargs,
-        )
+        if renormalized: # must check if FORCE_CONSTANTS_2ND_{T}K can be copied individually
+            files = [
+                "structure_data.json",
+                "FORCE_CONSTANTS_2ND_{}K".format(temperature),
+                "FORCE_CONSTANTS_3RD"
+            ]
+            if prev_calc_dir:
+                try:
+                    copy_files = CopyFiles(from_dir=prev_calc_dir, files_to_copy=files)
+                except:
+                    raise IOError("FORCE_CONSTANTS_2ND_{}K not found! Abandoning ShengBTE run."
+                                  .format(temperature))
+            else:
+                try:
+                    copy_files = CopyFilesFromCalcLoc(calc_loc=True, files_to_copy=files)
+                except:
+                    raise IOError("FORCE_CONSTANTS_2ND_{}K not found! Abandoning ShengBTE run."
+                                  .format(temperature))
+            run_shengbte = RunShengBTE(
+                shengbte_cmd=shengbte_cmd,
+                temperature=temperature,
+                renormlized=renormalized,
+                control_kwargs=shengbte_control_kwargs,
+            )
+        else: # only the default files are needed
+            files = [
+                "structure_data.json",
+                "FORCE_CONSTANTS_2ND",
+                "FORCE_CONSTANTS_3RD",
+            ]
+            if prev_calc_dir:
+                copy_files = CopyFiles(from_dir=prev_calc_dir, files_to_copy=files)
+            else:
+                copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
+            run_shengbte = RunShengBTE(
+                shengbte_cmd=shengbte_cmd,
+                renormlized=renormalized,
+                temperature=temperature,
+                control_kwargs=shengbte_control_kwargs,
+            )
+            
         shengbte_to_db = ShengBTEToDb(db_file=db_file, additional_fields={})
 
         tasks = [copy_files, run_shengbte, shengbte_to_db]
@@ -158,10 +184,10 @@ class RenormalizationFW(Firework):
     
     def __init__(
         self,
+        temperature: Union[float, list],
         name="Renormalization",
         prev_calc_dir: Optional[str] = None,
         db_file: str = None,
-        temperature: Union[float, dict] = T_RENORM,
         **kwargs
     ):    
     
