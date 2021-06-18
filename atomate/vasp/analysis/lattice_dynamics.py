@@ -43,7 +43,7 @@ IMAGINARY_TOL = 0.025  # in THz
 
 T_QHA = [i*100 for i in range(16)]
 T_RENORM = [0,100,200,300,500,700,1000,1500]#[i*100 for i in range(0,16)]
-T_KLAT = [i*100 for i in range(0,11)]
+T_KLAT = {"t_min":100,"t_max":1000,"t_step":100} #[i*100 for i in range(0,11)]
 
 FIT_METHOD = "rfe" #"least-squares"
 

@@ -24,8 +24,8 @@ from pymatgen.transformations.advanced_transformations import (
     CubicSupercellTransformation,
 )
 
-__author__ = "Alex Ganose, Rees Chang"
-__email__ = "aganose@lbl.gov, rc564@cornell.edu"
+__author__ = "Alex Ganose, Rees Chang, Junsoo Park"
+__email__ = "aganose@lbl.gov, rc564@cornell.edu, jsyony37@lbl.gov"
 __date__ = "February 2020"
 
 logger = get_logger(__name__)
@@ -91,7 +91,9 @@ def get_lattice_dynamics_wf(
        the minimization schemes in hiPhive.
     5. Output the interatomic force constants, and phonon band structure and
        density of states to the database.
-    6. Optional: Solve the lattice thermal conductivity using ShengBTE and
+    6. Optional: Perform phonon renormalization at finite temperature - useful
+       when unstable modes exist 
+    7. Optional: Solve the lattice thermal conductivity using ShengBTE and
        output to the database.
 
     Args:
@@ -171,29 +173,46 @@ def get_lattice_dynamics_wf(
     wf.append_wf(Workflow.from_Firework(fw_fit_force_constant), wf.leaf_fw_ids)
 
     # 3. RenormalizeFW (pass_inputs like bulk modulus)
-#    fitting_data = loadfn(fitting_data, "fitting_data.json")
-#    if fitting_data["n_imaginary"] > 0 and renormalize:
-#        fw_renormalization = RenormalizationFW(
-#            db_file=db_file,
-#            temperature=renormalization_temperature
-#        )
-#        wf.append_wf(
-#            Workflow.from_Firework(fw_fw_renormalization), [wf.fws[-1].fw_id]
-#        )
+    if renormalize:
+        fw_renormalization = RenormalizationFW(
+            temperature=renormalization_temperature,
+            db_file=db_file,
+        )
+        wf.append_wf(
+            Workflow.from_Firework(fw_renormalization), [wf.fws[-1].fw_id]
+        )
 
     # 4. Lattice thermal conductivity calculation
     if calculate_lattice_thermal_conductivity:
-        fw_lattice_conductivity = LatticeThermalConductivityFW(
-            db_file=db_file,
-            shengbte_cmd=shengbte_cmd,
-            temperature=thermal_conductivity_temperature,
-        )
-        if shengbte_fworker:
-            fw_lattice_conductivity.spec["_fworker"] = shengbte_fworker
-
-        wf.append_wf(
-            Workflow.from_Firework(fw_lattice_conductivity), [wf.fws[-1].fw_id]
-        )
+        if renormalize:
+            # Because of the way ShengBTE works, a temperature array that is not
+            # equally spaced out (T_step) requires submission for each temperature
+            fw_lattice_conductivity = []
+            for T in renormalization_temperature:
+                fw = LatticeThermalConductivityFW(
+                    db_file=db_file,
+                    shengbte_cmd=shengbte_cmd,
+                    renormalized=True,
+                    temperature=T
+                )
+                if shengbte_fworker:
+                    fw.spec["_fworker"] = shengbte_fworker
+                fw_lattice_conductivity.append(fw)
+            wf.append_wf(
+                Workflow.from_Firework(fw_lattice_conductivity), wf.leaf_fw_ids
+            )                
+        else:
+            fw_lattice_conductivity = LatticeThermalConductivityFW(
+                db_file=db_file,
+                shengbte_cmd=shengbte_cmd,
+                renormalized=False,
+                temperature=thermal_conductivity_temperature,
+            )
+            if shengbte_fworker:
+                fw_lattice_conductivity.spec["_fworker"] = shengbte_fworker
+            wf.append_wf(
+                Workflow.from_Firework(fw_lattice_conductivity), [wf.fws[-1].fw_id]
+            )
 
     formula = structure.composition.reduced_formula
     wf.name = "{} - lattice dynamics".format(formula)
