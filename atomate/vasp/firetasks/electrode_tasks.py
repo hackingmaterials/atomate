@@ -169,10 +169,7 @@ class GetInsertionCalcs(FiretaskBase):
             # Create new fw
             fw = OptimizeFW(
                 inserted_structure,
-                name=f"structure optimization-{itr}",
-                override_default_vasp_params={
-                    "user_incar_settings": {"NSW": 299}
-                },  # structure are rough guesses
+                name=f"structure optimization-{itr}",  # structure are rough guesses
                 **optimizefw_kwargs,
             )
             fw.tasks[-1]["additional_fields"].update(
