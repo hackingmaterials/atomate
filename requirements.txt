@@ -13,5 +13,5 @@ custodian==2021.2.8
 networkx==2.5.1
 pydash==5.0.0
 pyyaml==5.4.1
-maggma==0.29.0
+maggma==0.29.2
 scikit-image==0.18.1
