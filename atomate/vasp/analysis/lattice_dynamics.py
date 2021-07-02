@@ -92,10 +92,11 @@ def get_cutoffs(structure: Structure):
     """
     # indexed as min_cutoffs[order][period]
     min_cutoffs = {
-        2: {1: 5.0, 2: 5.5, 3: 6.0, 4: 7.0, 5: 8.0, 6: 9.0, 7: 10.0},
+        2: {1: 5.0, 2: 6.0, 3: 7.0, 4: 8.0, 5: 9.0, 6: 9.0, 7: 10.0},
         3: {1: 3.0, 2: 3.5, 3: 4.0, 4: 4.5, 5: 5.0, 6: 5.5, 7: 6.0},
         4: {1: 2.0, 2: 2.5, 3: 3.0, 4: 3.0, 5: 3.5, 6: 4.0, 7: 4.5},
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
     inc = {2: 3, 3: 1.5, 4: 1}
     steps = {2: 0.5, 3: 0.25, 4: 0.25}
@@ -104,6 +105,10 @@ def get_cutoffs(structure: Structure):
 =======
     inc = {2: 2, 3: 1, 4: 0.5}
     steps = {2: 1, 3: 0.5, 4: 0.5}
+=======
+    inc = {2: 2, 3: 1.5, 4: 0.5}
+    steps = {2: 1, 3: 0.75, 4: 0.5}
+>>>>>>> c69d0316 (fixed cutoff)
 
     row = min([s.row for s in supercell_structure.species])
     factor = row/4
@@ -121,8 +126,10 @@ def get_cutoffs(structure: Structure):
 =======
     cutoffs = np.array(list(map(list, product(range_two, range_three, range_four))))
     max_cutoff = estimate_maximum_cutoff(AseAtomsAdaptor.get_atoms(supercell_structure))
+    logger.info('CUTOFFS \n {}'.format(cutoffs))
     logger.info('MAX_CUTOFF \n {}'.format(max_cutoff))    
-    good_cutoffs = np.all(cutoffs < np.around(max_cutoff, 4) - 0.0001, axis=1)
+    good_cutoffs = np.all(cutoffs < max_cutoff-0.1, axis=1)
+    logger.info('GOOD CUTOFFS \n{}'.format(good_cutoffs))
     return cutoffs[good_cutoffs].tolist()
 >>>>>>> c094a175 (cutoff vs cell_size)
 
@@ -197,6 +204,7 @@ def fit_force_constants(
 #        "entropy": [],
 #        "heat_capacity": [],
         "fit_method": fit_method,
+        "separate_fit": separate_fit,
         "imaginary_tol": imaginary_tol,
 #        "max_n_imaginary": max_n_imaginary,
     }
@@ -228,6 +236,7 @@ def fit_force_constants(
     cutoff_results = Parallel(n_jobs=12, backend="multiprocessing")(delayed(_run_cutoffs)(
         i, cutoffs, n_cutoffs, parent_structure, structures, supercell_matrix, fit_method,
         separate_fit, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
+#        separate_fit, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
 
     logger.info('CUTOFF RESULTS \n {}'.format(cutoff_results))
     
@@ -400,14 +409,15 @@ def get_structure_container(
         opt.train()
         parameters = opt.parameters
         logger.info('Training complete for cutoff: {}, {}'.format(i,cutoffs))
-    
+
+    logger.info('Memory use: {} %'.format(psutil.virtual_memory().percent))
     parameters = enforce_rotational_sum_rules(
         cs, parameters, ["Huang", "Born-Huang"]
     )
     fcp = ForceConstantPotential(cs, parameters)
     fcs = fcp.get_force_constants(supercell_atoms)
     logger.info('FCS generated for cutoff {}, {}'.format(i,cutoffs))
-
+    
     try:
         return {
             "cutoffs": cutoffs,
@@ -441,32 +451,30 @@ def get_structure_container(
     """
 
     sc = StructureContainer(cs)
-    saved_strutures = []
-    structure_orig = structures[0]
+    saved_structures = []
     for i, structure in enumerate(structures):
-        if i==0:
-            continue
-        displacements = get_displacements(structure_orig, structure)
+        displacements = structure.get_array('displacements')
         mean_displacements = np.linalg.norm(displacements,axis=1).mean()
+        logger.info('Mean displacements: {}'.format(mean_displacements))
         if not separate_fit: # fit all
             sc.add_structure(structure)
         else: # fit separately
             if param2 is None: # for harmonic fitting
-                if mean_displacements <= 0.05:
+                if mean_displacements < 0.07:
                     sc.add_structure(structure) 
             else: # for anharmonic fitting
-                if mean_displacements >= 0.15:
+                if mean_displacements >= 0.07:
                     sc.add_structure(structure) 
                     saved_structures.append(structure) 
     if separate_fit and param2 is not None: # do after anharmonic fitting
         A_mat = sc.get_fit_data()[0] # displacement matrix
         f_vec = sc.get_fit_data()[1] # force vector
-        new_force = f_vec - np.dot(A_mat[:,:ncut],param2) # subract harmonic forces
+        anh_force = f_vec - np.dot(A_mat[:,:ncut],param2) # subtract harmonic forces
         sc.delete_all_structures()
         for i, structure in enumerate(saved_structures):
-            naroms = structure.et_global_number_of_atoms()
+            natoms = structure.get_global_number_of_atoms()
             ndisp = natoms*3
-            structure.set_array('forces',new_force[i*ndisp:(i+1)*ndisp].reshape(natoms,3))
+            structure.set_array('forces',anh_force[i*ndisp:(i+1)*ndisp].reshape(natoms,3))
             sc.add_structure(structure)
 
     logger.debug(sc.__repr__())
@@ -648,9 +656,7 @@ def gruneisen(
 
     gruneisen = Gruneisen(fcs2,fcs3,phonopy.supercell,phonopy.primitive)
     gruneisen.set_sampling_mesh(phonopy.mesh_numbers,is_gamma_center=True)
-    logger.info('Memory use before Gruneisen: {} %'.format(psutil.virtual_memory().percent))
     gruneisen.run()
-    logger.info('Memory use after Gruneisen: {} %'.format(psutil.virtual_memory().percent))
     grun = gruneisen.get_gruneisen_parameters() # (nptk,nmode,3,3)
     omega = gruneisen._frequencies
     qp = gruneisen._qpoints
@@ -668,8 +674,8 @@ def gruneisen(
         vol = phonopy.primitive.get_volume()
         cte = grun_tot*(Cv.repeat(3).reshape((len(Cv),3)))/(vol/10**30)/(bulk_modulus*10**9)/3
         cte = np.nan_to_num(cte)    
-        logger.info('Gruneisen : {}'.format(grun_tot))
-        logger.info('CTE : {}'.format(cte))    
+        logger.info('Gruneisen: \n {}'.format(grun_tot))
+        logger.info('CTE: \n {}'.format(cte))    
     return grun_tot, cte
 
 
@@ -691,7 +697,7 @@ def thermal_expansion(
     for t in range(len(temperature)):
         dLfrac[t,:] = np.trapz(cte[:t+1,:],temperature[:t+1],axis=0)
     dLfrac = np.nan_to_num(dLfrac)
-    logger.info('dLfrac : {}'.format(dLfrac))
+    logger.info('dLfrac: \n {}'.format(dLfrac))
     if T is None:
         return dLfrac
     else:
