@@ -857,7 +857,7 @@ def wf_lattice_dynamics(
     """
     optimize_uis = {
         "LAECHG": False,
-        'ENCUT': 520,
+        'ENCUT': 600,
         'ADDGRID': True,
         'EDIFFG': -5e-4,
         'PREC': 'Accurate',

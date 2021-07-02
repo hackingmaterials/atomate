@@ -34,10 +34,10 @@ _static_user_incar_settings = {
     "PREC": "Accurate",
     "ADDGRID": True,
     "LCHARG": False,
-    "ENCUT": 520,
+    "ENCUT": 600,
     "ISMEAR": 0,
     "SIGMA": 0.1,
-    "EDIFF": 1e-6,
+    "EDIFF": 1e-7,
     "LAECHG": False,
     "LREAL": False,
     "LASPH": True,
@@ -200,7 +200,7 @@ def get_lattice_dynamics_wf(
                 fw_lattice_conductivity.append(fw)
             wf.append_wf(
                 Workflow.from_Firework(fw_lattice_conductivity), wf.leaf_fw_ids
-            )                
+            )
         else:
             fw_lattice_conductivity = LatticeThermalConductivityFW(
                 db_file=db_file,
