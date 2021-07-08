@@ -131,6 +131,8 @@ class RunHiPhive(FiretaskBase):
         separate_fit: If True, harmonic and anharmonic force constants are fit
             separately and sequentially, harmonic first then anharmonic. If
             False, then they are all fit in one go. Default is False.
+        disp_cut: if separate_fit true, determines the mean displacement of perturbed
+            structure to be included in harmonic (<) or anharmonic (>) fitting  
         imaginary_tol (float): Tolerance used to decide if a phonon mode
             is imaginary, in THz.
         fit_method (str): Method used for fitting force constants. This can be
@@ -140,6 +142,7 @@ class RunHiPhive(FiretaskBase):
     optional_params = [
         "cutoffs",
         "separate_fit",
+        "disp_cut",
         "bulk_modulus",
         "imaginary_tol",
         "fit_method",
@@ -151,6 +154,7 @@ class RunHiPhive(FiretaskBase):
         imaginary_tol = self.get("imaginary_tol", IMAGINARY_TOL)
         fit_method = self.get("fit_method", FIT_METHOD)
         separate_fit = self.get('separate_fit', False)
+        disp_cut = self.get('disp_cut',None)
         
         all_structures = loadfn("perturbed_structures.json")
         all_forces = loadfn("perturbed_forces.json")
@@ -177,6 +181,7 @@ class RunHiPhive(FiretaskBase):
             structures,
             cutoffs,
             separate_fit,
+            disp_cut,
             imaginary_tol,
             fit_method
         )

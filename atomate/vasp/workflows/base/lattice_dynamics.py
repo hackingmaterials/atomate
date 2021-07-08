@@ -57,6 +57,7 @@ _WF_VERSION = 0.1
 def get_lattice_dynamics_wf(
     structure: Structure,
     separate_fit: bool = False,
+    disp_cut: float = None,
     bulk_modulus: float = None,
     common_settings: Dict = None,
     vasp_input_set: Optional[VaspInputSet] = None,
@@ -98,6 +99,11 @@ def get_lattice_dynamics_wf(
 
     Args:
         structure: Initial structure.
+        separate_fit: Boolean to determine whether harmonic and anharmonic fitting
+            are to be done separately (True) or in one shot (False)
+        disp_cut: if separate_fit true, determines the mean displacement of perturbed
+            structure to be included in harmonic (<) or anharmonic (>) fitting  
+        bulk_modulus: bulk modulus in GPa, necessary for thermal expansion
         common_settings: Common settings dict. Supports "VASP_CMD", "DB_FILE",
             and "user_incar_settings" keys.
         vasp_input_set: Vasp input set for perturbed structure calculations.

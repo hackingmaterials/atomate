@@ -38,10 +38,11 @@ class FitForceConstantsFW(Firework):
         db_file: Path to a db file.
         cutoffs: A list of cutoffs to trial. If None, a set of trial cutoffs
             will be generated based on the structure (default).
-        separate_fit: If True, harmonic and anharmonic force constants are fit
-            separately and sequentially, harmonic first then anharmonic. If
-            False, then they are all fit in one go. Default is False.
-        bulk_modulus: Must be supplied (in GPa) to copute thermal expansion
+        separate_fit: Boolean to determine whether harmonic and anharmonic fitting
+            are to be done separately (True) or in one shot (False)
+        disp_cut: if separate_fit true, determines the mean displacement of perturbed
+            structure to be included in harmonic (<) or anharmonic (>) fitting  
+        bulk_modulus: in GPa, necessary for thermal expansion
         imaginary_tol: Tolerance used to decide if a phonon mode is
             imaginary, in THz.
         fit_method: Method used for fitting force constants. This can be
@@ -59,6 +60,7 @@ class FitForceConstantsFW(Firework):
         db_file: str = None,
         cutoffs: Optional[List[List[float]]] = None,
         separate_fit: bool = False,
+        disp_cut: float = None,
         bulk_modulus: float = None,
         imaginary_tol: float = IMAGINARY_TOL,
         fit_method: str = FIT_METHOD,
@@ -70,6 +72,7 @@ class FitForceConstantsFW(Firework):
         fit_force_constants = RunHiPhive(
             cutoffs=cutoffs,
             separate_fit=separate_fit,
+            disp_cut=disp_cut,
             bulk_modulus=bulk_modulus,
             imaginary_tol=imaginary_tol,
             fit_method=fit_method
