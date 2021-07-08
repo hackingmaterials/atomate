@@ -122,6 +122,7 @@ def fit_force_constants(
     structures: List["Atoms"],
     all_cutoffs: List[List[float]],
     separate_fit: bool,
+    disp_cut: float = None,
     imaginary_tol: float = IMAGINARY_TOL,
     fit_method: str = FIT_METHOD,
     n_jobs: int = -1,
@@ -147,6 +148,10 @@ def fit_force_constants(
         all_cutoffs: A nested list of cutoff values to trial. Each set of
             cutoffs contains the radii for different orders starting with second
             order.
+        separate_fit: Boolean to determine whether harmonic and anharmonic fitting
+            are to be done separately (True) or in one shot (False)
+        disp_cut: if separate_fit true, determines the mean displacement of perturbed
+            structure to be included in harmonic (<) or anharmonic (>) fitting
         imaginary_tol: Tolerance used to decide if a phonon mode is imaginary,
             in THz.
         max_n_imaginary: Maximum number of imaginary modes allowed in the
@@ -180,6 +185,7 @@ def fit_force_constants(
 #        "heat_capacity": [],
         "fit_method": fit_method,
         "separate_fit": separate_fit,
+        "disp_cut": disp_cut,
         "imaginary_tol": imaginary_tol,
 #        "max_n_imaginary": max_n_imaginary,
     }
@@ -201,8 +207,7 @@ def fit_force_constants(
     logger.info('CPU COUNT: {}'.format(os.cpu_count()))
     cutoff_results = Parallel(n_jobs=12, backend="multiprocessing")(delayed(_run_cutoffs)(
         i, cutoffs, n_cutoffs, parent_structure, structures, supercell_matrix, fit_method,
-        separate_fit, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
-#        separate_fit, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
+        separate_fit, disp_cut, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
 
     logger.info('CUTOFF RESULTS \n {}'.format(cutoff_results))
     
@@ -238,6 +243,7 @@ def _run_cutoffs(
     supercell_matrix,
     fit_method,
     separate_fit,
+    disp_cut,
     imaginary_tol,
     fit_kwargs
 ) -> Dict:
@@ -260,7 +266,8 @@ def _run_cutoffs(
     
     if separate_fit:
         logger.info('Fitting harmonic force constants separately')
-        sc = get_structure_container(cs, structures, separate_fit, ncut=n2nd, param2=None)
+        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
+                                     ncut=n2nd, param2=None)
         opt = Optimizer(sc.get_fit_data(),
                         fit_method,
                         [0,n2nd],
@@ -269,7 +276,8 @@ def _run_cutoffs(
         param_harmonic = opt.parameters # harmonic force constant parameters
         
         logger.info('Fitting anharmonic force constants separately')
-        sc = get_structure_container(cs, structures, separate_fit, ncut=n2nd, param2=param_harmonic)
+        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
+                                     ncut=n2nd, param2=param_harmonic)
         opt = Optimizer(sc.get_fit_data(),
                         fit_method,
                         [n2nd,nall],
@@ -283,7 +291,8 @@ def _run_cutoffs(
         
     else:
         logger.info('Fitting all force constants in one shot')
-        sc = get_structure_container(cs, structures, separate_fit, ncut=None, param2=None)
+        sc = get_structure_container(cs, structures, separate_fit, disp_cut=None,
+                                     ncut=None, param2=None)
         opt = Optimizer(sc.get_fit_data(),
                         fit_method,
                         [0,nall],
@@ -316,6 +325,7 @@ def get_structure_container(
         cs: ClusterSpace,
         structures: List["Atoms"],
         separate_fit: bool,
+        disp_cut: float,
         ncut: int,
         param2: np.ndarray
 ) -> "StructureContainer":
@@ -326,6 +336,12 @@ def get_structure_container(
         cutoffs: Cutoff radii for different orders starting with second order.
         structures: A list of ase atoms objects with the "forces" and
             "displacements" arrays included.
+        separate_fit: Boolean to determine whether harmonic and anharmonic fitting
+            are to be done separately (True) or in one shot (False)
+        disp_cut: if separate_fit true, determines the mean displacement of perturbed
+            structure to be included in harmonic (<) or anharmonic (>) fitting 
+        ncut: the parameter index where fitting separation occurs
+        param2: previously fit parameter array (harmonic only for now, hence 2)
 
     Returns:
         A hiPhive StructureContainer.
@@ -341,10 +357,10 @@ def get_structure_container(
             sc.add_structure(structure)
         else: # fit separately
             if param2 is None: # for harmonic fitting
-                if mean_displacements < 0.04:
+                if mean_displacements < disp_cut:
                     sc.add_structure(structure) 
             else: # for anharmonic fitting
-                if mean_displacements >= 0.04:
+                if mean_displacements >= disp_cut:
                     sc.add_structure(structure) 
                     saved_structures.append(structure) 
     if separate_fit and param2 is not None: # do after anharmonic fitting
