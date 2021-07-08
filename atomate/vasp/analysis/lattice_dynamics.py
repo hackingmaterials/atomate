@@ -47,35 +47,35 @@ kB = sp.constants.Boltzmann
 
 def get_cutoffs(supercell_structure: Structure):
     """
-    Get a list of trial cutoffs based on a supercell structure.
+    Get a list of trial cutoffs based on a supercell structure for grid search.
 
     An initial guess for the lower bound of the cutoffs is made based on the
-    period of the lightest element in the structure, according to:
+    average period (row) of the elements in the structure, according to:
 
     ====== === === ===
     .        Cutoff
     ------ -----------
     Period 2ND 3RD 4TH
     ====== === === ===
-     1     5.0 3.0 2.0
-     2     5.5 3.5 2.5
-     3     6.0 4.0 3.0
-     4     7.0 4.5 3.0
-     5     8.0 5.0 3.5
-     6     9.0 5.5 4.0
-     7     10.0 6.0 4.5
+     1     5.0 3.0 2.5
+     2     6.0 3.5 3.0
+     3     7.0 4.5 3.5
+     4     8.0 5.5 4.0
+     5     9.0 6.0 4.5
+     6     10.0 6.5 5.0
+     7     11.0 7.0 5.5
     ====== === === ===
 
     The maximum cutoff for each order is determined by the minimum cutoff and
     the following table. A full grid of all possible cutoff combinations is
-    generated based on the step size in the table below
+    generated based on the step size in the table below times a row factor
 
     ====== ==== =====
     Cutoff Max  Step
     ====== ==== =====
-    2ND    +3.0 0.5
-    3RD    +1.5 0.5
-    4TH    +1.0 0.5
+    2ND    +2.0 1.0
+    3RD    +1.5 0.75
+    4TH    +0.6 0.6
     ====== ==== =====
 
     Finally, the max cutoff size is determined by the supercell lattice dimensions.
@@ -90,14 +90,14 @@ def get_cutoffs(supercell_structure: Structure):
     """
     # indexed as min_cutoffs[order][period]
     min_cutoffs = {
-        2: {1: 5.0, 2: 6.0, 3: 7.0, 4: 8.0, 5: 9.0, 6: 9.0, 7: 10.0},
-        3: {1: 3.0, 2: 3.5, 3: 4.0, 4: 4.5, 5: 5.0, 6: 5.5, 7: 6.0},
-        4: {1: 2.0, 2: 2.5, 3: 3.0, 4: 3.0, 5: 3.5, 6: 4.0, 7: 4.5},
+        2: {1: 5.0, 2: 6.0, 3: 7.0, 4: 8.0, 5: 9.0, 6: 10.0, 7: 11.0},
+        3: {1: 3.0, 2: 3.5, 3: 4.5, 4: 5.5, 5: 6.0, 6: 6.5, 7: 7.0},
+        4: {1: 2.5, 2: 3.0, 3: 3.5, 4: 4.0, 5: 4.5, 6: 5.0, 7: 5.5},
     }
-    inc = {2: 2, 3: 1.5, 4: 0.5}
-    steps = {2: 1, 3: 0.75, 4: 0.5}
+    inc = {2: 2, 3: 1.5, 4: 0.6}
+    steps = {2: 1, 3: 0.75, 4: 0.6}
 
-    row = min([s.row for s in supercell_structure.species])
+    row = int(np.around(np.array([s.row for s in supercell_structure.species]).mean(),0))
     factor = row/4
     mins = {
         2: min_cutoffs[2][row], 3: min_cutoffs[3][row], 4: min_cutoffs[4][row]
@@ -341,10 +341,10 @@ def get_structure_container(
             sc.add_structure(structure)
         else: # fit separately
             if param2 is None: # for harmonic fitting
-                if mean_displacements < 0.07:
+                if mean_displacements < 0.04:
                     sc.add_structure(structure) 
             else: # for anharmonic fitting
-                if mean_displacements >= 0.07:
+                if mean_displacements >= 0.04:
                     sc.add_structure(structure) 
                     saved_structures.append(structure) 
     if separate_fit and param2 is not None: # do after anharmonic fitting
