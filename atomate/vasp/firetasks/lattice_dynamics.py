@@ -154,7 +154,7 @@ class RunHiPhive(FiretaskBase):
         imaginary_tol = self.get("imaginary_tol", IMAGINARY_TOL)
         fit_method = self.get("fit_method", FIT_METHOD)
         separate_fit = self.get('separate_fit', False)
-        disp_cut = self.get('disp_cut',None)
+        disp_cut = self.get('disp_cut', None)
         
         all_structures = loadfn("perturbed_structures.json")
         all_forces = loadfn("perturbed_forces.json")

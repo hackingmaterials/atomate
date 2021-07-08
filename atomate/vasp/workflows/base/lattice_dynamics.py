@@ -173,8 +173,8 @@ def get_lattice_dynamics_wf(
     # 2. Fit interatomic force constants from pertrubed structures
     allow_fizzled = {"_allow_fizzled_parents": True}
     fw_fit_force_constant = FitForceConstantsFW(
-        db_file=db_file, spec=allow_fizzled,
-        separate_fit=separate_fit, bulk_modulus=bulk_modulus
+        db_file=db_file, spec=allow_fizzled, separate_fit=separate_fit,
+        disp_cut=disp_cut, bulk_modulus=bulk_modulus
     )
     wf.append_wf(Workflow.from_Firework(fw_fit_force_constant), wf.leaf_fw_ids)
 
