@@ -830,6 +830,7 @@ def wf_nudged_elastic_band(structures, parent, c=None):
 def wf_lattice_dynamics(
     structure: Structure,
     separate_fit: bool = False,
+    disp_cut: float = None,
     bulk_modulus: float = None,
     c: Optional[dict] = None,
     supercell_matrix_kwargs: Optional[dict] = None,
@@ -885,6 +886,7 @@ def wf_lattice_dynamics(
     wf_ld = get_lattice_dynamics_wf(
         structure,
         separate_fit = separate_fit,
+        disp_cut = disp_cut,
         bulk_modulus = bulk_modulus,
         common_settings=c,
         supercell_matrix_kwargs=supercell_matrix_kwargs,
