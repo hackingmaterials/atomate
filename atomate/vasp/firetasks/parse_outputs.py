@@ -71,16 +71,16 @@ class VaspToDb(FiretaskBase):
         fw_spec_field (str): if set, will update the task doc with the contents
             of this key in the fw_spec.
         defuse_unsuccessful (bool): this is a three-way toggle on what to do if
-            your job looks OK, but is actually unconverged (either electronic or
+            your job looks OK, but is actually not converged (either electronic or
             ionic). True -> mark job as COMPLETED, but defuse children.
             False --> do nothing, continue with workflow as normal. "fizzle"
             --> throw an error (mark this job as FIZZLED)
         task_fields_to_push (dict): if set, will update the next Firework/Firetask
             spec using fields from the task document.
             Format: {key : path} -> fw.spec[key] = task_doc[path]
-            The path is a full mongo-style path so subdocuments can be referneced
+            The path is a full mongo-style path so subdocuments can be referenced
             using dot notation and array keys can be referenced using the index.
-            E.g "calcs_reversed.0.output.outar.run_stats"
+            E.g "calcs_reversed.0.output.outcar.run_stats"
     """
 
     optional_params = [

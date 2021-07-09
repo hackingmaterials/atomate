@@ -317,7 +317,7 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
 
-    uis_optimize = {"ENCUT": 700, "EDIFF": 1e-6, "LAECHG": False}
+    uis_optimize = {"ENCUT": 700, "EDIFF": 1e-6, "LAECHG": False, "LREAL": False}
     if order > 2:
         uis_optimize.update(
             {
@@ -338,7 +338,7 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
         stencils = None
 
     uis_static = uis_optimize.copy()
-    uis_static.update({"ISIF": 2, "IBRION": 2, "NSW": 99, "ISTART": 1, "PREC": "High"})
+    uis_static.update({"ISIF": 2, "IBRION": 2, "NSW": 99, "ISTART": 1})
 
     # input set for structure optimization
     vis_relax = MPRelaxSet(
@@ -370,7 +370,7 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
         user_incar_settings=uis_static,
     )
 
-    # deformations wflow for elasticity calculation
+    # deformations workflow for elasticity calculation
     wf_elastic = get_wf_elastic_constant(
         structure,
         vasp_cmd=vasp_cmd,
