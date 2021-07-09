@@ -362,8 +362,8 @@ class QChemDrone(AbstractDrone):
         d["input"]["pcm"] = temp_input.pcm
         d["input"]["solvent"] = temp_input.solvent
         d["input"]["smx"] = temp_input.smx
-        d["input"]["vdw_mode"] = orig_input.vdw_mode
-        d["input"]["van_der_waals"] = orig_input.van_der_waals
+        d["input"]["vdw_mode"] = temp_input.vdw_mode
+        d["input"]["van_der_waals"] = temp_input.van_der_waals
         d["task"] = {"type": taskname, "name": taskname}
         return d
 
