@@ -176,18 +176,19 @@ class OptimizeFW(Firework):
         super().__init__(t, parents=parents, name=name, **kwargs)
 
 
-
 class ForceFW(Firework):
-    def __init__(self,
-                 molecule=None,
-                 name="force calculation",
-                 qchem_cmd=">>qchem_cmd<<",
-                 multimode=">>multimode<<",
-                 max_cores=">>max_cores<<",
-                 qchem_input_params=None,
-                 db_file=None,
-                 parents=None,
-                 **kwargs):
+    def __init__(
+        self,
+        molecule=None,
+        name="force calculation",
+        qchem_cmd=">>qchem_cmd<<",
+        multimode=">>multimode<<",
+        max_cores=">>max_cores<<",
+        qchem_input_params=None,
+        db_file=None,
+        parents=None,
+        **kwargs
+    ):
         """
         Converge the electron density and calculate the atomic forces, aka the gradient.
 
@@ -221,15 +222,17 @@ class ForceFW(Firework):
         """
 
         qchem_input_params = qchem_input_params or {}
-        input_file="mol.qin"
-        output_file="mol.qout"
+        input_file = "mol.qin"
+        output_file = "mol.qout"
         t = []
         t.append(
             WriteInputFromIOSet(
                 molecule=molecule,
                 qchem_input_set="ForceSet",
                 input_file=input_file,
-                qchem_input_params=qchem_input_params))
+                qchem_input_params=qchem_input_params,
+            )
+        )
         t.append(
             RunQChemCustodian(
                 qchem_cmd=qchem_cmd,
@@ -237,18 +240,18 @@ class ForceFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
-                job_type="normal"))
+                job_type="normal",
+            )
+        )
         t.append(
             QChemToDb(
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
-                additional_fields={"task_label": name}))
-        super(ForceFW, self).__init__(
-            t,
-            parents=parents,
-            name=name,
-            **kwargs)
+                additional_fields={"task_label": name},
+            )
+        )
+        super(ForceFW, self).__init__(t, parents=parents, name=name, **kwargs)
 
 
 class FrequencyFW(Firework):
