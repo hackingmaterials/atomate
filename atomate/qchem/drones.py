@@ -198,6 +198,9 @@ class QChemDrone(AbstractDrone):
             elif "ESP" in d_calc_final:
                 d["output"]["esp"] = d_calc_final["ESP"][-1]
 
+            if "nbo_data" in d_calc_final:
+                d["output"]["nbo"] = d_calc_final["nbo_data"]
+
             if d["output"]["job_type"] in ["opt", "optimization", "ts"]:
                 if "molecule_from_optimized_geometry" in d_calc_final:
                     d["output"]["optimized_molecule"] = d_calc_final[
@@ -232,6 +235,13 @@ class QChemDrone(AbstractDrone):
                 d["input"]["scan_variables"] = d_calc_final.get("scan_variables")
                 d["output"]["scan_geometries"] = d_calc_final.get("optimized_geometries")
                 d["output"]["scan_molecules"] = d_calc_final.get("molecules_from_optimized_geometries")
+
+            if d["output"]["job_type"] == "force":
+                d["output"]["gradients"] = d_calc_final["gradients"][0]
+                if d_calc_final["pcm_gradients"] is not None:
+                    d["output"]["pcm_gradients"] = d_calc_final["pcm_gradients"][0]
+                if d_calc_final["CDS_gradients"] is not None:
+                    d["output"]["CDS_gradients"] = d_calc_final["CDS_gradients"][0]
 
             opt_trajectory = []
             calcs = copy.deepcopy(d["calcs_reversed"])
