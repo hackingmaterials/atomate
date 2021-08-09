@@ -1,14 +1,11 @@
-# coding: utf-8
-
-
 import os
 import unittest
 
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.utils.testing import AtomateTest
 
-__author__ = 'Anubhav Jain'
-__email__ = 'ajain@lbl.gov'
+__author__ = "Anubhav Jain"
+__email__ = "ajain@lbl.gov"
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
@@ -16,17 +13,35 @@ DEBUG_MODE = False
 
 
 class TestCopyVaspOutputs(AtomateTest):
-
     @classmethod
     def setUpClass(cls):
-        cls.plain_outdir = os.path.join(module_dir, "..", "..", "test_files",
-                                        "Si_structure_optimization_plain", "outputs")
-        cls.gzip_outdir = os.path.join(module_dir, "..", "..", "test_files",
-                                       "Si_structure_optimization", "outputs")
-        cls.relax2_outdir = os.path.join(module_dir, "..", "..", "test_files",
-                                         "Si_structure_optimization_relax2", "outputs")
-        cls.nokpts_outdir = os.path.join(module_dir, "..", "..", "test_files",
-                                         "Si_structure_optimization", "outputs_no_kpts")
+        cls.plain_outdir = os.path.join(
+            module_dir,
+            "..",
+            "..",
+            "test_files",
+            "Si_structure_optimization_plain",
+            "outputs",
+        )
+        cls.gzip_outdir = os.path.join(
+            module_dir, "..", "..", "test_files", "Si_structure_optimization", "outputs"
+        )
+        cls.relax2_outdir = os.path.join(
+            module_dir,
+            "..",
+            "..",
+            "test_files",
+            "Si_structure_optimization_relax2",
+            "outputs",
+        )
+        cls.nokpts_outdir = os.path.join(
+            module_dir,
+            "..",
+            "..",
+            "test_files",
+            "Si_structure_optimization",
+            "outputs_no_kpts",
+        )
 
     def test_unittestsetup(self):
         files = ["INCAR", "KPOINTS", "POTCAR", "POSCAR", "CONTCAR", "OUTCAR"]
@@ -34,11 +49,19 @@ class TestCopyVaspOutputs(AtomateTest):
             self.assertTrue(os.path.exists(os.path.join(self.plain_outdir, f)))
             self.assertTrue(os.path.exists(os.path.join(self.gzip_outdir, f + ".gz")))
             if f == "POTCAR":
-                self.assertTrue(os.path.exists(os.path.join(self.relax2_outdir, f + ".gz")))
-                self.assertTrue(os.path.exists(os.path.join(self.relax2_outdir, f + ".orig.gz")))
+                self.assertTrue(
+                    os.path.exists(os.path.join(self.relax2_outdir, f + ".gz"))
+                )
+                self.assertTrue(
+                    os.path.exists(os.path.join(self.relax2_outdir, f + ".orig.gz"))
+                )
             else:
-                self.assertTrue(os.path.exists(os.path.join(self.relax2_outdir, f + ".relax1.gz")))
-                self.assertTrue(os.path.exists(os.path.join(self.relax2_outdir, f + ".relax2.gz")))
+                self.assertTrue(
+                    os.path.exists(os.path.join(self.relax2_outdir, f + ".relax1.gz"))
+                )
+                self.assertTrue(
+                    os.path.exists(os.path.join(self.relax2_outdir, f + ".relax2.gz"))
+                )
 
     def test_plain_copy(self):
         ct = CopyVaspOutputs(calc_dir=self.plain_outdir)
@@ -57,9 +80,11 @@ class TestCopyVaspOutputs(AtomateTest):
                 self.assertEqual(f1.read(), f2.read())
 
     def test_plain_copy_more(self):
-        ct = CopyVaspOutputs(calc_dir=self.plain_outdir,
-                             contcar_to_poscar=False,
-                             additional_files=["IBZKPT"])
+        ct = CopyVaspOutputs(
+            calc_dir=self.plain_outdir,
+            contcar_to_poscar=False,
+            additional_files=["IBZKPT"],
+        )
         ct.run_task({})
         files = ["INCAR", "KPOINTS", "POSCAR", "POTCAR", "IBZKPT"]
         for f in files:

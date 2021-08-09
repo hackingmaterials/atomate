@@ -44,7 +44,7 @@ class TestWriteLobsterinputfromIO(AtomateTest):
         )
 
     def setUp(self):
-        super(TestWriteLobsterinputfromIO, self).setUp(lpad=False)
+        super().setUp(lpad=False)
 
     def test_ioset_explicit(self):
         for fn in ["POSCAR.gz", "POTCAR.gz", "INCAR.gz"]:
@@ -91,7 +91,7 @@ class TestLobsterRunToDb(AtomateTest):
         )
 
     def setUp(self):
-        super(TestLobsterRunToDb, self).setUp(lpad=False)
+        super().setUp(lpad=False)
 
     def tearDown(self):
         # remove the collections if needed and if possible
@@ -176,7 +176,7 @@ class TestLobsterRunToDb(AtomateTest):
 
 class TestRunLobster(AtomateTest):
     def setUp(self):
-        super(TestRunLobster, self).setUp(lpad=False)
+        super().setUp(lpad=False)
 
     def test_run_task(self):
         with mock.patch("atomate.vasp.firetasks.lobster_tasks.Custodian") as mock_c:

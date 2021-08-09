@@ -1,35 +1,15 @@
-# coding: utf-8
-
-import os
-import numpy as np
-
-from fireworks import Workflow, Firework
-from atomate.vasp.fireworks.core import StaticFW
+from fireworks import Workflow
 from atomate.vasp.powerups import (
-    add_tags,
-    add_modify_incar,
     add_additional_fields_to_taskdocs,
-    add_wf_metadata,
-    add_common_powerups,
 )
-from atomate.vasp.workflows.base.core import get_wf
 from atomate.vasp.fireworks.exchange import HeisenbergModelFW, VampireCallerFW
-from atomate.vasp.firetasks.parse_outputs import MagneticOrderingsToDb
-from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA
-from atomate.vasp.workflows.presets.scan import wf_scan_opt
+from atomate.vasp.config import DB_FILE
 from atomate.utils.utils import get_logger
 
 from uuid import uuid4
-from copy import deepcopy
 
 logger = get_logger(__name__)
 
-from pymatgen.io.vasp.sets import MPStaticSet
-from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
-from pymatgen.analysis.magnetism.analyzer import (
-    CollinearMagneticStructureAnalyzer,
-    MagneticStructureEnumerator,
-)
 
 __author__ = "Nathan C. Frey"
 __maintainer__ = "Nathan C. Frey"
@@ -63,9 +43,9 @@ class ExchangeWF:
             magnetic_structures (list): Structure objects with the 'magmom'
                 site property.
             energies (list): Energies per atom in eV.
-            default_magmoms (dict): (optional, defaults provided) dict of 
-                magnetic elements to their initial magnetic moments in µB, 
-                generally these are chosen to be high-spin since they can 
+            default_magmoms (dict): (optional, defaults provided) dict of
+                magnetic elements to their initial magnetic moments in µB,
+                generally these are chosen to be high-spin since they can
                 relax to a low-spin configuration during a DFT electronic
                 configuration.
             db_file (string): Path to database file.
@@ -92,7 +72,7 @@ class ExchangeWF:
         # Check for magmoms
         for s in magnetic_structures:
             try:
-                magmoms = s.site_properties["magmom"]
+                s.site_properties["magmom"]
             except:
                 raise RuntimeError(
                     "All structures must have 'magmom' site \
@@ -103,7 +83,7 @@ class ExchangeWF:
         """Retrieve Fireworks workflow.
 
         c is an optional dictionary that can contain:
-        * heisenberg_settings: 
+        * heisenberg_settings:
             cutoff (float): Starting point for nearest neighbor search.
             tol (float): Tolerance for equivalent NN bonds.
         * mc_settings:
@@ -120,7 +100,7 @@ class ExchangeWF:
                 are extra orderings of equivalent symmetry
             c Optional[dict]: additional config dict described above
 
-        Returns: 
+        Returns:
             wf (Workflow): Heisenberg Model + Vampire Monte Carlo.
 
         TODO:
@@ -165,6 +145,6 @@ class ExchangeWF:
         # Add metadata
         wf = add_additional_fields_to_taskdocs(wf, {"wf_meta": self.wf_meta})
         formula = self.structures[0].composition.reduced_formula
-        wf.name = "{} - Exchange".format(formula)
+        wf.name = f"{formula} - Exchange"
 
         return wf

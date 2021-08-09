@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 import json
 import os
 
@@ -46,9 +43,16 @@ class QChemToDb(FiretaskBase):
         multirun (bool): Whether the job to parse includes multiple
             calculations in one input / output pair.
     """
+
     optional_params = [
-        "calc_dir", "calc_loc", "input_file", "output_file",
-        "additional_fields", "db_file", "fw_spec_field", "multirun"
+        "calc_dir",
+        "calc_loc",
+        "input_file",
+        "output_file",
+        "additional_fields",
+        "db_file",
+        "fw_spec_field",
+        "multirun",
     ]
 
     def run_task(self, fw_spec):
@@ -57,14 +61,13 @@ class QChemToDb(FiretaskBase):
         if "calc_dir" in self:
             calc_dir = self["calc_dir"]
         elif self.get("calc_loc"):
-            calc_dir = get_calc_loc(self["calc_loc"],
-                                    fw_spec["calc_locs"])["path"]
+            calc_dir = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])["path"]
         input_file = self.get("input_file", "mol.qin")
         output_file = self.get("output_file", "mol.qout")
         multirun = self.get("multirun", False)
 
         # parse the QChem directory
-        logger.info("PARSING DIRECTORY: {}".format(calc_dir))
+        logger.info(f"PARSING DIRECTORY: {calc_dir}")
 
         additional_fields = self.get("additional_fields", {})
 
@@ -75,11 +78,14 @@ class QChemToDb(FiretaskBase):
             path=calc_dir,
             input_file=input_file,
             output_file=output_file,
-            multirun=multirun)
+            multirun=multirun,
+        )
 
         # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):
-            task_doc.update({self.get("fw_spec_field"): fw_spec.get(self.get("fw_spec_field"))})
+            task_doc.update(
+                {self.get("fw_spec_field"): fw_spec.get(self.get("fw_spec_field"))}
+            )
 
         # Update fw_spec with final/optimized structure
         update_spec = {}
@@ -101,8 +107,9 @@ class QChemToDb(FiretaskBase):
         else:
             mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
             t_id = mmdb.insert(task_doc)
-            logger.info("Finished parsing with task_id: {}".format(t_id))
+            logger.info(f"Finished parsing with task_id: {t_id}")
 
         return FWAction(
             stored_data={"task_id": task_doc.get("task_id", None)},
-            update_spec=update_spec)
+            update_spec=update_spec,
+        )

@@ -54,7 +54,7 @@ def get_wf_deformations(
     fws = []
     for n, deformation in enumerate(deformations):
         fw = TransmuterFW(
-            name="{} {} {}".format(tag, name, n),
+            name=f"{tag} {name} {n}",
             structure=structure,
             transformations=["DeformStructureTransformation"],
             transformation_params=[{"deformation": deformation.tolist()}],
@@ -65,6 +65,6 @@ def get_wf_deformations(
         )
         fws.append(fw)
 
-    wfname = "{}:{}".format(structure.composition.reduced_formula, name)
+    wfname = f"{structure.composition.reduced_formula}:{name}"
 
     return Workflow(fws, name=wfname, metadata=metadata)

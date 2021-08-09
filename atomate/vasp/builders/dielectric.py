@@ -1,10 +1,6 @@
-from tqdm import tqdm
-
-from atomate.utils.utils import get_logger
-
 import numpy as np
-
-from atomate.utils.utils import get_database
+from atomate.utils.utils import get_database, get_logger
+from tqdm import tqdm
 
 logger = get_logger(__name__)
 
@@ -15,9 +11,9 @@ class DielectricBuilder:
 
     def __init__(self, materials_write):
         """
-        Starting with an existing materials collection, adds some averages and 
+        Starting with an existing materials collection, adds some averages and
         eigenvalues for dielectric constants rather than just the tensor
-        
+
         Args:
             materials_write: mongodb collection for materials (write access needed)
         """
@@ -62,7 +58,7 @@ class DielectricBuilder:
     @staticmethod
     def from_file(db_file, m="materials", **kwargs):
         """
-        Get a MaterialsEhullBuilder using only a db file.
+        Get a DielectricBuilder using only a db file.
 
         Args:
             db_file: (str) path to db file

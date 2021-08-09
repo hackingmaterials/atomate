@@ -1,12 +1,6 @@
-# coding: utf-8
-
 from atomate.vasp.config import ADD_WF_METADATA
 
-from atomate.vasp.powerups import (
-    add_wf_metadata,
-    add_common_powerups,
-    use_custodian
-)
+from atomate.vasp.powerups import add_common_powerups, add_wf_metadata
 from atomate.vasp.workflows.base.core import get_wf
 
 __author__ = "Ryan Kingsbury, Shyam Dwaraknath, Anubhav Jain"
@@ -44,7 +38,7 @@ def wf_r2scan_opt(structure, c=None):
     wf = get_wf(
         structure,
         "metagga_optimization.yaml",
-        common_params={"vasp_input_set_params": vasp_input_set_params}
+        common_params={"vasp_input_set_params": vasp_input_set_params},
     )
 
     wf = add_common_powerups(wf, c)
@@ -92,7 +86,7 @@ def wf_scan_opt(structure, c=None):
         "metagga_optimization.yaml",
         # override the default FW name to reflect the SCAN functional
         params=[{}, {"name": "SCAN structure optimization"}],
-        common_params={"vasp_input_set_params": vasp_input_set_params}
+        common_params={"vasp_input_set_params": vasp_input_set_params},
     )
 
     wf = add_common_powerups(wf, c)

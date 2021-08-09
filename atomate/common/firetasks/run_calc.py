@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 import os
 import subprocess
 
@@ -10,7 +7,7 @@ from fireworks import explicit_serialize, FiretaskBase
 
 from atomate.utils.utils import env_chk, get_logger
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = "Anubhav Jain <ajain@lbl.gov>"
 
 logger = get_logger(__name__)
 
@@ -34,9 +31,9 @@ class RunCommand(FiretaskBase):
         if self.get("expand_vars", False):
             cmd = os.path.expandvars(cmd)
 
-        logger.info("Running command: {}".format(cmd))
+        logger.info(f"Running command: {cmd}")
         return_code = subprocess.call(cmd, shell=True)
-        logger.info("Command {} finished running with returncode: {}".format(cmd, return_code))
+        logger.info(f"Command {cmd} finished running with returncode: {return_code}")
 
 
 @explicit_serialize
@@ -58,6 +55,10 @@ class RunCustodianFromObjects(FiretaskBase):
     optional_params = ["validators", "custodian_params"]
 
     def run_task(self, fw_spec):
-        c = Custodian(self["handlers"], self["jobs"], self.get("validators"),
-                      **self.get("custodian_params", {}))
+        c = Custodian(
+            self["handlers"],
+            self["jobs"],
+            self.get("validators"),
+            **self.get("custodian_params", {}),
+        )
         c.run()

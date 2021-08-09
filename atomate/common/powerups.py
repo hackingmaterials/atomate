@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 This module defines general powerups that can be used for all workflows
 """
@@ -102,7 +100,7 @@ def add_namefile(original_wf, use_slug=True):
        Workflow
     """
     for idx, fw in enumerate(original_wf.fws):
-        fname = "FW--{}".format(fw.name)
+        fname = f"FW--{fw.name}"
         if use_slug:
             fname = get_slug(fname)
 
@@ -130,6 +128,34 @@ def add_additional_fields_to_taskdocs(
     for idx_fw, idx_t in idx_list:
         original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"].update(update_dict)
     return original_wf
+
+
+def add_metadata(wf, meta_dict, fw_name_constraint=None):
+    """
+    Add a metadata dictionary to a Workflow and all its Fireworks. The dictionary
+    is merged into the "metadata" key of the Workflow and into the "_spec" key of
+    each Firework in the workflow.
+
+    Can be used in combination with add_additional_fields_to_taskdocs to add the
+    same set of key-value pairs to Workflows, Fireworks and Tasks collections.
+
+    Args:
+        wf (Workflow)
+        meta_dict: dictionary of custom metadata
+
+    Returns:
+       Workflow
+    """
+
+    # add metadata to Workflow metadata
+    wf.metadata.update(meta_dict)
+
+    # add metadata to Firework metadata
+    for fw in wf.fws:
+        if fw_name_constraint is None or fw_name_constraint in fw.name:
+            fw.spec.update(meta_dict)
+
+    return wf
 
 
 def preserve_fworker(original_wf, fw_name_constraint=None):
@@ -275,5 +301,5 @@ def powerup_by_kwargs(
                 except Exception:
                     pass
         if not found:
-            raise RuntimeError("Could not find powerup {}.".format(name))
+            raise RuntimeError(f"Could not find powerup {name}.")
     return original_wf

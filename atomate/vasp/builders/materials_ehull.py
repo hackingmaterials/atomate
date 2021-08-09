@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 from tqdm import tqdm
 
 from atomate.utils.utils import get_database
@@ -14,7 +11,7 @@ from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = "Anubhav Jain <ajain@lbl.gov>"
 
 
 class MaterialsEhullBuilder(AbstractBuilder):
@@ -40,11 +37,21 @@ class MaterialsEhullBuilder(AbstractBuilder):
         if not self.update_all:
             q["stability"] = {"$exists": False}
 
-        mats = [m for m in self._materials.find(q, {"calc_settings": 1, "structure": 1,
-                                                    "thermo.energy": 1, "material_id": 1})]
+        mats = [
+            m
+            for m in self._materials.find(
+                q,
+                {
+                    "calc_settings": 1,
+                    "structure": 1,
+                    "thermo.energy": 1,
+                    "material_id": 1,
+                },
+            )
+        ]
         pbar = tqdm(mats)
         for m in pbar:
-            pbar.set_description("Processing materials_id: {}".format(m['material_id']))
+            pbar.set_description("Processing materials_id: {}".format(m["material_id"]))
             try:
                 params = {}
                 for x in ["is_hubbard", "hubbards", "potcar_spec"]:
@@ -52,12 +59,16 @@ class MaterialsEhullBuilder(AbstractBuilder):
 
                 structure = Structure.from_dict(m["structure"])
                 energy = m["thermo"]["energy"]
-                my_entry = ComputedEntry(structure.composition, energy, parameters=params)
+                my_entry = ComputedEntry(
+                    structure.composition, energy, parameters=params
+                )
 
                 # TODO: @computron This only calculates Ehull with respect to Materials Project.
                 # It should also account for the current database's results. -computron
-                self._materials.update_one({"material_id": m["material_id"]},
-                                           {"$set": {"stability": self.mpr.get_stability([my_entry])[0]}})
+                self._materials.update_one(
+                    {"material_id": m["material_id"]},
+                    {"$set": {"stability": self.mpr.get_stability([my_entry])[0]}},
+                )
 
                 # TODO: @computron: also add additional properties like inverse hull energy?
 
@@ -66,18 +77,30 @@ class MaterialsEhullBuilder(AbstractBuilder):
                 # use MP only to retrieve entries but compute the PD locally -computron
                 for el, elx in my_entry.composition.items():
                     entries = self.mpr.get_entries(el.symbol, compatible_only=True)
-                    min_e = min(entries, key=lambda x: x.energy_per_atom).energy_per_atom
+                    min_e = min(
+                        entries, key=lambda x: x.energy_per_atom
+                    ).energy_per_atom
                     energy -= elx * min_e
-                self._materials.update_one({"material_id": m["material_id"]},
-                                           {"$set": {"thermo.formation_energy_per_atom": energy / structure.num_sites}})
+                self._materials.update_one(
+                    {"material_id": m["material_id"]},
+                    {
+                        "$set": {
+                            "thermo.formation_energy_per_atom": energy
+                            / structure.num_sites
+                        }
+                    },
+                )
 
                 mpids = self.mpr.find_structure(structure)
-                self._materials.update_one({"material_id": m["material_id"]}, {"$set": {"mpids": mpids}})
+                self._materials.update_one(
+                    {"material_id": m["material_id"]}, {"$set": {"mpids": mpids}}
+                )
 
             except:
                 import traceback
+
                 logger.exception("<---")
-                logger.exception("There was an error processing material_id: {}".format(m))
+                logger.exception(f"There was an error processing material_id: {m}")
                 logger.exception(traceback.format_exc())
                 logger.exception("--->")
 
