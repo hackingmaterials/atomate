@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>atomate.common package &#8212; atomate 1.0.0 documentation</title>
+    <title>atomate.common package &#8212; atomate 1.0.1 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.common package</a></li> 
       </ul>
     </div>  
@@ -86,6 +86,23 @@
 <dt>Args:</dt><dd><p>original_wf (Workflow)
 update_dict (Dict): dictionary to add additional_fields
 task_name_constraint (str): name of the Firetasks to be modified.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Workflow</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.common.powerups.add_metadata">
+<code class="sig-prename descclassname">atomate.common.powerups.</code><code class="sig-name descname">add_metadata</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wf</span></em>, <em class="sig-param"><span class="n">meta_dict</span></em>, <em class="sig-param"><span class="n">fw_name_constraint</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.common.powerups.add_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a metadata dictionary to a Workflow and all its Fireworks. The dictionary
+is merged into the “metadata” key of the Workflow and into the “_spec” key of
+each Firework in the workflow.</p>
+<p>Can be used in combination with add_additional_fields_to_taskdocs to add the
+same set of key-value pairs to Workflows, Fireworks and Tasks collections.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>wf (Workflow)
+meta_dict: dictionary of custom metadata</p>
 </dd>
 <dt>Returns:</dt><dd><p>Workflow</p>
 </dd>
@@ -288,7 +305,7 @@ task_name_constraint (str): name of the Firetasks to be tagged (e.g. None or ‘
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.common package</a></li> 
       </ul>
     </div>

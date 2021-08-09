@@ -12,6 +12,14 @@ atomate.vasp.workflows.base.adsorption module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.workflows.base.approx\_neb module
+----------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.approx_neb
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.workflows.base.bulk\_modulus module
 ------------------------------------------------
 

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; atomate 1.0.0 documentation</title>
+    <title>Index &#8212; atomate 1.0.1 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Index</a></li> 
       </ul>
     </div>  
@@ -111,6 +111,8 @@
       <li><a href="atomate.vasp.builders.html#atomate.vasp.builders.base.AbstractBuilder">AbstractBuilder (class in atomate.vasp.builders.base)</a>
 </li>
       <li><a href="atomate.common.html#atomate.common.powerups.add_additional_fields_to_taskdocs">add_additional_fields_to_taskdocs() (in module atomate.common.powerups)</a>
+</li>
+      <li><a href="atomate.common.html#atomate.common.powerups.add_metadata">add_metadata() (in module atomate.common.powerups)</a>
 </li>
       <li><a href="atomate.common.html#atomate.common.powerups.add_namefile">add_namefile() (in module atomate.common.powerups)</a>
 </li>
@@ -594,13 +596,6 @@
 </li>
       </ul></li>
       <li>
-    atomate.vasp.firetasks.neb_tasks
-
-      <ul>
-        <li><a href="atomate.vasp.firetasks.html#module-atomate.vasp.firetasks.neb_tasks">module</a>
-</li>
-      </ul></li>
-      <li>
     atomate.vasp.submission_filter
 
       <ul>
@@ -633,6 +628,13 @@
 
       <ul>
         <li><a href="atomate.vasp.html#module-atomate.vasp.vasp_config">module</a>
+</li>
+      </ul></li>
+      <li>
+    atomate.vasp.vasp_powerups
+
+      <ul>
+        <li><a href="atomate.vasp.html#module-atomate.vasp.vasp_powerups">module</a>
 </li>
       </ul></li>
       <li>
@@ -996,8 +998,6 @@
 </li>
         <li><a href="atomate.vasp.firetasks.html#module-atomate.vasp.firetasks.glue_tasks">atomate.vasp.firetasks.glue_tasks</a>
 </li>
-        <li><a href="atomate.vasp.firetasks.html#module-atomate.vasp.firetasks.neb_tasks">atomate.vasp.firetasks.neb_tasks</a>
-</li>
         <li><a href="atomate.vasp.html#module-atomate.vasp.submission_filter">atomate.vasp.submission_filter</a>
 </li>
         <li><a href="atomate.vasp.tests.html#module-atomate.vasp.tests">atomate.vasp.tests</a>
@@ -1007,6 +1007,8 @@
         <li><a href="atomate.vasp.tests.html#module-atomate.vasp.tests.test_setup">atomate.vasp.tests.test_setup</a>
 </li>
         <li><a href="atomate.vasp.html#module-atomate.vasp.vasp_config">atomate.vasp.vasp_config</a>
+</li>
+        <li><a href="atomate.vasp.html#module-atomate.vasp.vasp_powerups">atomate.vasp.vasp_powerups</a>
 </li>
         <li><a href="atomate.vasp.workflows.presets.html#module-atomate.vasp.workflows.presets">atomate.vasp.workflows.presets</a>
 </li>
@@ -1077,14 +1079,6 @@
         <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.glue_tasks.CopyVaspOutputs.optional_params">(atomate.vasp.firetasks.glue_tasks.CopyVaspOutputs attribute)</a>
 </li>
         <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.glue_tasks.GetInterpolatedPOSCAR.optional_params">(atomate.vasp.firetasks.glue_tasks.GetInterpolatedPOSCAR attribute)</a>
-</li>
-        <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.optional_params">(atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake attribute)</a>
-</li>
-        <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.TransferNEBTask.optional_params">(atomate.vasp.firetasks.neb_tasks.TransferNEBTask attribute)</a>
-</li>
-        <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.optional_params">(atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints attribute)</a>
-</li>
-        <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.optional_params">(atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1199,14 +1193,6 @@
         <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.glue_tasks.CheckStability.required_params">(atomate.vasp.firetasks.glue_tasks.CheckStability attribute)</a>
 </li>
         <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.glue_tasks.GetInterpolatedPOSCAR.required_params">(atomate.vasp.firetasks.glue_tasks.GetInterpolatedPOSCAR attribute)</a>
-</li>
-        <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.required_params">(atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake attribute)</a>
-</li>
-        <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.TransferNEBTask.required_params">(atomate.vasp.firetasks.neb_tasks.TransferNEBTask attribute)</a>
-</li>
-        <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.required_params">(atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints attribute)</a>
-</li>
-        <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.required_params">(atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages attribute)</a>
 </li>
       </ul></li>
       <li><a href="atomate.vasp.builders.html#atomate.vasp.builders.bandgap_estimation.BandgapEstimationBuilder.reset">reset() (atomate.vasp.builders.bandgap_estimation.BandgapEstimationBuilder method)</a>
@@ -1324,14 +1310,6 @@
 </li>
         <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.glue_tasks.GetInterpolatedPOSCAR.run_task">(atomate.vasp.firetasks.glue_tasks.GetInterpolatedPOSCAR method)</a>
 </li>
-        <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.run_task">(atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake method)</a>
-</li>
-        <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.TransferNEBTask.run_task">(atomate.vasp.firetasks.neb_tasks.TransferNEBTask method)</a>
-</li>
-        <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.run_task">(atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints method)</a>
-</li>
-        <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.run_task">(atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages method)</a>
-</li>
       </ul></li>
       <li><a href="atomate.common.firetasks.html#atomate.common.firetasks.run_calc.RunCommand">RunCommand (class in atomate.common.firetasks.run_calc)</a>
 </li>
@@ -1342,8 +1320,6 @@
       <li><a href="atomate.lammps.firetasks.html#atomate.lammps.firetasks.run_calc.RunLammpsDirect">RunLammpsDirect (class in atomate.lammps.firetasks.run_calc)</a>
 </li>
       <li><a href="atomate.lammps.firetasks.html#atomate.lammps.firetasks.run_calc.RunLammpsFake">RunLammpsFake (class in atomate.lammps.firetasks.run_calc)</a>
-</li>
-      <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake">RunNEBVaspFake (class in atomate.vasp.firetasks.neb_tasks)</a>
 </li>
       <li><a href="atomate.qchem.firetasks.html#atomate.qchem.firetasks.run_calc.RunNoQChem">RunNoQChem (class in atomate.qchem.firetasks.run_calc)</a>
 </li>
@@ -1481,10 +1457,10 @@
 </li>
       <li><a href="atomate.qchem.firetasks.tests.html#atomate.qchem.firetasks.tests.test_geo_transformations.TestGeoTransformations.test_rotate_torsion">test_rotate_torsion() (atomate.qchem.firetasks.tests.test_geo_transformations.TestGeoTransformations method)</a>
 </li>
-      <li><a href="atomate.qchem.firetasks.tests.html#atomate.qchem.firetasks.tests.test_critic2.TestRunCritic2.test_RunCritic2">test_RunCritic2() (atomate.qchem.firetasks.tests.test_critic2.TestRunCritic2 method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="atomate.qchem.firetasks.tests.html#atomate.qchem.firetasks.tests.test_critic2.TestRunCritic2.test_RunCritic2">test_RunCritic2() (atomate.qchem.firetasks.tests.test_critic2.TestRunCritic2 method)</a>
+</li>
       <li><a href="atomate.qchem.firetasks.tests.html#atomate.qchem.firetasks.tests.test_run_calc.TestRunCalcQChem.test_RunQChemCustodian_basic_defaults">test_RunQChemCustodian_basic_defaults() (atomate.qchem.firetasks.tests.test_run_calc.TestRunCalcQChem method)</a>
 </li>
       <li><a href="atomate.qchem.firetasks.tests.html#atomate.qchem.firetasks.tests.test_run_calc.TestRunCalcQChem.test_RunQChemCustodian_basic_not_defaults">test_RunQChemCustodian_basic_not_defaults() (atomate.qchem.firetasks.tests.test_run_calc.TestRunCalcQChem method)</a>
@@ -1545,8 +1521,6 @@
 </li>
       <li><a href="atomate.common.firetasks.html#atomate.common.firetasks.parse_outputs.ToDbTask">ToDbTask (class in atomate.common.firetasks.parse_outputs)</a>
 </li>
-      <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.TransferNEBTask">TransferNEBTask (class in atomate.vasp.firetasks.neb_tasks)</a>
-</li>
   </ul></td>
 </tr></table>
 
@@ -1589,20 +1563,16 @@
 </li>
       <li><a href="atomate.qchem.firetasks.html#atomate.qchem.firetasks.write_inputs.WriteInput">WriteInput (class in atomate.qchem.firetasks.write_inputs)</a>
 </li>
-      <li><a href="atomate.lammps.firetasks.html#atomate.lammps.firetasks.write_inputs.WriteInputFromForceFieldAndTopology">WriteInputFromForceFieldAndTopology (class in atomate.lammps.firetasks.write_inputs)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="atomate.lammps.firetasks.html#atomate.lammps.firetasks.write_inputs.WriteInputFromForceFieldAndTopology">WriteInputFromForceFieldAndTopology (class in atomate.lammps.firetasks.write_inputs)</a>
+</li>
       <li><a href="atomate.lammps.firetasks.html#atomate.lammps.firetasks.write_inputs.WriteInputFromIOSet">WriteInputFromIOSet (class in atomate.lammps.firetasks.write_inputs)</a>
 
       <ul>
         <li><a href="atomate.qchem.firetasks.html#atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet">(class in atomate.qchem.firetasks.write_inputs)</a>
 </li>
       </ul></li>
-      <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints">WriteNEBFromEndpoints (class in atomate.vasp.firetasks.neb_tasks)</a>
-</li>
-      <li><a href="atomate.vasp.firetasks.html#atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages">WriteNEBFromImages (class in atomate.vasp.firetasks.neb_tasks)</a>
-</li>
   </ul></td>
 </tr></table>
 
@@ -1637,7 +1607,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Index</a></li> 
       </ul>
     </div>
