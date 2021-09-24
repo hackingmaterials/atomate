@@ -1,0 +1,11 @@
+{
+    "host": "sv0445.zit.bam.de",
+    "port": 27017,
+    "database": "atomate00",
+    "collection": "vasp",
+    "admin_user": "atomate00_admin",
+    "admin_password": "6Qopm0RsMObc1OSXNDeO",
+    "readonly_user": "atomate00_readonly",
+    "readonly_password": "29ac1c6c7e",
+    "aliases": {}
+}

@@ -1,0 +1,106 @@
+{
+    "spec": {
+        "_tasks": [
+            {
+                "calc_loc": true,
+                "additional_files": [
+                    "OUTCAR",
+                    "vasprun.xml",
+                    "CHG",
+                    "CHGCAR",
+                    "CONTCAR",
+                    "DOSCAR",
+                    "EIGENVAL",
+                    "IBZKPT",
+                    "OSZICAR",
+                    "WAVECAR",
+                    "XDATCAR"
+                ],
+                "contcar_to_poscar": false,
+                "_fw_name": "{{atomate.vasp.firetasks.glue_tasks.CopyVaspOutputs}}"
+            },
+            {
+                "poscar_path": "POSCAR",
+                "incar_path": "INCAR",
+                "potcar_path": "POTCAR",
+                "option": "standard",
+                "user_supplied_basis": null,
+                "user_lobsterin_settings": null,
+                "_fw_name": "{{atomate.vasp.firetasks.lobster_tasks.WriteLobsterinputfromIO}}"
+            },
+            {
+                "lobster_cmd": ">>lobster_cmd<<",
+                "gzip_output": false,
+                "gzip_WAVECAR": false,
+                "handler_group": "default",
+                "validator_group": "strict",
+                "_fw_name": "{{atomate.vasp.firetasks.lobster_tasks.RunLobster}}"
+            },
+            {
+                "db_file": ">>db_file<<",
+                "calc_loc": true,
+                "additional_fields": null,
+                "additional_outputs": null,
+                "_fw_name": "{{atomate.vasp.firetasks.lobster_tasks.LobsterRunToDb}}"
+            },
+            {
+                "name": "lobster_calculation",
+                "_fw_name": "{{atomate.common.firetasks.glue_tasks.PassCalcLocs}}"
+            }
+        ],
+        "calc_locs": [
+            {
+                "name": "structure optimization",
+                "filesystem": null,
+                "path": "/home/jgeorge/test_atomate_optimization/block_2021-09-24-10-55-44-639333/launcher_2021-09-24-10-55-46-399613"
+            },
+            {
+                "name": "static",
+                "filesystem": null,
+                "path": "/home/jgeorge/test_atomate_optimization/block_2021-09-24-10-55-44-639333/launcher_2021-09-24-10-56-51-487046"
+            }
+        ]
+    },
+    "fw_id": 1,
+    "created_on": "2021-09-24T10:55:24.103189",
+    "updated_on": "2021-09-24T10:58:02.208829",
+    "launches": [
+        {
+            "fworker": {
+                "name": "worker",
+                "category": "",
+                "query": "{}",
+                "env": {
+                    "db_file": "/home/jgeorge/.fireworks/db.json",
+                    "vasp_cmd": "mpirun -np 16  /opt/vasp-6.2.1/bin/vasp_std",
+                    "lobster_cmd": "/home/jgeorge/lobster-4.1.0/lobster-4.1.0/lobster-4.1.0",
+                    "scratch_dir": null,
+                    "auto_npar": true
+                }
+            },
+            "fw_id": 1,
+            "launch_dir": "/home/jgeorge/test_atomate_optimization/block_2021-09-24-10-55-44-639333/launcher_2021-09-24-10-57-56-580832",
+            "host": "sv2009",
+            "ip": "192.168.20.209",
+            "trackers": [],
+            "action": null,
+            "state": "RUNNING",
+            "state_history": [
+                {
+                    "state": "RESERVED",
+                    "created_on": "2021-09-24T10:57:56.572203",
+                    "updated_on": "2021-09-24T10:57:56.572206",
+                    "reservation_id": "7677"
+                },
+                {
+                    "state": "RUNNING",
+                    "created_on": "2021-09-24T10:58:02.206417",
+                    "updated_on": "2021-09-24T10:58:02.206422"
+                }
+            ],
+            "launch_id": 3
+        }
+    ],
+    "state": "RUNNING",
+    "name": "Si-lobster_calculation"
+}

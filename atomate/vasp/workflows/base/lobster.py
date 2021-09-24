@@ -8,13 +8,12 @@ import logging
 import os
 from typing import List, Optional
 
-from fireworks import Firework
-from fireworks.core.firework import Workflow
-
 from atomate.common.firetasks.glue_tasks import DeleteFilesPrevFolder
 from atomate.vasp.config import VASP_CMD, DB_FILE, LOBSTER_CMD
-from atomate.vasp.fireworks import StaticFW
+from atomate.vasp.fireworks import StaticFW, OptimizeFW
 from atomate.vasp.fireworks.lobster import LobsterFW
+from fireworks import Firework
+from fireworks.core.firework import Workflow
 from pymatgen.core.structure import Structure
 from pymatgen.io.lobster import Lobsterin
 from pymatgen.io.vasp.sets import LobsterSet
@@ -27,16 +26,19 @@ logger = logging.getLogger(__name__)
 
 
 def get_wf_lobster(
-    structure: Structure,
-    calculation_type: str = "standard",
-    delete_all_wavecars: bool = True,
-    user_lobsterin_settings: dict = None,
-    user_incar_settings: dict = None,
-    user_kpoints_settings: dict = None,
-    user_supplied_basis: dict = None,
-    isym: int = 0,
-    c: dict = None,
-    additional_outputs: List[str] = None,
+        structure: Structure,
+        calculation_type: str = "standard",
+        delete_all_wavecars: bool = True,
+        user_lobsterin_settings: dict = None,
+        user_incar_settings: dict = None,
+        user_kpoints_settings: dict = None,
+        user_supplied_basis: dict = None,
+        isym: int = 0,
+        c: dict = None,
+        additional_outputs: List[str] = None,
+        additional_optimization: bool = False,
+        user_incar_settings_optimization: dict = None,
+        user_kpoints_settings_optimization: dict = None,
 ) -> Workflow:
     """
     Creates a workflow for a static Vasp calculation followed by a Lobster calculation.
@@ -46,8 +48,8 @@ def get_wf_lobster(
         calculation_type: type of the Lobster calculation
         delete_all_wavecars: if True, all WAVECARs are deleted
         user_lobsterin_settings (dict): dict to set additional lobsterin settings
-        user_incar_settings (dict): dict to set additional things in INCAR
-        user_kpoints_settings (dict): dict to set additional things in KPOINTS
+        user_incar_settings (dict): dict to set additional things in INCAR, only for LobsterCalc not optimization
+        user_kpoints_settings (dict): dict to set additional things in KPOINTS, only fo LobsterCalc not optimization
         user_supplied_basis (dict): dict to supply basis functions for each element type
         isym (int): isym setting during the vasp calculation, currently lobster can only deal with isym=-1
         c (dict): configurations dict which can include "VASP_CMD", "LOBSTER_CMD", "DB_FILE"
@@ -55,7 +57,9 @@ def get_wf_lobster(
             results DB. They will be stored as files in gridfs. Examples are:
             "ICOHPLIST.lobster" or "DOSCAR.lobster". Note that the file name
             should be given with the full name and the correct capitalization.
-
+        additional_optimization (bool): determines if an optmization is performed
+        user_incar_settings_optimization (dict): change incar settin with this dict for optimization
+        user_kpoints_settings_optimization (dict): change incar settin with this dict for optimization
     Returns: Workflow
 
 
@@ -68,17 +72,42 @@ def get_wf_lobster(
     db_file = c.get("DB_FILE", DB_FILE)
 
     fws = []
-    staticfw = StaticFW(
-        structure=structure,
-        vasp_input_set=LobsterSet(
-            structure,
-            user_incar_settings=user_incar_settings,
-            user_kpoints_settings=user_kpoints_settings,
-            isym=isym,
-        ),
-        vasp_cmd=vasp_cmd,
-        db_file=db_file,
+
+    lobster_set = LobsterSet(
+        structure,
+        user_incar_settings=user_incar_settings,
+        user_kpoints_settings=user_kpoints_settings,
+        isym=isym,
     )
+    if additional_optimization:
+
+        # add an additional optimization firework
+        optmize_fw = OptimizeFW(structure, override_default_vasp_params={"user_potcar_functional": "PBE_54",
+                                                                         "user_potcar_settings": {"W": "W_sv"},
+                                                                         "user_kpoints_settings": user_kpoints_settings_optimization,
+                                                                         "user_incar_settings": user_incar_settings_optimization})
+        fws.append(optmize_fw)
+        user_incar_settings = lobster_set.incar.as_dict()
+        user_incar_settings.update({"ISTART": None, "LAECHG": None, "LCHARG": None, "LVHAR": None})
+        staticfw = StaticFW(
+            structure=structure,
+            vasp_input_set=lobster_set,
+            vasp_input_set_params={"user_incar_settings": user_incar_settings, "user_potcar_functional": "PBE_54",
+                                   "user_potcar_settings": {"W": "W_sv"},
+                                   "user_kpoints_settings": lobster_set.kpoints.as_dict()},
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+            parents=optmize_fw
+        )
+
+    else:
+
+        staticfw = StaticFW(
+            structure=structure,
+            vasp_input_set=lobster_set,
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+        )
     fws.append(staticfw)
     fws.append(
         LobsterFW(
@@ -102,17 +131,20 @@ def get_wf_lobster(
 
 
 def get_wf_lobster_test_basis(
-    structure: Structure,
-    calculation_type: str = "standard",
-    delete_all_wavecars: bool = True,
-    c: dict = None,
-    address_max_basis: Optional[str] = None,
-    address_min_basis: Optional[str] = None,
-    user_lobsterin_settings: dict = None,
-    user_incar_settings: dict = None,
-    user_kpoints_settings: dict = None,
-    isym: int = 0,
-    additional_outputs: List[str] = None,
+        structure: Structure,
+        calculation_type: str = "standard",
+        delete_all_wavecars: bool = True,
+        c: dict = None,
+        address_max_basis: Optional[str] = None,
+        address_min_basis: Optional[str] = None,
+        user_lobsterin_settings: dict = None,
+        user_incar_settings: dict = None,
+        user_kpoints_settings: dict = None,
+        isym: int = 0,
+        additional_outputs: List[str] = None,
+        additional_optimization: bool = False,
+        user_incar_settings_optimization: dict = None,
+        user_kpoints_settings_optimization: dict = None,
 ) -> Workflow:
     """
     creates workflow where all possible basis functions for one compound are tested
@@ -126,13 +158,16 @@ def get_wf_lobster_test_basis(
         address_max_basis (str): address to yaml file including maximum basis set (otherwise predefined file)
         address_min_basis (str): address to yaml file including minimum basis set (otherwise predefined file)
         user_lobsterin_settings (dict): change lobsterin settings here
-        user_incar_settings (dict): change incar settings with this dict
-        user_kpoints_settings (dict): change kpoint settings with this dict
+        user_incar_settings (dict): change incar settings with this dict, only for Lobster calc and not optimization
+        user_kpoints_settings (dict): change kpoint settings with this dict, only for Lobster calc and not optimization
         isym (int): isym setting during the VASP calculation, currently lobster can only deal with isym=-1 and isym=0
         additional_outputs (list): list of additional files to be stored in the
             results DB. They will be stored as files in gridfs. Examples are:
             "ICOHPLIST.lobster" or "DOSCAR.lobster". Note that the file name
             should be given with the full name and the correct capitalization.
+        additional_optimization (bool): determines if an optmization is performed
+        user_incar_settings_optimization (dict): change incar settin with this dict for optimization
+        user_kpoints_settings_optimization (dict): change incar settin with this dict for optimization
     Returns:
     """
 
@@ -142,7 +177,6 @@ def get_wf_lobster_test_basis(
     lobster_cmd = c.get("LOBSTER_CMD", LOBSTER_CMD)
     db_file = c.get("DB_FILE", DB_FILE)
 
-    fws = []
     # get the relevant potcar files!
     inputset = LobsterSet(
         structure,
@@ -151,6 +185,15 @@ def get_wf_lobster_test_basis(
         user_kpoints_settings=user_kpoints_settings,
         isym=isym,
     )
+
+    fws = []
+    if additional_optimization:
+        optmize_fw = OptimizeFW(structure, override_default_vasp_params={"user_potcar_functional": "PBE_54",
+                                                                         "user_potcar_settings": {"W": "W_sv"},
+                                                                         "user_kpoints_settings": user_kpoints_settings_optimization,
+                                                                         "user_incar_settings": user_incar_settings_optimization})
+        fws.append(optmize_fw)
+
     # get the basis from dict_max_basis
     potcar_symbols = inputset.potcar_symbols
 
@@ -178,14 +221,30 @@ def get_wf_lobster_test_basis(
             address_basis_file_max=address_max_basis,
             address_basis_file_min=address_min_basis,
         )
+    if additional_optimization:
 
-    staticfw = StaticFW(
-        structure=structure,
-        vasp_input_set=inputset,
-        vasp_cmd=vasp_cmd,
-        db_file=db_file,
-        name="static",
-    )
+        user_incar_settings = inputset.incar.as_dict()
+        user_incar_settings.update({"ISTART": None, "LAECHG": None, "LCHARG": None, "LVHAR": None})
+
+        staticfw = StaticFW(
+            structure=structure,
+            vasp_input_set_params={"user_incar_settings": user_incar_settings, "user_potcar_functional": "PBE_54",
+                                   "user_potcar_settings": {"W": "W_sv"},
+                                   "user_kpoints_settings": inputset.kpoints.as_dict()},
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+            name="static",
+            parents=optmize_fw
+        )
+    else:
+        staticfw = StaticFW(
+            structure=structure,
+            vasp_input_set=inputset,
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+            name="static",
+        )
+
     fws.append(staticfw)
 
     # append all lobster calculations that need to be done
