@@ -85,16 +85,24 @@ def get_wf_lobster(
         optmize_fw = OptimizeFW(structure, override_default_vasp_params={"user_potcar_functional": "PBE_54",
                                                                          "user_potcar_settings": {"W": "W_sv"},
                                                                          "user_kpoints_settings": user_kpoints_settings_optimization,
-                                                                         "user_incar_settings": user_incar_settings_optimization})
+                                                                         "user_incar_settings": user_incar_settings_optimization},
+                                vasp_cmd=vasp_cmd,
+                                db_file=db_file,
+                                )
         fws.append(optmize_fw)
-        user_incar_settings = lobster_set.incar.as_dict()
-        user_incar_settings.update({"ISTART": None, "LAECHG": None, "LCHARG": None, "LVHAR": None})
+        user_incar_settings_here = lobster_set.incar.as_dict()
+        user_incar_settings_here.update({"ISTART": None, "LAECHG": None, "LCHARG": None, "LVHAR": None})
+        if user_incar_settings is not None:
+            user_incar_settings_here.update(user_incar_settings)
+        user_kpoints_settings_here = lobster_set.kpoints.as_dict()
+        if user_kpoints_settings is not None:
+            user_incar_settings_here.update(user_kpoints_settings)
         staticfw = StaticFW(
             structure=structure,
             vasp_input_set=lobster_set,
-            vasp_input_set_params={"user_incar_settings": user_incar_settings, "user_potcar_functional": "PBE_54",
+            vasp_input_set_params={"user_incar_settings": user_incar_settings_here, "user_potcar_functional": "PBE_54",
                                    "user_potcar_settings": {"W": "W_sv"},
-                                   "user_kpoints_settings": lobster_set.kpoints.as_dict()},
+                                   "user_kpoints_settings": user_kpoints_settings_here},
             vasp_cmd=vasp_cmd,
             db_file=db_file,
             parents=optmize_fw
@@ -191,7 +199,10 @@ def get_wf_lobster_test_basis(
         optmize_fw = OptimizeFW(structure, override_default_vasp_params={"user_potcar_functional": "PBE_54",
                                                                          "user_potcar_settings": {"W": "W_sv"},
                                                                          "user_kpoints_settings": user_kpoints_settings_optimization,
-                                                                         "user_incar_settings": user_incar_settings_optimization})
+                                                                         "user_incar_settings": user_incar_settings_optimization},
+                                vasp_cmd=vasp_cmd,
+                                db_file=db_file,
+                                )
         fws.append(optmize_fw)
 
     # get the basis from dict_max_basis
@@ -223,14 +234,18 @@ def get_wf_lobster_test_basis(
         )
     if additional_optimization:
 
-        user_incar_settings = inputset.incar.as_dict()
-        user_incar_settings.update({"ISTART": None, "LAECHG": None, "LCHARG": None, "LVHAR": None})
-
+        user_incar_settings_here = inputset.incar.as_dict()
+        user_incar_settings_here.update({"ISTART": None, "LAECHG": None, "LCHARG": None, "LVHAR": None})
+        if user_incar_settings is not None:
+            user_incar_settings_here.update(user_incar_settings)
+        user_kpoints_settings_here = inputset.kpoints.as_dict()
+        if user_kpoints_settings is not None:
+            user_kpoints_settings_here.update(user_kpoints_settings)
         staticfw = StaticFW(
             structure=structure,
-            vasp_input_set_params={"user_incar_settings": user_incar_settings, "user_potcar_functional": "PBE_54",
+            vasp_input_set_params={"user_incar_settings": user_incar_settings_here, "user_potcar_functional": "PBE_54",
                                    "user_potcar_settings": {"W": "W_sv"},
-                                   "user_kpoints_settings": inputset.kpoints.as_dict()},
+                                   "user_kpoints_settings": user_kpoints_settings_here},
             vasp_cmd=vasp_cmd,
             db_file=db_file,
             name="static",

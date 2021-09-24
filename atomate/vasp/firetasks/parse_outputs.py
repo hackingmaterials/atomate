@@ -132,6 +132,7 @@ class VaspToDb(FiretaskBase):
             task_doc.update(fw_spec[self.get("fw_spec_field")])
 
         # get the database connection
+        print(fw_spec)
         db_file = env_chk(self.get("db_file"), fw_spec)
 
         # db insertion or taskdoc dump

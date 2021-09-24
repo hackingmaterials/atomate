@@ -8,12 +8,6 @@ import os
 import shutil
 import warnings
 
-from fireworks import FiretaskBase, explicit_serialize, FWAction
-from fireworks.utilities.fw_serializers import DATETIME_HANDLER
-from monty.json import jsanitize
-from monty.os.path import zpath
-from monty.serialization import loadfn
-
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_meta_from_structure
 from atomate.vasp.config import VASP_OUTPUT_FILES
@@ -25,6 +19,11 @@ from custodian.lobster.handlers import (
     LobsterFilesValidator,
 )
 from custodian.lobster.jobs import LobsterJob
+from fireworks import FiretaskBase, explicit_serialize, FWAction
+from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+from monty.json import jsanitize
+from monty.os.path import zpath
+from monty.serialization import loadfn
 from pymatgen.core.structure import Structure
 from pymatgen.io.lobster import Lobsterout, Lobsterin
 
@@ -200,11 +199,14 @@ class LobsterRunToDb(FiretaskBase):
     std_additional_outputs = [
         "ICOHPLIST.lobster",
         "ICOOPLIST.lobster",
+        "ICOBILIST.lobster",
         "COHPCAR.lobster",
         "COOPCAR.lobster",
         "GROSSPOP.lobster",
         "CHARGE.lobster",
         "DOSCAR.lobster",
+        "MadelungEnergies.lobster",
+        "SitePotentials.lobster"
     ]
 
     def __init__(self, *args, **kwargs):
@@ -339,7 +341,7 @@ class RunLobsterFake(FiretaskBase):
         # Check lobsterin
         if self.get("check_lobsterin", True):
             ref_lobsterin = Lobsterin.from_file(
-                os.path.join(self["ref_dir"], "inputs", "lobsterin")
+                os.path.join(self["ref_dir"], "inputs", "lobsterin.gz")
             )
             params_to_check = self.get("params_to_check", [])
             for p in params_to_check:
