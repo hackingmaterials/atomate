@@ -162,7 +162,12 @@ class RunLobster(FiretaskBase):
         c.run()
 
         if os.path.exists(zpath("custodian.json")):
-            stored_custodian_data = {"custodian": loadfn(zpath("custodian.json"))}
+            if os.path.exists(zpath("FW_offline.json")):
+                import json
+                with open(zpath("custodian.json")) as f:
+                    stored_custodian_data = {"custodian": json.load(f)}
+            else:
+                stored_custodian_data = {"custodian": loadfn(zpath("custodian.json"))}
             return FWAction(stored_data=stored_custodian_data)
 
 
@@ -283,7 +288,7 @@ class LobsterRunToDb(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
 
         # db insertion or taskdoc dump
-        if not db_file:
+        if not db_file or os.path.exists(zpath("FW_offline.json")):
             with open("task_lobster.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:

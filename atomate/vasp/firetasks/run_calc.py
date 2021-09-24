@@ -1,7 +1,6 @@
+from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
 from monty.os.path import zpath
 from monty.serialization import loadfn
-
-from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
 
 """
 This module defines tasks that support running vasp in various ways.
@@ -299,7 +298,12 @@ class RunVaspCustodian(FiretaskBase):
         c.run()
 
         if os.path.exists(zpath("custodian.json")):
-            stored_custodian_data = {"custodian": loadfn(zpath("custodian.json"))}
+            if os.path.exists(zpath("FW_offline.json")):
+                import json
+                with open(zpath("custodian.json")) as f:
+                    stored_custodian_data = {"custodian": json.load(f)}
+            else:
+                stored_custodian_data = {"custodian": loadfn(zpath("custodian.json"))}
             return FWAction(stored_data=stored_custodian_data)
 
 
@@ -396,7 +400,7 @@ class RunVaspFake(FiretaskBase):
             defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 0.2}
             for p in params_to_check:
                 if user_incar.get(p, defaults.get(p)) != ref_incar.get(
-                    p, defaults.get(p)
+                        p, defaults.get(p)
                 ):
                     raise ValueError(f"INCAR value of {p} is inconsistent!")
 
@@ -407,8 +411,8 @@ class RunVaspFake(FiretaskBase):
                 os.path.join(self["ref_dir"], "inputs", "KPOINTS")
             )
             if (
-                user_kpoints.style != ref_kpoints.style
-                or user_kpoints.num_kpts != ref_kpoints.num_kpts
+                    user_kpoints.style != ref_kpoints.style
+                    or user_kpoints.num_kpts != ref_kpoints.num_kpts
             ):
                 raise ValueError(
                     "KPOINT files are inconsistent! Paths are:\n{}\n{} with kpoints {} and {}".format(
@@ -426,8 +430,8 @@ class RunVaspFake(FiretaskBase):
                 os.path.join(self["ref_dir"], "inputs", "POSCAR")
             )
             if (
-                user_poscar.natoms != ref_poscar.natoms
-                or user_poscar.site_symbols != ref_poscar.site_symbols
+                    user_poscar.natoms != ref_poscar.natoms
+                    or user_poscar.site_symbols != ref_poscar.site_symbols
             ):
                 raise ValueError(
                     "POSCAR files are inconsistent! Paths are:\n{}\n{}".format(

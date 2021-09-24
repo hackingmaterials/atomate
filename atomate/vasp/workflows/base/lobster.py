@@ -26,19 +26,19 @@ logger = logging.getLogger(__name__)
 
 
 def get_wf_lobster(
-        structure: Structure,
-        calculation_type: str = "standard",
-        delete_all_wavecars: bool = True,
-        user_lobsterin_settings: dict = None,
-        user_incar_settings: dict = None,
-        user_kpoints_settings: dict = None,
-        user_supplied_basis: dict = None,
-        isym: int = 0,
-        c: dict = None,
-        additional_outputs: List[str] = None,
-        additional_optimization: bool = False,
-        user_incar_settings_optimization: dict = None,
-        user_kpoints_settings_optimization: dict = None,
+    structure: Structure,
+    calculation_type: str = "standard",
+    delete_all_wavecars: bool = True,
+    user_lobsterin_settings: dict = None,
+    user_incar_settings: dict = None,
+    user_kpoints_settings: dict = None,
+    user_supplied_basis: dict = None,
+    isym: int = 0,
+    c: dict = None,
+    additional_outputs: List[str] = None,
+    additional_optimization: bool = False,
+    user_incar_settings_optimization: dict = None,
+    user_kpoints_settings_optimization: dict = None,
 ) -> Workflow:
     """
     Creates a workflow for a static Vasp calculation followed by a Lobster calculation.
@@ -82,16 +82,22 @@ def get_wf_lobster(
     if additional_optimization:
 
         # add an additional optimization firework
-        optmize_fw = OptimizeFW(structure, override_default_vasp_params={"user_potcar_functional": "PBE_54",
-                                                                         "user_potcar_settings": {"W": "W_sv"},
-                                                                         "user_kpoints_settings": user_kpoints_settings_optimization,
-                                                                         "user_incar_settings": user_incar_settings_optimization},
-                                vasp_cmd=vasp_cmd,
-                                db_file=db_file,
-                                )
+        optmize_fw = OptimizeFW(
+            structure,
+            override_default_vasp_params={
+                "user_potcar_functional": "PBE_54",
+                "user_potcar_settings": {"W": "W_sv"},
+                "user_kpoints_settings": user_kpoints_settings_optimization,
+                "user_incar_settings": user_incar_settings_optimization,
+            },
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+        )
         fws.append(optmize_fw)
         user_incar_settings_here = lobster_set.incar.as_dict()
-        user_incar_settings_here.update({"ISTART": None, "LAECHG": None, "LCHARG": None, "LVHAR": None})
+        user_incar_settings_here.update(
+            {"ISTART": None, "LAECHG": None, "LCHARG": None, "LVHAR": None}
+        )
         if user_incar_settings is not None:
             user_incar_settings_here.update(user_incar_settings)
         user_kpoints_settings_here = lobster_set.kpoints.as_dict()
@@ -100,12 +106,15 @@ def get_wf_lobster(
         staticfw = StaticFW(
             structure=structure,
             vasp_input_set=lobster_set,
-            vasp_input_set_params={"user_incar_settings": user_incar_settings_here, "user_potcar_functional": "PBE_54",
-                                   "user_potcar_settings": {"W": "W_sv"},
-                                   "user_kpoints_settings": user_kpoints_settings_here},
+            vasp_input_set_params={
+                "user_incar_settings": user_incar_settings_here,
+                "user_potcar_functional": "PBE_54",
+                "user_potcar_settings": {"W": "W_sv"},
+                "user_kpoints_settings": user_kpoints_settings_here,
+            },
             vasp_cmd=vasp_cmd,
             db_file=db_file,
-            parents=optmize_fw
+            parents=optmize_fw,
         )
 
     else:
@@ -139,20 +148,20 @@ def get_wf_lobster(
 
 
 def get_wf_lobster_test_basis(
-        structure: Structure,
-        calculation_type: str = "standard",
-        delete_all_wavecars: bool = True,
-        c: dict = None,
-        address_max_basis: Optional[str] = None,
-        address_min_basis: Optional[str] = None,
-        user_lobsterin_settings: dict = None,
-        user_incar_settings: dict = None,
-        user_kpoints_settings: dict = None,
-        isym: int = 0,
-        additional_outputs: List[str] = None,
-        additional_optimization: bool = False,
-        user_incar_settings_optimization: dict = None,
-        user_kpoints_settings_optimization: dict = None,
+    structure: Structure,
+    calculation_type: str = "standard",
+    delete_all_wavecars: bool = True,
+    c: dict = None,
+    address_max_basis: Optional[str] = None,
+    address_min_basis: Optional[str] = None,
+    user_lobsterin_settings: dict = None,
+    user_incar_settings: dict = None,
+    user_kpoints_settings: dict = None,
+    isym: int = 0,
+    additional_outputs: List[str] = None,
+    additional_optimization: bool = False,
+    user_incar_settings_optimization: dict = None,
+    user_kpoints_settings_optimization: dict = None,
 ) -> Workflow:
     """
     creates workflow where all possible basis functions for one compound are tested
@@ -196,13 +205,17 @@ def get_wf_lobster_test_basis(
 
     fws = []
     if additional_optimization:
-        optmize_fw = OptimizeFW(structure, override_default_vasp_params={"user_potcar_functional": "PBE_54",
-                                                                         "user_potcar_settings": {"W": "W_sv"},
-                                                                         "user_kpoints_settings": user_kpoints_settings_optimization,
-                                                                         "user_incar_settings": user_incar_settings_optimization},
-                                vasp_cmd=vasp_cmd,
-                                db_file=db_file,
-                                )
+        optmize_fw = OptimizeFW(
+            structure,
+            override_default_vasp_params={
+                "user_potcar_functional": "PBE_54",
+                "user_potcar_settings": {"W": "W_sv"},
+                "user_kpoints_settings": user_kpoints_settings_optimization,
+                "user_incar_settings": user_incar_settings_optimization,
+            },
+            vasp_cmd=vasp_cmd,
+            db_file=db_file,
+        )
         fws.append(optmize_fw)
 
     # get the basis from dict_max_basis
@@ -235,7 +248,9 @@ def get_wf_lobster_test_basis(
     if additional_optimization:
 
         user_incar_settings_here = inputset.incar.as_dict()
-        user_incar_settings_here.update({"ISTART": None, "LAECHG": None, "LCHARG": None, "LVHAR": None})
+        user_incar_settings_here.update(
+            {"ISTART": None, "LAECHG": None, "LCHARG": None, "LVHAR": None}
+        )
         if user_incar_settings is not None:
             user_incar_settings_here.update(user_incar_settings)
         user_kpoints_settings_here = inputset.kpoints.as_dict()
@@ -243,13 +258,16 @@ def get_wf_lobster_test_basis(
             user_kpoints_settings_here.update(user_kpoints_settings)
         staticfw = StaticFW(
             structure=structure,
-            vasp_input_set_params={"user_incar_settings": user_incar_settings_here, "user_potcar_functional": "PBE_54",
-                                   "user_potcar_settings": {"W": "W_sv"},
-                                   "user_kpoints_settings": user_kpoints_settings_here},
+            vasp_input_set_params={
+                "user_incar_settings": user_incar_settings_here,
+                "user_potcar_functional": "PBE_54",
+                "user_potcar_settings": {"W": "W_sv"},
+                "user_kpoints_settings": user_kpoints_settings_here,
+            },
             vasp_cmd=vasp_cmd,
             db_file=db_file,
             name="static",
-            parents=optmize_fw
+            parents=optmize_fw,
         )
     else:
         staticfw = StaticFW(
