@@ -14,7 +14,7 @@ from monty.serialization import loadfn
 from pymatgen.core.composition import Composition
 
 from fireworks import Workflow
-from pymatgen.alchemy.materials import TransformedStructure
+#from pymatgen.alchemy.materials import TransformedStructure
 
 __author__ = 'Anubhav Jain, Kiran Mathew'
 __email__ = 'ajain@lbl.gov, kmathew@lbl.gov'
@@ -135,24 +135,24 @@ def get_logger(name, level=logging.DEBUG, log_format='%(asctime)s %(levelname)s 
     return logger
 
 
-def get_meta_from_structure(structure):
-    if isinstance(structure, TransformedStructure):
-        structure = structure.final_structure
-
-    comp = structure.composition
-    elsyms = sorted(set([e.symbol for e in comp.elements]))
-    meta = {'nsites': structure.num_sites,
-            'elements': elsyms,
-            'nelements': len(elsyms),
-            'formula': comp.formula,
-            'formula_pretty': comp.reduced_formula,
-            'formula_reduced_abc': Composition(comp.reduced_formula)
-            .alphabetical_formula,
-            'formula_anonymous': comp.anonymized_formula,
-            'chemsys': '-'.join(elsyms),
-            'is_ordered': structure.is_ordered,
-            'is_valid': structure.is_valid()}
-    return meta
+#def get_meta_from_structure(structure):
+#    if isinstance(structure, TransformedStructure):
+#        structure = structure.final_structure
+#
+#    comp = structure.composition
+#    elsyms = sorted(set([e.symbol for e in comp.elements]))
+#    meta = {'nsites': structure.num_sites,
+#            'elements': elsyms,
+#            'nelements': len(elsyms),
+#            'formula': comp.formula,
+#            'formula_pretty': comp.reduced_formula,
+#            'formula_reduced_abc': Composition(comp.reduced_formula)
+#            .alphabetical_formula,
+#            'formula_anonymous': comp.anonymized_formula,
+#            'chemsys': '-'.join(elsyms),
+#            'is_ordered': structure.is_ordered,
+#            'is_valid': structure.is_valid()}
+#    return meta
 
 
 def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):
