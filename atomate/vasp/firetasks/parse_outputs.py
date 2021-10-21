@@ -7,6 +7,7 @@ from datetime import datetime
 import numpy as np
 
 from monty.json import MontyEncoder, jsanitize
+from monty.os.path import zpath
 from pydash.objects import has, get
 
 from atomate.vasp.config import DEFUSE_UNSUCCESSFUL
