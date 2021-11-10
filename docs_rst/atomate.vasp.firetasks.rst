@@ -12,6 +12,22 @@ Subpackages
 Submodules
 ----------
 
+atomate.vasp.firetasks.approx\_neb\_dynamic\_tasks module
+---------------------------------------------------------
+
+.. automodule:: atomate.vasp.firetasks.approx_neb_dynamic_tasks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+atomate.vasp.firetasks.approx\_neb\_tasks module
+------------------------------------------------
+
+.. automodule:: atomate.vasp.firetasks.approx_neb_tasks
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.firetasks.electrode\_tasks module
 ----------------------------------------------
 
