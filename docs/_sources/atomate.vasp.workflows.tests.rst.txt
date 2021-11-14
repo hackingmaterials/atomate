@@ -12,6 +12,14 @@ atomate.vasp.workflows.tests.test\_adsorbate\_workflow module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.workflows.tests.test\_approx\_neb\_workflow module
+---------------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.tests.test_approx_neb_workflow
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.workflows.tests.test\_bulk\_modulus\_workflow module
 -----------------------------------------------------------------
 

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>atomate.vasp.builders package &#8212; atomate 0.9.9 documentation</title>
+    <title>atomate.vasp.builders package &#8212; atomate 1.0.1 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.9 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.vasp.builders package</a></li> 
       </ul>
     </div>  
@@ -183,7 +183,7 @@ b (str): name of “boltztrap” collection
 <dl class="py method">
 <dt id="atomate.vasp.builders.dielectric.DielectricBuilder.__init__">
 <code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">materials_write</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.dielectric.DielectricBuilder.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Starting with an existing materials collection, adds some averages and 
+<dd><p>Starting with an existing materials collection, adds some averages and
 eigenvalues for dielectric constants rather than just the tensor</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>materials_write: mongodb collection for materials (write access needed)</p>
@@ -194,7 +194,7 @@ eigenvalues for dielectric constants rather than just the tensor</p>
 <dl class="py method">
 <dt id="atomate.vasp.builders.dielectric.DielectricBuilder.from_file">
 <em class="property">static </em><code class="sig-name descname">from_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">db_file</span></em>, <em class="sig-param"><span class="n">m</span><span class="o">=</span><span class="default_value">'materials'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.builders.dielectric.DielectricBuilder.from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a MaterialsEhullBuilder using only a db file.</p>
+<dd><p>Get a DielectricBuilder using only a db file.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>db_file: (str) path to db file
 m: (str) name of “materials” collection
@@ -504,8 +504,8 @@ t (str): name of “tasks” collection
 <dl class="py data">
 <dt id="atomate.vasp.builders.tasks_materials.module_dir">
 <code class="sig-prename descclassname">atomate.vasp.builders.tasks_materials.</code><code class="sig-name descname">module_dir</code><em class="property"> = '/Users/ajain/Documents/code_lbl/atomate/atomate/vasp/builders'</em><a class="headerlink" href="#atomate.vasp.builders.tasks_materials.module_dir" title="Permalink to this definition">¶</a></dt>
-<dd><p>This class collects all “tasks” (individual calculations) on a single compound and produces a 
-summary report in a new collection (“materials”). The tasks are matched based on having the same 
+<dd><p>This class collects all “tasks” (individual calculations) on a single compound and produces a
+summary report in a new collection (“materials”). The tasks are matched based on having the same
 crystal structure, with some options for overriding this.</p>
 <p>There is lots of config for this builder in the accompanying “tasks_materials_settings.yaml” file.</p>
 </dd></dl>
@@ -588,7 +588,7 @@ crystal structure, with some options for overriding this.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.9 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.1 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.vasp.builders package</a></li> 
       </ul>
     </div>
