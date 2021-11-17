@@ -582,7 +582,7 @@ class NonSCFFW(Firework):
         t.append(
             VaspToDb(
                 db_file=db_file,
-                additional_fields={"task_label": name + " " + mode},
+                additional_fields={"task_label": f"{name} {mode}"},
                 parse_dos=(mode == "uniform"),
                 bandstructure_mode=mode,
             )
@@ -723,7 +723,7 @@ class RamanFW(Firework):
             user_incar_settings (dict): Parameters in INCAR to override
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        name = "{}_{}_{}".format(name, str(mode), str(displacement))
+        name = f"{name}_{str(mode)}_{str(displacement)}"
         fw_name = "{}-{}".format(
             structure.composition.reduced_formula if structure else "unknown", name
         )

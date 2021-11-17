@@ -518,9 +518,7 @@ class RamanTensorToDb(FiretaskBase):
             # frequency in cm^-1
             omega = nm_frequencies[k]
             if nm_eigenvals[k] > 0:
-                logger.warning(
-                    "Mode: {} is UNSTABLE. Freq(cm^-1) = {}".format(k, -omega)
-                )
+                logger.warning(f"Mode: {k} is UNSTABLE. Freq(cm^-1) = {-omega}")
             raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) / np.sqrt(omega)
             raman_tensor_dict[str(k)] = raman_tensor.tolist()
 
@@ -1187,7 +1185,7 @@ class MagneticDeformationToDb(FiretaskBase):
                 "System time (sec)",
                 "Elapsed time (sec)",
             ]:
-                overall_run_stats[key] = sum([v[key] for v in run_stats.values()])
+                overall_run_stats[key] = sum(v[key] for v in run_stats.values())
         except:
             logger.error(f"Bad run stats for {uuid}.")
             overall_run_stats = "Bad run stats"

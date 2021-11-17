@@ -15,7 +15,7 @@ ref_dir = module_dir / "../../test_files"
 
 class TestApproxNEBWorkflow(AtomateTest):
     def setUp(self):
-        super(TestApproxNEBWorkflow, self).setUp()
+        super().setUp()
 
         # get base structure file
         input_host_file = ref_dir / "approx_neb_wf/spinel_MnO2_POSCAR"

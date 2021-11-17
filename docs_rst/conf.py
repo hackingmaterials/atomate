@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Documentation build configuration file, created by
 # sphinx-quickstart on Fri Jan 11 16:36:11 2013.
@@ -47,8 +46,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'atomate'
-copyright = u'2015, Anubhav Jain'
+project = 'atomate'
+copyright = '2015, Anubhav Jain'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -189,8 +188,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('index', 'FireWorks.tex', u'FireWorks Documentation',
-     u'Anubhav Jain', 'manual'),
+    ('index', 'FireWorks.tex', 'FireWorks Documentation',
+     'Anubhav Jain', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -219,8 +218,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'fireworks', u'FireWorks Documentation',
-     [u'Anubhav Jain'], 1)
+    ('index', 'fireworks', 'FireWorks Documentation',
+     ['Anubhav Jain'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -233,8 +232,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('index', 'atomate', u'atomate Documentation',
-     u'Anubhav Jain',
+    ('index', 'atomate', 'atomate Documentation',
+     'Anubhav Jain',
      'atomate has implementations of FireWorks workflows for Materials Science',
      'Miscellaneous'),
 ]
@@ -252,10 +251,10 @@ texinfo_documents = [
 # -- Options for Epub output ---------------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'atomate'
-epub_author = u'Anubhav Jain'
-epub_publisher = u'Anubhav Jain'
-epub_copyright = u'2015, Anubhav Jain'
+epub_title = 'atomate'
+epub_author = 'Anubhav Jain'
+epub_publisher = 'Anubhav Jain'
+epub_copyright = '2015, Anubhav Jain'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.

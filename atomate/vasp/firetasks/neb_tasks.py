@@ -81,7 +81,7 @@ class TransferNEBTask(FiretaskBase):
 
             # Update the two ending "images".
             images.insert(0, Structure.from_file("00/POSCAR"))
-            images.append(Structure.from_file("{:02}/POSCAR".format(nimages - 1)))
+            images.append(Structure.from_file(f"{nimages - 1:02}/POSCAR"))
             images = [s.as_dict() for s in images]
             neb = fw_spec.get("neb")
             neb.append(images)
@@ -114,7 +114,7 @@ class TransferNEBTask(FiretaskBase):
             else:
                 # Calculate number of images if "IMAGES" tag is not provided.
                 index = int(label[-1])
-                ep_1_dict = fw_spec.get("ep{}".format(1 - index))  # Another endpoint
+                ep_1_dict = fw_spec.get(f"ep{1 - index}")  # Another endpoint
                 try:
                     ep_1 = Structure.from_dict(ep_1_dict)
                 except Exception:

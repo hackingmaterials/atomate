@@ -53,9 +53,7 @@ class ToDbTask(FiretaskBase):
 
         # parse the calc directory
         logger.info(
-            "PARSING DIRECTORY: {} USING DRONE: {}".format(
-                calc_dir, self["drone"].__class__.__name__
-            )
+            f"PARSING DIRECTORY: {calc_dir} USING DRONE: {self['drone'].__class__.__name__}".
         )
         # get the database connection
         db_file = env_chk(self.get("db_file"), fw_spec)

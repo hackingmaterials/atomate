@@ -39,9 +39,7 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
         all_btrap_ids = [i["_id"] for i in self._boltztrap.find({}, {"_id": 1})]
         new_btrap_ids = [o_id for o_id in all_btrap_ids if o_id not in previous_oids]
 
-        logger.info(
-            "There are {} new boltztrap ids to process.".format(len(new_btrap_ids))
-        )
+        logger.info(f"There are {len(new_btrap_ids)} new boltztrap ids to process.")
 
         pbar = tqdm(new_btrap_ids)
         for o_id in pbar:

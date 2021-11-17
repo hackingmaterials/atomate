@@ -134,8 +134,8 @@ def get_wf_ferroelectric(
         interpolation.append(
             LcalcpolFW(
                 structure=polar_structure,
-                name="_interpolation_{}_polarization".format(str(i)),
-                static_name="_interpolation_{}_static".format(str(i)),
+                name=f"_interpolation_{str(i)}_polarization",
+                static_name=f"_interpolation_{str(i)}_static",
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
                 vasp_input_set=vasp_input_set_polar,
