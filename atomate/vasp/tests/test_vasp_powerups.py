@@ -5,6 +5,7 @@ from fireworks import Firework, ScriptTask, Workflow
 
 from atomate.vasp.powerups import (
     add_priority,
+    modify_gzip_vasp,
     use_custodian,
     add_trackers,
     add_modify_incar,
@@ -64,20 +65,31 @@ class TestVaspPowerups(unittest.TestCase):
             self.assertTrue("RunVaspDirect" in fw.tasks[task_idx]._fw_name)
             self.assertEqual(fw.tasks[task_idx]["vasp_cmd"], "test_VASP")
 
-        my_wf_double_relax = remove_custodian(copy_wf(self.bs_wf))
-        my_wf_double_relax = use_custodian(
-            my_wf_double_relax,
+        wf_double_relax = remove_custodian(copy_wf(self.bs_wf))
+
+        wf_double_relax = use_custodian(
+            wf_double_relax,
             fw_name_constraint="structure optimization",
             custodian_params={"job_type": "double_relaxation_run"},
         )
 
-        for fw in my_wf_double_relax.fws:
+        for fw in wf_double_relax.fws:
             if "structure optimization" in fw.name:
                 self.assertTrue("RunVaspCustodian" in fw.tasks[1]._fw_name)
                 self.assertEqual(fw.tasks[1]["job_type"], "double_relaxation_run")
             else:
                 self.assertTrue("RunVaspDirect" in fw.tasks[2]._fw_name)
                 self.assertFalse("job_type" in fw.tasks[2])
+
+        # test use_custodian() does not overwrite existing custodian params
+        wf_double_relax = modify_gzip_vasp(wf_double_relax, False)
+        wf_double_relax = use_custodian(wf_double_relax)
+        idx_list = get_fws_and_tasks(
+            wf_double_relax, task_name_constraint="RunVaspCustodian"
+        )
+        for idx_fw, idx_t in idx_list:
+            task = wf_double_relax.fws[idx_fw].tasks[idx_t]
+            assert task["gzip_output"] is False
 
     def test_modify_incar(self):
         my_wf = add_modify_incar(
