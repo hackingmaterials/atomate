@@ -303,6 +303,7 @@ class TestRunCalcQChem(AtomateTest):
                         "save_final_scratch": False,
                         "max_cores": 32,
                         "calc_loc": None,
+                        "nboexe": None,
                     },
                 )
 
@@ -397,6 +398,7 @@ class TestRunCalcQChem(AtomateTest):
                         "calc_loc": "/this/is/a/test",
                         "save_final_scratch": False,
                         "max_cores": 32,
+                        "nboexe": None,
                     },
                 )
 
@@ -470,6 +472,7 @@ class TestRunCalcQChem(AtomateTest):
                         "max_molecule_perturb_scale": 0.5,
                         "linked": False,
                         "calc_loc": "/this/is/a/test",
+                        "nboexe": None,
                         "save_final_scratch": True,
                         "max_cores": 4,
                     },
@@ -554,6 +557,7 @@ class TestRunCalcQChem(AtomateTest):
                         "max_molecule_perturb_scale": 0.5,
                         "linked": False,
                         "calc_loc": "/this/is/a/test",
+                        "nboexe": None,
                         "save_final_scratch": True,
                         "max_cores": 4,
                     },
