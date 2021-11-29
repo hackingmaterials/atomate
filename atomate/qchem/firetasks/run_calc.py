@@ -47,9 +47,7 @@ class RunQChemDirect(FiretaskBase):
 
         logger.info(f"Running command: {cmd}")
         return_code = subprocess.call(cmd, shell=True)
-        logger.info(
-            "Command {} finished running with return code: {}".format(cmd, return_code)
-        )
+        logger.info("Command {} finished running with return code: {}".format(cmd, return_code))
 
 
 @explicit_serialize
@@ -103,7 +101,7 @@ class RunQChemCustodian(FiretaskBase):
         "qclog_file",
         "suffix",
         "calc_loc",
-        "nboexe"
+        "nboexe",
         "save_scratch",
         "max_errors",
         "job_type",
@@ -144,9 +142,7 @@ class RunQChemCustodian(FiretaskBase):
         gzipped_output = self.get("gzipped_output", True)
 
         handler_groups = {
-            "default": [
-                QChemErrorHandler(input_file=input_file, output_file=output_file)
-            ],
+            "default": [QChemErrorHandler(input_file=input_file, output_file=output_file)],
             "no_handler": [],
         }
 
@@ -204,9 +200,7 @@ class RunQChemCustodian(FiretaskBase):
         # construct handlers
         handlers = handler_groups[self.get("handler_group", "default")]
 
-        c = Custodian(
-            handlers, jobs, max_errors=max_errors, gzipped_output=gzipped_output
-        )
+        c = Custodian(handlers, jobs, max_errors=max_errors, gzipped_output=gzipped_output)
 
         c.run()
 
@@ -248,9 +242,7 @@ class RunQChemFake(FiretaskBase):
         ref_qin = QCInput.from_file(os.path.join(self["ref_dir"], input_file))
 
         np.testing.assert_equal(ref_qin.molecule.species, user_qin.molecule.species)
-        np.testing.assert_allclose(
-            ref_qin.molecule.cart_coords, user_qin.molecule.cart_coords, atol=0.0001
-        )
+        np.testing.assert_allclose(ref_qin.molecule.cart_coords, user_qin.molecule.cart_coords, atol=0.0001)
         for key in ref_qin.rem:
             if user_qin.rem.get(key) != ref_qin.rem.get(key):
                 raise ValueError(f"Rem key {key} is inconsistent!")
