@@ -86,7 +86,6 @@ class TestRunCalcQChem(AtomateTest):
         with patch("atomate.qchem.firetasks.run_calc.Custodian") as custodian_patch:
             firetask = RunQChemCustodian(
                 qchem_cmd=">>qchem_cmd<<",
-                calc_loc=">>calc_loc<<",
                 input_file=os.path.join(
                     module_dir, "..", "..", "test_files", "co_qc.in"
                 ),
@@ -100,6 +99,7 @@ class TestRunCalcQChem(AtomateTest):
                         "calc_loc": "/this/is/a/test",
                         "max_cores": 32,
                         "multimode": "openmp",
+                        "nboexe": "/path/to/nbo7.i4.exe",
                     }
                 }
             )
@@ -118,6 +118,7 @@ class TestRunCalcQChem(AtomateTest):
                 QCJob(
                     qchem_command="qchem -slurm",
                     calc_loc="/this/is/a/test",
+                    nboexe="/path/to/nbo7.i4.exe",
                     max_cores=32,
                     multimode="openmp",
                     input_file=os.path.join(
@@ -176,7 +177,6 @@ class TestRunCalcQChem(AtomateTest):
         with patch("atomate.qchem.firetasks.run_calc.Custodian") as custodian_patch:
             firetask = RunQChemCustodian(
                 qchem_cmd=">>qchem_cmd<<",
-                calc_loc=">>calc_loc<<",
                 multimode=">>multimode<<",
                 input_file=os.path.join(
                     module_dir, "..", "..", "test_files", "co_qc.in"
@@ -314,7 +314,6 @@ class TestRunCalcQChem(AtomateTest):
             ) as FF_patch:
                 firetask = RunQChemCustodian(
                     qchem_cmd=">>qchem_cmd<<",
-                    calc_loc=">>calc_loc<<",
                     max_cores=">>max_cores<<",
                     multimode=">>multimode<<",
                     input_file=os.path.join(
@@ -410,6 +409,7 @@ class TestRunCalcQChem(AtomateTest):
                 firetask = RunQChemCustodian(
                     qchem_cmd="qchem -slurm",
                     calc_loc="/this/is/a/test",
+                    nboexe="/path/to/nbo7.i4.exe",
                     input_file=os.path.join(
                         module_dir,
                         "..",
@@ -472,7 +472,7 @@ class TestRunCalcQChem(AtomateTest):
                         "max_molecule_perturb_scale": 0.5,
                         "linked": False,
                         "calc_loc": "/this/is/a/test",
-                        "nboexe": None,
+                        "nboexe": "/path/to/nbo7.i4.exe",
                         "save_final_scratch": True,
                         "max_cores": 4,
                     },
@@ -485,7 +485,6 @@ class TestRunCalcQChem(AtomateTest):
             ) as FF_patch:
                 firetask = RunQChemCustodian(
                     qchem_cmd=">>qchem_cmd<<",
-                    calc_loc=">>calc_loc<<",
                     input_file=os.path.join(
                         module_dir,
                         "..",
