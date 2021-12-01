@@ -8,8 +8,8 @@ tqdm==4.61.1
 pybtex==0.24.0
 ruamel.yaml==0.17.9
 pandas==1.2.4
-pymatgen==2022.0.8
-custodian==2021.2.8
+git+git://github.com/samblau/pymatgen@qchem#egg=pymatgen
+git+git://github.com/samblau/custodian@qchem#egg=custodian
 networkx==2.5.1
 pydash==5.0.0
 pyyaml==5.4.1
