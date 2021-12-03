@@ -150,7 +150,7 @@ class ScanOptimizeFW(Firework):
         initialized with no parents, it will perform a GGA optimization of the provided
         structure using the PBESol functional. This GGA-relaxed structure is intended
         to be passed to a second instance of this Firework for optimization with SCAN.
-        (see workflow definition in SCAN_optimization.yaml)
+        (see workflow definition in metagga_optimization.yaml)
 
         Args:
             structure (Structure): Input structure. Note that for prev_calc_loc jobs, the structure
