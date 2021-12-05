@@ -98,48 +98,6 @@ def get_wf_hubbard_hund_linresp(
             "Please obtain an ordered approximation of the input structure."
         )
 
-    # Function to find closest cluster of sites of target species of
-    # sites to perturb
-    def find_closest_sites(struct, species_perturb):
-
-        d_ij = struct.distance_matrix
-
-        n_species = {}
-        for site in struct:
-            k = str(site.specie)
-            if k not in n_species.keys():
-                n_species.update({k: 0})
-            n_species[k] += 1
-
-        n_s = len(n_species.keys())
-        n_config = 1
-        for k in n_species:
-            n_config *= n_species[k]
-        indices = -1*np.ones(n_s, int)
-        dist_min = -1.0
-        indices_nearest = indices.copy()
-        for k in range(n_config):
-            denom = 1
-            for j in range(n_s):
-                n = n_species[list(n_species.keys())[j]]
-                indices[j] = np.mod(k // denom, n)
-                denom *= n
-            nn_s = [n_species[list(n_species.keys())[j]] for j in range(n_s)]
-            iindxs = [indices[j]+int(np.sum(nn_s[0:j])) for j in range(n_s)]
-            indxs = []
-            for j, jk in enumerate(n_species):
-                if jk in species_perturb:
-                    indxs.append(iindxs[j])
-            dist = 0.0
-            for x in indxs:
-                for y in indxs:
-                    dist += d_ij[x, y]
-            if dist < dist_min or dist_min == -1.0:
-                dist_min = dist
-                indices_nearest = indxs.copy()
-
-        return indices_nearest
-
     if not site_indices_perturb:
         site_indices_perturb = []
 
@@ -198,6 +156,123 @@ def get_wf_hubbard_hund_linresp(
     if not user_incar_settings:
         user_incar_settings = {}
 
+    uis_gs, uis_ldau, val_dict, vis_ldau = create_lr_input_sets(
+        user_incar_settings, structure, num_perturb)
+    
+    fws = []
+    index_fw_gs = 0
+    
+    ediff_default = vis_ldau.incar['EDIFF']
+
+    # 
+    append_linresp_ground_state_fws (
+        fws, structure, counter_perturb, num_perturb,
+        uis_gs, ediff_default, ediff_tight)
+
+    # generate list of applied on-site potentials in linear response
+    applied_potential_value_list = []
+    for counter_perturb in range(num_perturb):
+        applied_potential_values = np.linspace(
+            applied_potential_range[0], applied_potential_range[1],
+            num_evals)
+        applied_potential_values = np.around(applied_potential_values, decimals=9)
+
+        if 0.0 in applied_potential_values:
+            applied_potential_values = list(applied_potential_values)
+            applied_potential_values.pop(applied_potential_values.index(0.0))
+            applied_potential_values = np.array(applied_potential_values)
+
+        applied_potential_value_list.append(applied_potential_values.copy())
+
+    block_dict = {"s": 0, "p": 1, "d": 2, "f": 3}
+
+    for counter_perturb in range(num_perturb):
+
+        applied_potential_values = applied_potential_value_list[counter_perturb]
+
+        for v in applied_potential_values:
+
+            append_linresp_perturb_fws (
+                fws, structure, counter_perturb, num_perturb,
+                val_dict, v)
+
+    wf = Workflow(fws)
+
+    fw_analysis = Firework(
+        HubbardHundLinRespToDb(
+            num_perturb=num_perturb,
+            spin_polarized=spin_polarized,
+            relax_nonmagnetic=relax_nonmagnetic,
+            db_file=DB_FILE, wf_uuid=uuid
+        ),
+        name="HubbardHundLinRespToDb",
+    )
+
+    wf.append_wf(Workflow.from_Firework(fw_analysis), wf.leaf_fw_ids)
+
+    wf = add_common_powerups(wf, c)
+
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    wf = add_additional_fields_to_taskdocs(
+        wf,
+        {
+            "wf_meta": {
+                "wf_uuid": uuid,
+                "wf_name": "hubbard_hund_linresp",
+                "wf_version": __hubbard_hund_linresp_wf_version__,
+            }
+        },
+    )
+
+    return wf
+
+# Function to find closest cluster of sites of target species of
+# sites to perturb
+def find_closest_sites(struct, species_perturb):
+
+    d_ij = struct.distance_matrix
+
+    n_species = {}
+    for site in struct:
+        k = str(site.specie)
+        if k not in n_species.keys():
+            n_species.update({k: 0})
+        n_species[k] += 1
+
+    n_s = len(n_species.keys())
+    n_config = 1
+    for k in n_species:
+        n_config *= n_species[k]
+    indices = -1*np.ones(n_s, int)
+    dist_min = -1.0
+    indices_nearest = indices.copy()
+    for k in range(n_config):
+        denom = 1
+        for j in range(n_s):
+            n = n_species[list(n_species.keys())[j]]
+            indices[j] = np.mod(k // denom, n)
+            denom *= n
+        nn_s = [n_species[list(n_species.keys())[j]] for j in range(n_s)]
+        iindxs = [indices[j]+int(np.sum(nn_s[0:j])) for j in range(n_s)]
+        indxs = []
+        for j, jk in enumerate(n_species):
+            if jk in species_perturb:
+                indxs.append(iindxs[j])
+        dist = 0.0
+        for x in indxs:
+            for y in indxs:
+                dist += d_ij[x, y]
+        if dist < dist_min or dist_min == -1.0:
+            dist_min = dist
+            indices_nearest = indxs.copy()
+
+    return indices_nearest
+
+def init_linresp_input_sets(
+    user_incar_settings, structure, num_perturb,
+):
     # set LMAXMIX in user_incar_settings
     if 'LMAXMIX' not in user_incar_settings.keys():
         lmaxmix_dict = {"p": 2, "d": 4, "f": 6} 
@@ -248,13 +323,15 @@ def get_wf_hubbard_hund_linresp(
     vis_ldau = HubbardHundLinRespSet(
         structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
-    fws = []
-    index_fw_gs = 0
-
-    ediff_default = vis_ldau.incar['EDIFF']
-
     uis_gs = uis_ldau.copy()
 
+    return uis_gs, uis_ldau, val_dict, vis_ldau
+
+def append_linresp_ground_state_fws (
+    fws, 
+    structure, counter_perturb, num_perturb,
+    uis_gs, ediff_default, ediff_tight,
+):
     if relax_nonmagnetic:
         uis_gs.update({"ISPIN": 1, "EDIFF": ediff_default})
     else:
@@ -279,170 +356,123 @@ def get_wf_hubbard_hund_linresp(
             name="initial_static_magnetic", vasp_input_set=vis_gs,
             vasp_cmd=VASP_CMD, db_file=DB_FILE))
 
-    applied_potential_value_list = []
-    for counter_perturb in range(num_perturb):
-        applied_potential_values = np.linspace(
-            applied_potential_range[0], applied_potential_range[1],
-            num_evals)
-        applied_potential_values = np.around(applied_potential_values, decimals=9)
+def append_linresp_perturb_fws (
+    fws, 
+    structure, counter_perturb, num_perturb,
+    val_dict, applied_pot,
+):
+    v = applied_pot
+    
+    sign = 'neg' if v < 0 else 'pos'
+    signs = []
 
-        if 0.0 in applied_potential_values:
-            applied_potential_values = list(applied_potential_values)
-            applied_potential_values.pop(applied_potential_values.index(0.0))
-            applied_potential_values = np.array(applied_potential_values)
+    spin_potential_values = []
+    if spin_polarized:
+        spin_potential_values = [{"LDAUU": v, "LDAUJ": 0.0},
+                                 {"LDAUU": 0.0, "LDAUJ": v}]
+        signs = [{"LDAUU": sign, "LDAUJ": ""},
+                 {"LDAUU": "", "LDAUJ": sign}]
+    else:
+        spin_potential_values = [{"LDAUU": v, "LDAUJ": v}]
+        signs = [{"LDAUU": sign, "LDAUJ": sign}]
 
-        applied_potential_value_list.append(applied_potential_values.copy())
+    for spin_pot_dict, sign_dict in zip(spin_potential_values, signs):
 
-    block_dict = {"s": 0, "p": 1, "d": 2, "f": 3}
-
-    for counter_perturb in range(num_perturb):
-
-        applied_potential_values = applied_potential_value_list[counter_perturb]
-
-        for v in applied_potential_values:
-
-            sign = 'neg' if str(v)[0] == '-' else 'pos'
-            signs = []
-
-            spin_potential_values = []
-            if spin_polarized:
-                spin_potential_values = [{"LDAUU": v, "LDAUJ": 0.0},
-                                         {"LDAUU": 0.0, "LDAUJ": v}]
-                signs = [{"LDAUU": sign, "LDAUJ": ""},
-                         {"LDAUU": "", "LDAUJ": sign}]
-            else:
-                spin_potential_values = [{"LDAUU": v, "LDAUJ": v}]
-                signs = [{"LDAUU": sign, "LDAUJ": sign}]
-
-            for spin_pot_dict, sign_dict in zip(spin_potential_values, signs):
-
-                # Update perturbation potential for U and J
-                for k in ["LDAUL", "LDAUU", "LDAUJ"]:
-                    if (k == "LDAUL"):
-                        # for LDAUL
-                        for i in range(num_perturb):
-                            if i == counter_perturb:
-                                block = str(structure[counter_perturb].specie.block)
-                                val_dict[k].update({"perturb"+str(i):block_dict[block]})
-                            else:
-                                val_dict[k].update({"perturb"+str(i): -1})
+        # Update perturbation potential for U and J
+        for k in ["LDAUL", "LDAUU", "LDAUJ"]:
+            if (k == "LDAUL"):
+                # for LDAUL
+                for i in range(num_perturb):
+                    if i == counter_perturb:
+                        block = str(structure[counter_perturb].specie.block)
+                        val_dict[k].update({"perturb"+str(i):block_dict[block]})
                     else:
-                        # for LDAUU and LDAUJ
-                        for i in range(num_perturb):
-                            if i == counter_perturb:
-                                val_dict[k].update(
-                                    {"perturb"+str(i): spin_pot_dict[k]})
-                            else:
-                                val_dict[k].update({"perturb"+str(i): 0})
-                    uis_ldau.update({k: val_dict[k].copy()})
+                        val_dict[k].update({"perturb"+str(i): -1})
+            else:
+                # for LDAUU and LDAUJ
+                for i in range(num_perturb):
+                    if i == counter_perturb:
+                        val_dict[k].update(
+                            {"perturb"+str(i): spin_pot_dict[k]})
+                    else:
+                        val_dict[k].update({"perturb"+str(i): 0})
+            uis_ldau.update({k: val_dict[k].copy()})
 
-                # Non-SCF runs
-                uis_ldau.update({"ISTART": 1, "ICHARG": 11,
-                                 "ISPIN": 2, "EDIFF": ediff_default})
+        # Non-SCF runs
+        uis_ldau.update({"ISTART": 1, "ICHARG": 11,
+                         "ISPIN": 2, "EDIFF": ediff_default})
 
-                vis_params = {"user_incar_settings": uis_ldau.copy()}
-                vis_ldau = HubbardHundLinRespSet(
-                    structure=structure, num_perturb=num_perturb, **vis_params.copy())
+        vis_params = {"user_incar_settings": uis_ldau.copy()}
+        vis_ldau = HubbardHundLinRespSet(
+            structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
-                parents = fws[index_fw_gs]
+        parents = fws[index_fw_gs]
 
-                additional_files = ["WAVECAR", "CHGCAR"]
+        additional_files = ["WAVECAR", "CHGCAR"]
 
-                fw = HubbardHundLinRespFW(
-                    structure=structure, parents=parents,
-                    name="nscf_site{}_vup_{}{}_vdn_{}{}".format(
-                        counter_perturb,
-                        sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"], 6)),
-                        sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"], 6))),
-                    vasp_input_set=vis_ldau,
-                    additional_files=additional_files.copy(),
-                    vasp_cmd=VASP_CMD, db_file=DB_FILE)
-                fws.append(fw)
+        fw = HubbardHundLinRespFW(
+            structure=structure, parents=parents,
+            name="nscf_site{}_vup_{}{}_vdn_{}{}".format(
+                counter_perturb,
+                sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"], 6)),
+                sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"], 6))),
+            vasp_input_set=vis_ldau,
+            additional_files=additional_files.copy(),
+            vasp_cmd=VASP_CMD, db_file=DB_FILE)
+        fws.append(fw)
 
-                # SCF runs
-                uis_ldau.update({"ISTART": 1, "ICHARG": 0})
-                if relax_nonmagnetic:
-                    uis_ldau.update({"ISPIN": 1, "EDIFF": ediff_default})
-                else:
-                    uis_ldau.update({"ISPIN": 2, "EDIFF": ediff_tight})
+        # SCF runs
+        uis_ldau.update({"ISTART": 1, "ICHARG": 0})
+        if relax_nonmagnetic:
+            uis_ldau.update({"ISPIN": 1, "EDIFF": ediff_default})
+        else:
+            uis_ldau.update({"ISPIN": 2, "EDIFF": ediff_tight})
 
-                vis_params = {"user_incar_settings": uis_ldau.copy()}
-                vis_ldau = HubbardHundLinRespSet(
-                    structure=structure, num_perturb=num_perturb, **vis_params.copy())
+        vis_params = {"user_incar_settings": uis_ldau.copy()}
+        vis_ldau = HubbardHundLinRespSet(
+            structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
-                if parallel_scheme == 0:
-                    parents = fws[-1]
-                else:
-                    parents = fws[index_fw_gs]
+        if parallel_scheme == 0:
+            parents = fws[-1]
+        else:
+            parents = fws[index_fw_gs]
 
-                additional_files = ["WAVECAR"]
+        additional_files = ["WAVECAR"]
 
-                fw = HubbardHundLinRespFW(
-                    structure=structure, parents=parents,
-                    name="scf_site{}_vup_{}{}_vdn_{}{}".format(
-                        counter_perturb,
-                        sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"], 6)),
-                        sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"], 6))),
-                    vasp_input_set=vis_ldau,
-                    additional_files=additional_files.copy(),
-                    vasp_cmd=VASP_CMD, db_file=DB_FILE)
-                fws.append(fw)
+        fw = HubbardHundLinRespFW(
+            structure=structure, parents=parents,
+            name="scf_site{}_vup_{}{}_vdn_{}{}".format(
+                counter_perturb,
+                sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"], 6)),
+                sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"], 6))),
+            vasp_input_set=vis_ldau,
+            additional_files=additional_files.copy(),
+            vasp_cmd=VASP_CMD, db_file=DB_FILE)
+        fws.append(fw)
 
-                # SCF magnetic runs
-                if relax_nonmagnetic:
-                    uis_ldau.update({"ISTART": 1, "ICHARG": 1,
-                                     "ISPIN": 2, "EDIFF": ediff_tight})
+        # SCF magnetic runs
+        if relax_nonmagnetic:
+            uis_ldau.update({"ISTART": 1, "ICHARG": 1,
+                             "ISPIN": 2, "EDIFF": ediff_tight})
 
-                    vis_params = {"user_incar_settings": uis_ldau.copy()}
-                    vis_ldau = HubbardHundLinRespSet(
-                        structure=structure, num_perturb=num_perturb,
-                        **vis_params.copy())
+            vis_params = {"user_incar_settings": uis_ldau.copy()}
+            vis_ldau = HubbardHundLinRespSet(
+                structure=structure, num_perturb=num_perturb,
+                **vis_params.copy())
 
-                    parents = fws[-1]
-                    additional_files = ["WAVECAR", "CHGCAR"]
+            parents = fws[-1]
+            additional_files = ["WAVECAR", "CHGCAR"]
 
-                    fw = HubbardHundLinRespFW(
-                        structure=structure, parents=parents,
-                        name="scf_magnetic_site{}_vup_{}{}_vdn_{}{}".format(
-                            counter_perturb,
-                            sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"], 6)),
-                            sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"], 6))),
-                        vasp_input_set=vis_ldau,
-                        additional_files=additional_files.copy(),
-                        vasp_cmd=VASP_CMD, db_file=DB_FILE)
-                    fws.append(fw)
-
-    wf = Workflow(fws)
-
-    fw_analysis = Firework(
-        HubbardHundLinRespToDb(
-            num_perturb=num_perturb,
-            spin_polarized=spin_polarized,
-            relax_nonmagnetic=relax_nonmagnetic,
-            db_file=DB_FILE, wf_uuid=uuid
-        ),
-        name="HubbardHundLinRespToDb",
-    )
-
-    wf.append_wf(Workflow.from_Firework(fw_analysis), wf.leaf_fw_ids)
-
-    wf = add_common_powerups(wf, c)
-
-    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
-        wf = add_wf_metadata(wf, structure)
-
-    wf = add_additional_fields_to_taskdocs(
-        wf,
-        {
-            "wf_meta": {
-                "wf_uuid": uuid,
-                "wf_name": "hubbard_hund_linresp",
-                "wf_version": __hubbard_hund_linresp_wf_version__,
-            }
-        },
-    )
-
-    return wf
+            fw = HubbardHundLinRespFW(
+                structure=structure, parents=parents,
+                name="scf_magnetic_site{}_vup_{}{}_vdn_{}{}".format(
+                    counter_perturb,
+                    sign_dict["LDAUU"], abs(round(spin_pot_dict["LDAUU"], 6)),
+                    sign_dict["LDAUJ"], abs(round(spin_pot_dict["LDAUJ"], 6))),
+                vasp_input_set=vis_ldau,
+                additional_files=additional_files.copy(),
+                vasp_cmd=VASP_CMD, db_file=DB_FILE)
+            fws.append(fw)
 
 
 class PoscarPerturb(Poscar):
