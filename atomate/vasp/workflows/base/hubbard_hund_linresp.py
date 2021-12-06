@@ -7,7 +7,6 @@ import itertools
 from atomate.vasp.fireworks.core import StaticFW
 from fireworks import Workflow, Firework
 from atomate.vasp.powerups import (
-    add_tags,
     add_additional_fields_to_taskdocs,
     add_wf_metadata,
     add_common_powerups,
@@ -28,7 +27,6 @@ logger = get_logger(__name__)
 
 from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA
 
-from atomate.vasp.workflows.presets.scan import wf_scan_opt
 from uuid import uuid4
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 from pymatgen.io.vasp.inputs import Poscar, Incar
@@ -57,7 +55,7 @@ def get_wf_hubbard_hund_linresp(
         site_indices_perturb=None, species_perturb=None,
         find_nearest_sites=True,
         parallel_scheme=0,
-        ediff_tight=1.0e-6,
+        ediff_tight=None,
         c=None):
     """
     Compute Hubbard U (and Hund J) on-site interaction values using GGA+U
@@ -66,12 +64,18 @@ def get_wf_hubbard_hund_linresp(
     and the spin-polarized response formalism developed by Linscott et. al.
     (DOI: 10.1103/PhysRevB.98.235157)
 
+    This workflow relies on the constrained on-site potential functional implemented in VASP, 
+    with a helpful tutorial found here: 
+    https://www.vasp.at/wiki/index.php/Calculate_U_for_LSDA%2BU
+
     Args:
         structure:
+        user_incar_settings: user INCAR settings
+        relax_nonmagnetic: Restart magnetic SCF runs from 
+    non-magnetic calculation, using WAVECAR
         spin_polarized: Perform spin-dependent perturbations
         applied_potential_range: Bounds of applied potential
         num_evals: Number of perturbation evalutaions
-        user_incar_settings: user INCAR settings
         site_indices_perturb: (must specify if species_perturb=None) 
     List of site indices within
     Structure indicating perturbation sites; 
@@ -79,6 +83,9 @@ def get_wf_hubbard_hund_linresp(
     List of names of species (string)
     of sites to perturb; First site of that species
     is selected in the structure
+        find_nearest_sites: If set to true and species_perturb != None, 
+    the closest sites (by the Structure distance matrix) will be selected 
+    in the response analysis to account for inter-site screening effects
         parallel_scheme: 0 - (default) self-consistent (SCF)
     runs use WAVECAR from non-self consistent (NSCF) run
     at same applied potential; 1 - SCF runs use WAVECAR
@@ -87,6 +94,9 @@ def get_wf_hubbard_hund_linresp(
     efficient (parallel_scheme: 0), the user may also choose to 
     remove the dependency between NSCF and SCF runs 
     (parallel_scheme: 1)
+        ediff_tight: Final energy convergence tolerance, 
+    if restarting from a previous run
+    (if not specified, will default to pymatgen default EDIFF)
         c: Workflow config dict, in the same format
     as in presets/core.py and elsewhere in atomate
 
@@ -156,18 +166,21 @@ def get_wf_hubbard_hund_linresp(
     if not user_incar_settings:
         user_incar_settings = {}
 
-    uis_gs, uis_ldau, val_dict, vis_ldau = create_lr_input_sets(
+    # setup VASP input sets
+    uis_gs, uis_ldau, val_dict, vis_ldau = init_linresp_input_sets(
         user_incar_settings, structure, num_perturb)
-    
-    fws = []
-    index_fw_gs = 0
-    
-    ediff_default = vis_ldau.incar['EDIFF']
 
-    # 
+    fws = []
+    index_fw_gs = [0]
+
+    ediff_default = vis_ldau.incar['EDIFF']
+    if not ediff_tight:
+        ediff_tight = 0.1 * ediff_default
+
     append_linresp_ground_state_fws (
-        fws, structure, counter_perturb, num_perturb,
-        uis_gs, ediff_default, ediff_tight)
+        fws, structure, num_perturb, index_fw_gs,
+        uis_gs, relax_nonmagnetic, 
+        ediff_default, ediff_tight)
 
     # generate list of applied on-site potentials in linear response
     applied_potential_value_list = []
@@ -184,8 +197,6 @@ def get_wf_hubbard_hund_linresp(
 
         applied_potential_value_list.append(applied_potential_values.copy())
 
-    block_dict = {"s": 0, "p": 1, "d": 2, "f": 3}
-
     for counter_perturb in range(num_perturb):
 
         applied_potential_values = applied_potential_value_list[counter_perturb]
@@ -193,8 +204,9 @@ def get_wf_hubbard_hund_linresp(
         for v in applied_potential_values:
 
             append_linresp_perturb_fws (
-                fws, structure, counter_perturb, num_perturb,
-                val_dict, v)
+                v, fws, structure, counter_perturb, num_perturb, index_fw_gs,
+                uis_ldau, val_dict, spin_polarized, relax_nonmagnetic, 
+                ediff_default, ediff_tight, parallel_scheme)
 
     wf = Workflow(fws)
 
@@ -228,9 +240,11 @@ def get_wf_hubbard_hund_linresp(
 
     return wf
 
-# Function to find closest cluster of sites of target species of
-# sites to perturb
 def find_closest_sites(struct, species_perturb):
+    """
+    Function to find closest cluster of sites of target species of
+    sites to perturb
+    """
 
     d_ij = struct.distance_matrix
 
@@ -273,6 +287,11 @@ def find_closest_sites(struct, species_perturb):
 def init_linresp_input_sets(
     user_incar_settings, structure, num_perturb,
 ):
+    """
+    Function to setup VASP input sets for ground-state 
+    and perturbation Fireworks
+    """
+
     # set LMAXMIX in user_incar_settings
     if 'LMAXMIX' not in user_incar_settings.keys():
         lmaxmix_dict = {"p": 2, "d": 4, "f": 6} 
@@ -329,9 +348,14 @@ def init_linresp_input_sets(
 
 def append_linresp_ground_state_fws (
     fws, 
-    structure, counter_perturb, num_perturb,
-    uis_gs, ediff_default, ediff_tight,
+    structure, num_perturb, index_fw_gs,
+    uis_gs, relax_nonmagnetic, 
+    ediff_default, ediff_tight,
 ):
+    """
+    Appends the ground-state (zero potential) Fireworks to the list of Fireworks
+    """
+
     if relax_nonmagnetic:
         uis_gs.update({"ISPIN": 1, "EDIFF": ediff_default})
     else:
@@ -344,7 +368,7 @@ def append_linresp_ground_state_fws (
         vasp_input_set=vis_gs, vasp_cmd=VASP_CMD, db_file=DB_FILE))
 
     if relax_nonmagnetic:
-        index_fw_gs += 1
+        index_fw_gs[0] += 1
         uis_gs.update({"ISPIN": 2, "ICHARG": 1, "EDIFF": ediff_tight})
         additional_files = ["WAVECAR", "CHGCAR"]
         vis_params = {"user_incar_settings": uis_gs.copy()}
@@ -357,12 +381,18 @@ def append_linresp_ground_state_fws (
             vasp_cmd=VASP_CMD, db_file=DB_FILE))
 
 def append_linresp_perturb_fws (
-    fws, 
-    structure, counter_perturb, num_perturb,
-    val_dict, applied_pot,
+    applied_pot, fws,
+    structure, counter_perturb, num_perturb, index_fw_gs,
+    uis_ldau, val_dict,
+    spin_polarized, relax_nonmagnetic,
+    ediff_default, ediff_tight, parallel_scheme,
 ):
+    """
+    Appends the perturbed (non-zero on-site potential) Fireworks to the list of Fireworks
+    """
+
     v = applied_pot
-    
+
     sign = 'neg' if v < 0 else 'pos'
     signs = []
 
@@ -375,6 +405,8 @@ def append_linresp_perturb_fws (
     else:
         spin_potential_values = [{"LDAUU": v, "LDAUJ": v}]
         signs = [{"LDAUU": sign, "LDAUJ": sign}]
+
+    block_dict = {"s": 0, "p": 1, "d": 2, "f": 3}
 
     for spin_pot_dict, sign_dict in zip(spin_potential_values, signs):
 
@@ -406,7 +438,7 @@ def append_linresp_perturb_fws (
         vis_ldau = HubbardHundLinRespSet(
             structure=structure, num_perturb=num_perturb, **vis_params.copy())
 
-        parents = fws[index_fw_gs]
+        parents = fws[index_fw_gs[0]]
 
         additional_files = ["WAVECAR", "CHGCAR"]
 
@@ -435,7 +467,7 @@ def append_linresp_perturb_fws (
         if parallel_scheme == 0:
             parents = fws[-1]
         else:
-            parents = fws[index_fw_gs]
+            parents = fws[index_fw_gs[0]]
 
         additional_files = ["WAVECAR"]
 

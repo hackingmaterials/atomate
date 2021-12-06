@@ -784,8 +784,8 @@ class HubbardHundLinRespToDb(FiretaskBase):
 
     Required parameters:
         num_perturb (int): number of perturbed sites
-        spin_polarized (bool):
-        relax_nonmagnetic (bool):
+        spin_polarized (bool): (please see `get_wf_hubbard_hund_linresp`)
+        relax_nonmagnetic (bool): (please see `get_wf_hubbard_hund_linresp`)
         db_file (str): path to the db file that holds your tasks
             collection and that you want to hold the hubbard_hund_linresp
             collection
@@ -910,8 +910,11 @@ class HubbardHundLinRespToDb(FiretaskBase):
 
             if use_calc:
                 procure_response_dict(
-                    struct_final, incar_dict, outcar_dict, 
-                    inv_block_dict, response_dict)
+                    struct_final, num_perturb_sites, 
+                    incar_dict, outcar_dict, 
+                    inv_block_dict, response_dict, perturb_dict,
+                    rkey, keys, ldaul_vals,
+                    analyzer_gs)
 
         for j in range(num_perturb_sites):
             for qkey in ['Vup', 'Nup', 'Vdn', 'Ndn', 'Ntot', 'Mz']:
@@ -928,7 +931,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
             n_response = num_perturb_sites
 
         chi_matrix_nscf, chi_matrix_scf, chi_nscf_err, chi_scf_err = obtain_response_matrices(
-            n_response, spin_polarized, response_dict)
+            n_response, spin_polarized, response_dict, keys)
 
         # Functions to help serialize numpy matrices
         def array_to_list(a):
@@ -972,7 +975,9 @@ class HubbardHundLinRespToDb(FiretaskBase):
                 if spin_polarized:
                     if method == "point":
                         for i in range(num_perturb_sites):
-                            uval, uval_err = hubbard_hund_pointwise(
+
+                            # point-wise (diagonal 2x2) formula
+                            uval, uval_err = compute_u_pointwise(
                                 i, f_matrix, f_matrix_err,
                             )
 
@@ -984,7 +989,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
                         for i in range(num_perturb_sites):
 
                             # first "simple 2x2" formula
-                            uval, uval_err, jmat, jmat_err = hubbard_hund_simple_two_by_two(
+                            uval, uval_err, jval, jval_err = compute_uj_simple_two_by_two(
                                 i, f_matrix, f_matrix_err,
                             )
 
@@ -999,7 +1004,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
 
                             try:
                                 # second "scaled 2x2" formula
-                                uval, uval_err, jmat, jmat_err = hubbard_hund_scaled_two_by_two(
+                                uval, uval_err, jval, jval_err = compute_uj_scaled_two_by_two(
                                     i, f_matrix, f_matrix_err,
                                     chi_matrix_scf, chi_scf_err, chi_matrix_nscf, chi_nscf_err,
                                     chi_scf_inv_jacobs, chi_nscf_inv_jacobs,

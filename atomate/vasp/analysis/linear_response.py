@@ -1,11 +1,20 @@
 
+from pymatgen import Structure
+from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer
+
 import numpy as np
 
 def procure_response_dict(
-    struct_final, 
+    struct_final, num_perturb_sites,
     incar_dict, outcar_dict,
-    inv_block_dict, response_dict,
+    inv_block_dict, response_dict, perturb_dict,
+    rkey, keys, ldaul_vals, analyzer_gs,
 ):
+    """
+    Function to gather response data, in preparation for linear regression.
+    This data is organized into `response_dict`.
+    """
+
     # perform magnetic ordering analysis
     analyzer_output = CollinearMagneticStructureAnalyzer(
         struct_final, threshold=0.61)
@@ -26,7 +35,6 @@ def procure_response_dict(
         specie = struct_final[i].specie
         ldaul = ldaul_vals[i]
 
-        # if ldaul != -1 and rkey:
         orbital = inv_block_dict[str(ldaul)]
         perturb_dict.update(
             {"site"+str(i): {"specie": str(specie),
@@ -52,18 +60,23 @@ def procure_response_dict(
 
         response_dict[rkey]['magnetic order'].append(magnet_order)
 
-# Function for fitting to response data. Returns: slope and associated error
 def response_fit(x, y):
+    """
+    Function for fitting to response data. Returns: slope and associated error
+    """
 
     (p, pcov) = np.polyfit(x, y, 1, cov=True)
     perr = np.sqrt(np.diag(pcov))
 
     return p, perr
 
-# Function for fitting to response data
-# - includes the "slope ~ zero" case for stepped data due to low precision
-# Returns: slope and associated error
 def response_fit_stepped(x, y, tol=1.0e-6):
+    """
+    Function for fitting to response data
+    - includes the "slope ~ zero" case for stepped data due to low precision
+    Returns: slope and associated error
+    """
+
     is_stepped = False
     step_id = -1
 
@@ -96,8 +109,15 @@ def response_fit_stepped(x, y, tol=1.0e-6):
 
 def obtain_response_matrices(
     n_response, spin_polarized, 
-    response_dict,
+    response_dict, keys,
 ):
+    """
+    Function to compute self-consistent (SCF) and non-self-consistent (NSCF) 
+    linear response "chi" matrices; In addition to using linear regression 
+    to compute slopes about zero potential, the uncertainty associated 
+    with these values are also stored for subsequent error quantification.
+    Returns: chi_matrix_nscf, chi_matrix_scf, chi_nscf_err, chi_scf_err
+    """
 
     # Matrices for self-consistent and non-self-consistent responses
     # & associated element-wise errors
@@ -175,8 +195,11 @@ def obtain_response_matrices(
 
     return chi_matrix_nscf, chi_matrix_scf, chi_nscf_err, chi_scf_err
 
-# Function to compute the element-wise error propagation in matrix inversion
 def inverse_matrix_uncertainty(matrix, matrix_covar):
+    """
+    Function to compute the element-wise error propagation in matrix inversion
+    """
+
     m,n = matrix.shape
     if m != n:
         logger.warning("Matrix dimension error")
@@ -232,10 +255,12 @@ def inverse_matrix_uncertainty(matrix, matrix_covar):
 
     return matrixinv, matrixinv_var, jacobians
 
-# Function to compute inverse of response matrix and associated
-# element-wise uncertainty for point-wise, atom-wise,
-# and full matrix inversion
 def chi_inverse(chi, chi_err, method="full"):
+    """
+    Function to compute inverse of response matrix and associated
+    element-wise uncertainty for point-wise, atom-wise,
+    and full matrix inversion    
+    """
 
     n_response = len(chi)
 
@@ -267,10 +292,15 @@ def chi_inverse(chi, chi_err, method="full"):
 
     return chi_block, chi_inv, chi_inv_var, chi_inv_jacobs
 
-def hubbard_hund_pointwise(
+def compute_u_pointwise(
     site_index,
     f_matrix, f_matrix_err,
 ):
+    """
+    Function to compute Hubbard U value using point-wise (diagonal) inversion,
+    in addition to the associated uncertainty value
+    - based on the study by Linscott et. al.
+    """
 
     i = site_index
 
@@ -281,10 +311,15 @@ def hubbard_hund_pointwise(
 
     return uval, uval_err
 
-def hubbard_hund_simple_two_by_two(
+def compute_uj_simple_two_by_two(
     site_index,
     f_matrix, f_matrix_err,
 ):
+    """
+    Function to compute Hubbard U and Hund J values using simple 2x2 formula,
+    in addition to the associated uncertainty values
+    - based on the study by Linscott et. al.
+    """
 
     i = site_index
 
@@ -299,14 +334,19 @@ def hubbard_hund_simple_two_by_two(
     jval = 0.25 * np.sum(jmat)
     jval_err = 0.25 * np.sqrt(np.sum(jmat_err**2))
 
-    return uval, uval_err, jmat, jmat_err
+    return uval, uval_err, jval, jval_err
 
-def hubbard_hund_scaled_two_by_two(
+def compute_uj_scaled_two_by_two(
     site_index,
     f_matrix, f_matrix_err,
     chi_matrix_scf, chi_scf_err, chi_matrix_nscf, chi_nscf_err,
     chi_scf_inv_jacobs, chi_nscf_inv_jacobs,
 ):
+    """
+    Function to compute Hubbard U and Hund J values using scaled 2x2 formula,
+    in addition to the associated uncertainty values
+    - based on the study by Linscott et. al.
+    """
 
     i = site_index
 
@@ -401,4 +441,4 @@ def hubbard_hund_scaled_two_by_two(
     # compute std
     jval_err = np.sqrt(jval_err)
 
-    return uval, uval_err, jmat, jmat_err
+    return uval, uval_err, jval, jval_err
