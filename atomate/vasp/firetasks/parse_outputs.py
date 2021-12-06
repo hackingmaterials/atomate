@@ -7,6 +7,7 @@ from datetime import datetime
 import numpy as np
 
 from monty.json import MontyEncoder, jsanitize
+from monty.os.path import zpath
 from pydash.objects import has, get
 
 from atomate.vasp.config import DEFUSE_UNSUCCESSFUL
@@ -135,7 +136,7 @@ class VaspToDb(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
 
         # db insertion or taskdoc dump
-        if not db_file:
+        if not db_file or os.path.exists(zpath("FW_offline.json")):
             with open("task.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
