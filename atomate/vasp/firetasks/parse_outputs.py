@@ -5,6 +5,7 @@ from collections import defaultdict
 from datetime import datetime
 
 import numpy as np
+import scipy
 
 from monty.json import MontyEncoder, jsanitize
 from monty.os.path import zpath
@@ -891,6 +892,323 @@ class ThermalExpansionCoeffToDb(FiretaskBase):
         # a builder to put it into materials collection... -computron
         logger.info("Thermal expansion coefficient calculation complete.")
 
+@explicit_serialize
+class HubbardHundLinRespToDb(FiretaskBase):
+    """
+    Analyze the linear response data generated from get_wf_hubbard_hund_linresp to
+    compute Hubbard U (and Hund J) value(s).
+
+    Required parameters:
+        num_perturb (int): number of perturbed sites
+        spin_polarized (bool): (please see `get_wf_hubbard_hund_linresp`)
+        relax_nonmagnetic (bool): (please see `get_wf_hubbard_hund_linresp`)
+        db_file (str): path to the db file that holds your tasks
+            collection and that you want to hold the hubbard_hund_linresp
+            collection
+        wf_uuid (str): auto-generated from get_wf_hubbard_hund_linresp,
+            used to make it easier to retrieve task docs
+    """
+
+    required_params = ["num_perturb", "spin_polarized", "relax_nonmagnetic",
+                       "db_file", "wf_uuid"]
+    optional_params = []
+
+    summaries = []
+
+    def run_task(self, fw_spec):
+
+        from atomate.vasp.analysis.linear_response import (
+            procure_response_dict,
+            response_fit, response_fit_stepped,
+            obtain_response_matrices,
+            inverse_matrix_uncertainty, chi_inverse, 
+            compute_u_pointwise, compute_uj_simple_two_by_two, 
+            compute_uj_scaled_two_by_two,
+        )
+
+        uuid = self["wf_uuid"]
+        db_file = env_chk(self.get("db_file"), fw_spec)
+        to_db = self.get("to_db", True)
+
+        mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
+
+        num_perturb_sites = int(self["num_perturb"])
+        spin_polarized = bool(self["spin_polarized"])
+        relax_nonmagnetic = bool(self["relax_nonmagnetic"])
+
+        keys = ['ground_state', 'NSCF', 'SCF']
+        response_dict = {'ground_state': {}, 'NSCF': {}, 'SCF': {}}
+        perturb_dict = {}
+
+        magnet_order_gs = None
+
+        for key in keys:
+            for i in range(num_perturb_sites):
+                response_dict[key].update({'site'+str(i): {}})
+                for qkey in ['Vup', 'Nup', 'Vdn', 'Ndn', 'Ntot', 'Mz']:
+                    response_dict[key]['site'+str(i)].update({qkey: []})
+            response_dict[key].update({'magnetic order': []})
+
+        docs = list(mmdb.collection.find({"wf_meta.wf_uuid": uuid}))
+
+        # Find electron type responses for each site
+        inv_block_dict = {"0": "s", "1": "p", "2": "d", "3": "f"}
+        ldaul_vals = [-1 for i in range(num_perturb_sites)]
+        for i in range(num_perturb_sites):
+            for d in docs:
+                try:
+                    ldaul = int(d['calcs_reversed'][0]['input']['incar']['LDAUL'][i])
+                    if ldaul > ldaul_vals[i]:
+                        ldaul_vals[i] = ldaul
+                        break
+                except Exception as exc:
+                    logger.warning("Failed to obtain ldaul: ", exc)
+
+        # Ground state magnetic ordering analyzer
+        analyzer_gs = None
+        for d in docs:
+            struct_final = Structure.from_dict(d["output"]["structure"])
+            incar_dict = d['calcs_reversed'][0]['input']['incar']
+
+            use_calc = (int(incar_dict.get("ICHARG", 0)) != 11) \
+                        and ((not relax_nonmagnetic) or (relax_nonmagnetic \
+                        and int(incar_dict.get("ISPIN", 1)) == 2))
+            if use_calc:
+                is_gs = True
+                for i in range(num_perturb_sites):
+                    if incar_dict.get('LDAUU', False) \
+                            and incar_dict.get('LDAUJ', False):
+                        v_up = float(incar_dict['LDAUU'][i])
+                        v_dn = float(incar_dict['LDAUJ'][i])
+                    else:
+                        v_up, v_dn = 0.0, 0.0
+                    if v_up != 0.0 or v_dn != 0.0:
+                        is_gs = False
+                if is_gs:
+                    analyzer_gs = CollinearMagneticStructureAnalyzer(
+                                struct_final, threshold=0.61)
+
+        # keep track of calculations skipped due to magnetic ordering 
+        calcs_skipped = []
+        for d in docs:
+
+            struct_final = Structure.from_dict(d["output"]["structure"])
+            incar_dict = d['calcs_reversed'][0]['input']['incar']
+            outcar_dict = d['calcs_reversed'][0]['output']['outcar']
+
+            # Check if task is used in LR analysis
+            use_calc = False
+            rkey = ""
+            if int(incar_dict.get("ICHARG", 0)) == 11:
+                use_calc = True
+                rkey = keys[1]
+            else:
+                use_calc = (not relax_nonmagnetic) or (relax_nonmagnetic \
+                            and int(incar_dict.get("ISPIN", 1)) == 2)
+
+                if use_calc:
+                    is_gs = True
+                    for i in range(num_perturb_sites):
+                        if incar_dict.get('LDAUU', False) \
+                                and incar_dict.get('LDAUJ', False):
+                            v_up = float(incar_dict['LDAUU'][i])
+                            v_dn = float(incar_dict['LDAUJ'][i])
+                        else:
+                            v_up, v_dn = 0.0, 0.0
+                        if v_up != 0.0 or v_dn != 0.0:
+                            is_gs = False
+                    if is_gs:
+                        rkey = keys[0]
+                    else:
+                        rkey = keys[2]
+                else:
+                    rkey = ""
+
+            if use_calc:
+                procure_response_dict(
+                    struct_final, num_perturb_sites, 
+                    incar_dict, outcar_dict, 
+                    inv_block_dict, response_dict, perturb_dict,
+                    rkey, keys, ldaul_vals,
+                    analyzer_gs)
+
+        for j in range(num_perturb_sites):
+            for qkey in ['Vup', 'Nup', 'Vdn', 'Ndn', 'Ntot', 'Mz']:
+                for i in [1, 2]:
+                    response_dict[keys[i]]['site'+str(j)][qkey].extend(response_dict[keys[0]]['site'+str(j)][qkey])
+        k = 'magnetic order'
+        for i in [1, 2]:
+            response_dict[keys[i]][k].extend(response_dict[keys[0]][k])
+
+        # Find total number of response "sites"
+        if spin_polarized:
+            n_response = 2 * num_perturb_sites
+        else:
+            n_response = num_perturb_sites
+
+        chi_matrix_nscf, chi_matrix_scf, chi_nscf_err, chi_scf_err = obtain_response_matrices(
+            n_response, spin_polarized, response_dict, keys)
+
+        # Functions to help serialize numpy matrices
+        def array_to_list(a):
+            a_list = [[x for x in row] for row in a]
+            return a_list
+
+        def nested_copy(a):
+            if a:
+                b = [row.copy() for row in a]
+            else:
+                b = []
+            return b
+
+        # Compute U (and J) values for each matrix inversion method
+        if spin_polarized:
+            inversion_methods = ["point", "atom", "full"]
+            inversion_keys = ["point", "atom", "full"]
+        else:
+            inversion_methods = ["point", "full"]
+            inversion_keys = ["atom", "full"]
+
+        hubbard_hund_dict = {}
+
+        for key, method in zip(inversion_keys, inversion_methods):
+
+            hubbard_hund_dict.update({key: {"values":{}, "matrices":{}}})
+
+            try:
+                (chi_block_scf, chi_scf_inv, \
+                 chi_scf_inv_var, chi_scf_inv_jacobs) = chi_inverse(
+                     chi_matrix_scf, chi_scf_err, method
+                 )
+                (chi_block_nscf, chi_nscf_inv, \
+                 chi_nscf_inv_var, chi_nscf_inv_jacobs) = chi_inverse(
+                     chi_matrix_nscf, chi_nscf_err, method
+                 )
+
+                f_matrix = chi_scf_inv - chi_nscf_inv
+                f_matrix_err = np.sqrt(chi_scf_inv_var + chi_nscf_inv_var)
+
+                if spin_polarized:
+                    if method == "point":
+                        for i in range(num_perturb_sites):
+
+                            # point-wise (diagonal 2x2) formula
+                            uval, uval_err = compute_u_pointwise(
+                                i, f_matrix, f_matrix_err,
+                            )
+
+                            hubbard_hund_dict[key]["values"].update({
+                                "site"+str(i): perturb_dict["site"+str(i)].copy()})
+                            hubbard_hund_dict[key]["values"]["site"+str(i)].update({
+                                "U":{"value":uval, "error":uval_err}})
+                    else:
+                        for i in range(num_perturb_sites):
+
+                            # first "simple 2x2" formula
+                            uval, uval_err, jval, jval_err = compute_uj_simple_two_by_two(
+                                i, f_matrix, f_matrix_err,
+                            )
+
+                            # update dictionary values
+                            hubbard_hund_dict[key]["values"].update({
+                                "site"+str(i): perturb_dict["site"+str(i)].copy()})
+                            hubbard_hund_dict[key]["values"]["site"+str(i)]["simple"] = {}
+                            hubbard_hund_dict[key]["values"]["site"+str(i)]["simple"].update({
+                                "U":{"value":uval, "error":uval_err}})
+                            hubbard_hund_dict[key]["values"]["site"+str(i)]["simple"].update({
+                                "J":{"value":jval, "error":jval_err}})
+
+                            try:
+                                # second "scaled 2x2" formula
+                                uval, uval_err, jval, jval_err = compute_uj_scaled_two_by_two(
+                                    i, f_matrix, f_matrix_err,
+                                    chi_matrix_scf, chi_scf_err, chi_matrix_nscf, chi_nscf_err,
+                                    chi_scf_inv_jacobs, chi_nscf_inv_jacobs,
+                                )
+
+                                # update dictionary values
+                                hubbard_hund_dict[key]["values"]["site"+str(i)]["scaled"] = {}
+                                hubbard_hund_dict[key]["values"]["site"+str(i)]["scaled"].update({
+                                    "U":{"value":uval, "error":uval_err}})
+                                hubbard_hund_dict[key]["values"]["site"+str(i)]["scaled"].update({
+                                    "J":{"value":jval, "error":jval_err}})
+
+                            except Exception as exc:
+                                logger.warning('Error computing U & J values using scaled formula',  exc)
+
+                else:
+                    for i in range(num_perturb_sites):
+                        uval = f_matrix[i,i]
+                        uval_err = f_matrix_err[i,i]
+
+                        hubbard_hund_dict[key]["values"].update({
+                            "site"+str(i): perturb_dict["site"+str(i)].copy()})
+                        hubbard_hund_dict[key]["values"]["site"+str(i)]["simple"] = {}
+                        hubbard_hund_dict[key]["values"]["site"+str(i)]["simple"].update({
+                            "U":{"value":uval, "error":uval_err}})
+
+                # convert numpy arrays to nested lists
+                f_matrix, f_matrix_err =  array_to_list(f_matrix), \
+                    array_to_list(f_matrix_err)
+                chi_matrix_scf_list, chi_block_scf = array_to_list(chi_matrix_scf), \
+                    array_to_list(chi_block_scf)
+                chi_scf_inv, chi_scf_inv_var = array_to_list(chi_scf_inv), \
+                    array_to_list(chi_scf_inv_var)
+                chi_matrix_nscf_list, chi_block_nscf = array_to_list(chi_matrix_nscf), \
+                    array_to_list(chi_block_nscf)
+                chi_nscf_inv, chi_nscf_inv_var = array_to_list(chi_nscf_inv), \
+                    array_to_list(chi_nscf_inv_var)
+
+            except Exception as exc:
+                f_matrix, f_matrix_err = [], []
+                chi_matrix_scf_list, chi_block_scf = array_to_list(chi_matrix_scf), []
+                chi_scf_inv, chi_scf_inv_var, chi_scf_inv_jacobs = [], [], []
+                chi_matrix_nscf_list, chi_block_nscf = array_to_list(chi_matrix_nscf), []
+                chi_nscf_inv, chi_nscf_inv_var, chi_nscf_inv_jacobs = [], [], []
+                logger.warning('Screening matrix compute fail',  exc)
+
+            hubbard_hund_dict[key]["matrices"].update(
+                {"f_matrix":nested_copy(f_matrix),
+                 "f_matrix_err":nested_copy(f_matrix_err)})
+            hubbard_hund_dict[key]["matrices"].update(
+                {"chi_block_scf":nested_copy(chi_block_scf),
+                 "chi_scf_inv": nested_copy(chi_scf_inv),
+                 "chi_scf_inv_var": nested_copy(chi_scf_inv_var)})
+            hubbard_hund_dict[key]["matrices"].update(
+                {"chi_block_nscf": nested_copy(chi_block_nscf),
+                 "chi_nscf_inv": nested_copy(chi_nscf_inv),
+                 "chi_nscf_inv_var": nested_copy(chi_nscf_inv_var)})
+
+        structure = None
+        if docs:
+            structure = Structure.from_dict(docs[0]["input"]["structure"])
+
+        summaries = []
+
+        summary = {}
+        if structure:
+            summary.update({'formula_pretty': structure.composition.reduced_formula})
+            summary.update({'structure_groundstate': structure.as_dict()})
+        summary.update({'perturb_sites': perturb_dict})
+        summary.update({'datapoints': response_dict})
+        summary.update(
+            {'response_matrices': {'chi_nscf': chi_matrix_nscf_list,
+                                   'chi_scf': chi_matrix_scf_list}})
+        summary.update({'hubbard_hund_results': hubbard_hund_dict})
+        summary.update({'calcs_skipped': calcs_skipped})
+
+        summary.update({"created_at": datetime.utcnow()})
+        summary.update({'wf_meta': {'wf_uuid': uuid}})
+
+        if fw_spec.get("tags", None):
+            summary["tags"] = fw_spec["tags"]
+
+        summaries.append(summary)
+
+        mmdb.collection = mmdb.db["hubbard_hund_linresp"]
+        mmdb.collection.insert(summaries)
+
+        logger.info("Hubbard-Hund linear response analysis is complete.")
 
 @explicit_serialize
 class MagneticOrderingsToDb(FiretaskBase):
