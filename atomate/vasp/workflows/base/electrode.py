@@ -40,6 +40,11 @@ def get_ion_insertion_wf(
     (AnalyzeChgcar) <- Obtain the set of possible unique insertions using the stored charge density
     (GetInsertionCalcs) <- This task contains the dynamic workflow creation that will keep inserting working ions
 
+    If you use this workflow please cite the following paper:
+        Shen, J.-X., Horton, M., & Persson, K. A. (2020). 
+        A charge-density-based general cation insertion algorithm for generating new Li-ion cathode materials. 
+        npj Comput. Mater., 6(161), 1–7. doi: 10.1038/s41524-020-00422-3
+
     Args:
         structure: The host structure to begin inserting on
         working_ion: The working ion to be inserted at each step
