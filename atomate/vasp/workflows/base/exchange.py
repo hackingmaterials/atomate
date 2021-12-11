@@ -73,7 +73,7 @@ class ExchangeWF:
         for s in magnetic_structures:
             try:
                 s.site_properties["magmom"]
-            except:
+            except Exception:
                 raise RuntimeError(
                     "All structures must have 'magmom' site \
                     property."

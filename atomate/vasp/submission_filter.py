@@ -84,7 +84,7 @@ class SubmissionFilter(AbstractStructureFilter):
                             bs = mpr.get_bandstructure_by_material_id(mpid)
                             if bs:
                                 failures.append(f"NOT_IN_MP=False ({mpid})")
-                        except:
+                        except Exception:
                             pass
                 else:
                     failures.append(f"NOT_IN_MP=False ({mpids[0]})")

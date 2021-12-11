@@ -101,7 +101,7 @@ def get_fragmentation_wf(
 
     qchem_input_params = qchem_input_params or {}
     additional_charges = additional_charges or []
-    if pcm_dielectric != None:
+    if pcm_dielectric is not None:
         qchem_input_params["pcm_dielectric"] = pcm_dielectric
 
     if do_optimization:

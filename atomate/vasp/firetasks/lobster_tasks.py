@@ -271,7 +271,7 @@ class LobsterRunToDb(FiretaskBase):
             task_doc.update(additional_fields)
 
         task_doc.update(get_meta_from_structure(struct))
-        if vasp_calc_dir != None:
+        if vasp_calc_dir is not None:
             task_doc["vasp_dir_name"] = vasp_calc_dir
         else:
             task_doc["vasp_dir_name"] = vasp_calc_loc["path"]
