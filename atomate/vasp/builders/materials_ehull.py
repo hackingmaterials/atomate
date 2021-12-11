@@ -1,12 +1,9 @@
-from tqdm import tqdm
-
-from atomate.utils.utils import get_database
-
-from pymatgen.ext.matproj import MPRester
 from pymatgen.core import Structure
 from pymatgen.entries.computed_entries import ComputedEntry
+from pymatgen.ext.matproj import MPRester
+from tqdm import tqdm
 
-from atomate.utils.utils import get_logger
+from atomate.utils.utils import get_database, get_logger
 from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)
@@ -18,7 +15,7 @@ class MaterialsEhullBuilder(AbstractBuilder):
     def __init__(self, materials_write, mapi_key=None, update_all=False):
         """
         Starting with an existing materials collection, adds stability information and
-        The Materials Project ID.
+        the Materials Project ID.
         Args:
             materials_write: mongodb collection for materials (write access needed)
             mapi_key: (str) Materials API key (if MAPI_KEY env. var. not set)
@@ -37,21 +34,14 @@ class MaterialsEhullBuilder(AbstractBuilder):
         if not self.update_all:
             q["stability"] = {"$exists": False}
 
-        mats = [
-            m
-            for m in self._materials.find(
-                q,
-                {
-                    "calc_settings": 1,
-                    "structure": 1,
-                    "thermo.energy": 1,
-                    "material_id": 1,
-                },
-            )
-        ]
+        mats = self._materials.find(
+            q, ["calc_settings", "structure", "thermo.energy", "material_id"]
+        )
+
         pbar = tqdm(mats)
         for m in pbar:
-            pbar.set_description("Processing materials_id: {}".format(m["material_id"]))
+            mat_id = m["material_id"]
+            pbar.set_description(f"Processing materials_id: {mat_id}")
             try:
                 params = {}
                 for x in ["is_hubbard", "hubbards", "potcar_spec"]:
@@ -66,7 +56,7 @@ class MaterialsEhullBuilder(AbstractBuilder):
                 # TODO: @computron This only calculates Ehull with respect to Materials Project.
                 # It should also account for the current database's results. -computron
                 self._materials.update_one(
-                    {"material_id": m["material_id"]},
+                    {"material_id": mat_id},
                     {"$set": {"stability": self.mpr.get_stability([my_entry])[0]}},
                 )
 
@@ -75,14 +65,12 @@ class MaterialsEhullBuilder(AbstractBuilder):
                 # TODO: @computron it's better to use PD tool or reaction energy calculator
                 # Otherwise the compatibility schemes might have issues...one strategy might be
                 # use MP only to retrieve entries but compute the PD locally -computron
-                for el, elx in my_entry.composition.items():
+                for el, amt in my_entry.composition.items():
                     entries = self.mpr.get_entries(el.symbol, compatible_only=True)
-                    min_e = min(
-                        entries, key=lambda x: x.energy_per_atom
-                    ).energy_per_atom
-                    energy -= elx * min_e
+                    min_e = min(x.energy_per_atom for x in entries)
+                    energy -= amt * min_e
                 self._materials.update_one(
-                    {"material_id": m["material_id"]},
+                    {"material_id": mat_id},
                     {
                         "$set": {
                             "thermo.formation_energy_per_atom": energy
@@ -93,14 +81,14 @@ class MaterialsEhullBuilder(AbstractBuilder):
 
                 mpids = self.mpr.find_structure(structure)
                 self._materials.update_one(
-                    {"material_id": m["material_id"]}, {"$set": {"mpids": mpids}}
+                    {"material_id": mat_id}, {"$set": {"mpids": mpids}}
                 )
 
-            except:
+            except Exception:
                 import traceback
 
                 logger.exception("<---")
-                logger.exception(f"There was an error processing material_id: {m}")
+                logger.exception(f"There was an error processing material: {m}")
                 logger.exception(traceback.format_exc())
                 logger.exception("--->")
 
