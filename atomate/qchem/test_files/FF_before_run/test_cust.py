@@ -1,6 +1,6 @@
 from custodian import Custodian
-from custodian.qchem.jobs import QCJob
 from custodian.qchem.handlers import QChemErrorHandler
+from custodian.qchem.jobs import QCJob
 
 my_input = "test.qin"
 my_output = "test.qout"

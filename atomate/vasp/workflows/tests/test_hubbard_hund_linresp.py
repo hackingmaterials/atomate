@@ -1,5 +1,3 @@
-# coding: utf-8
-
 import os
 from json import load
 
@@ -47,7 +45,6 @@ class TestHubbardHundLinRespWorkflow(AtomateTest):
         toDb.run_task({})
 
         hubbard_hund_linresp_collection = self.get_task_database().hubbard_hund_linresp
-        from pprint import pprint
 
         hubbard_hund_analysis = hubbard_hund_linresp_collection.find_one(
             {"formula_pretty": formula_pretty}
