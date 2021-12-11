@@ -43,7 +43,7 @@ class RunCritic2(FiretaskBase):
             molecule = fw_spec.get("prev_calc_molecule")
         else:
             molecule = self.get("molecule")
-        if molecule == None:
+        if molecule is None:
             raise ValueError(
                 "No molecule passed and no prev_calc_molecule found in spec! Exiting..."
             )
@@ -90,7 +90,7 @@ class ProcessCritic2(FiretaskBase):
             molecule = fw_spec.get("prev_calc_molecule")
         else:
             molecule = self.get("molecule")
-        if molecule == None:
+        if molecule is None:
             raise ValueError(
                 "No molecule passed and no prev_calc_molecule found in spec! Exiting..."
             )

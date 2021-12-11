@@ -52,7 +52,7 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
                         f"Cannot find matching material for object_id: {o_id}"
                     )
                 self._update_material(m_id, doc)
-            except:
+            except Exception:
                 import traceback
 
                 logger.exception("<---")
@@ -156,7 +156,7 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
         try:
             db_read = get_database(db_file, admin=False)
             db_read.collection_names()  # throw error if auth failed
-        except:
+        except Exception:
             print("Warning: could not get read-only database")
             db_read = get_database(db_file, admin=True)
 

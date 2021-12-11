@@ -4,41 +4,37 @@ Some of the changes are documented in this thread:
 https://groups.google.com/forum/#!topic/pymatgen/pQ-emBpeV5U
 """
 
+import datetime
+import glob
+import json
 import os
 import re
-import datetime
-from fnmatch import fnmatch
-from collections import OrderedDict
-import json
-import glob
 import traceback
 import warnings
+from collections import OrderedDict
+from fnmatch import fnmatch
 
+import numpy as np
 from monty.io import zopen
 from monty.json import jsanitize
 from monty.os.path import which
-
-import numpy as np
-
-from pymatgen.core.composition import Composition
-from pymatgen.core.structure import Structure
-from pymatgen.core.operations import SymmOp
-from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
-from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
-from pymatgen.io.vasp.outputs import Chgcar
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
+from pymatgen.core.composition import Composition
+from pymatgen.core.operations import SymmOp
+from pymatgen.core.structure import Structure
+from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
+from pymatgen.io.vasp import BSVasprun, Locpot, Outcar, Vasprun
+from pymatgen.io.vasp.inputs import Incar, Kpoints, Poscar, Potcar
+from pymatgen.io.vasp.outputs import Chgcar
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
-from atomate.utils.utils import get_uri
-
-from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
+from atomate.utils.utils import get_logger, get_uri
 from atomate.vasp.config import (
-    STORE_VOLUMETRIC_DATA,
     STORE_ADDITIONAL_JSON,
     STORE_BADER,
+    STORE_VOLUMETRIC_DATA,
 )
 
 __author__ = "Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath, Anubhav Jain"
@@ -486,12 +482,12 @@ class VaspDrone(AbstractDrone):
             d["output"][k] = d["output"].pop(v)
 
         # Process bandstructure and DOS
-        if self.bandstructure_mode != False:  # noqa
+        if self.bandstructure_mode is not False:  # noqa
             bs = self.process_bandstructure(vrun)
             if bs:
                 d["bandstructure"] = bs
 
-        if self.parse_dos != False:  # noqa
+        if self.parse_dos is not False:  # noqa
             dos = self.process_dos(vrun)
             if dos:
                 d["dos"] = dos

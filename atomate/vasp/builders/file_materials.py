@@ -56,7 +56,7 @@ class FileMaterialsBuilder(AbstractBuilder):
                         val = line[2]
                         try:
                             val = float(val)
-                        except:
+                        except Exception:
                             pass
 
                         self._materials.update(
