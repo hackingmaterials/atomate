@@ -921,16 +921,12 @@ class HubbardHundLinRespToDb(FiretaskBase):
             compute_u_pointwise,
             compute_uj_scaled_two_by_two,
             compute_uj_simple_two_by_two,
-            inverse_matrix_uncertainty,
             obtain_response_matrices,
             procure_response_dict,
-            response_fit,
-            response_fit_stepped,
         )
 
         uuid = self["wf_uuid"]
         db_file = env_chk(self.get("db_file"), fw_spec)
-        to_db = self.get("to_db", True)
 
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
 
@@ -941,8 +937,6 @@ class HubbardHundLinRespToDb(FiretaskBase):
         keys = ["ground_state", "NSCF", "SCF"]
         response_dict = {"ground_state": {}, "NSCF": {}, "SCF": {}}
         perturb_dict = {}
-
-        magnet_order_gs = None
 
         for key in keys:
             for i in range(num_perturb_sites):
