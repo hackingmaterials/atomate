@@ -1,19 +1,20 @@
 import os
 import unittest
 
+from fireworks import Firework, Workflow
+from fireworks.core.rocket_launcher import rapidfire
+from monty.tempfile import ScratchDir
+
 from atomate.common.firetasks.glue_tasks import (
-    PassCalcLocs,
-    get_calc_loc,
     CopyFilesFromCalcLoc,
     CreateFolder,
     DeleteFiles,
     DeleteFilesPrevFolder,
+    PassCalcLocs,
+    get_calc_loc,
 )
 from atomate.utils.testing import AtomateTest
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
-from fireworks.core.firework import Firework, Workflow
-from fireworks.core.rocket_launcher import rapidfire
-from monty.tempfile import ScratchDir
 
 __author__ = "Anubhav Jain <ajain@lbl.gov>"
 
@@ -194,7 +195,7 @@ class TestDeleteFilesPrevFolder(AtomateTest):
 
     def test_cleanupfiles_calc_dir(self):
         # will test deleting from some folder specified by calc_dir
-        with ScratchDir(".", copy_from_current_on_enter=True) as d:
+        with ScratchDir(".", copy_from_current_on_enter=True):
             current_path = os.getcwd()
             os.mkdir("to_remove.relax0")
             os.mkdir("to_remove.relax1")
