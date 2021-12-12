@@ -1,15 +1,11 @@
-from fireworks import Workflow
-from atomate.vasp.powerups import (
-    add_additional_fields_to_taskdocs,
-)
-from atomate.vasp.fireworks.exchange import HeisenbergModelFW, VampireCallerFW
-from atomate.vasp.config import DB_FILE
-from atomate.utils.utils import get_logger
-
 from uuid import uuid4
 
-logger = get_logger(__name__)
+from fireworks import Workflow
 
+from atomate.utils.utils import get_logger
+from atomate.vasp.config import DB_FILE
+from atomate.vasp.fireworks.exchange import HeisenbergModelFW, VampireCallerFW
+from atomate.vasp.powerups import add_additional_fields_to_taskdocs
 
 __author__ = "Nathan C. Frey"
 __maintainer__ = "Nathan C. Frey"
@@ -17,6 +13,8 @@ __email__ = "ncfrey@lbl.gov"
 __status__ = "Development"
 __date__ = "July 2019"
 __version__ = 0.1
+
+logger = get_logger(__name__)
 
 
 class ExchangeWF:

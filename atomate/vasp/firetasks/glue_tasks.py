@@ -1,38 +1,34 @@
-import glob
-import warnings
-
-from pymatgen.io.vasp import Vasprun
-from monty.os.path import zpath
-
 """
 This module defines tasks that acts as a glue between other vasp Firetasks to allow communication
 between different Firetasks and Fireworks. This module also contains tasks that affect the control
 flow of the workflow, e.g. tasks to check stability or the gap is within a certain range.
 """
-
-import shutil
+import glob
 import gzip
 import os
 import re
+import shutil
+import warnings
 
-from pymatgen.ext.matproj import MPRester
-from pymatgen.io.vasp.sets import get_vasprun_outcar
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from monty.os.path import zpath
 from pymatgen.core.structure import Structure
+from pymatgen.ext.matproj import MPRester
+from pymatgen.io.vasp import Vasprun
+from pymatgen.io.vasp.sets import get_vasprun_outcar
 
-from fireworks import explicit_serialize, FiretaskBase, FWAction
-
-from atomate.utils.utils import env_chk, get_logger
 from atomate.common.firetasks.glue_tasks import (
-    get_calc_loc,
-    PassResult,
     CopyFiles,
     CopyFilesFromCalcLoc,
+    PassResult,
+    get_calc_loc,
 )
-
-logger = get_logger(__name__)
+from atomate.utils.utils import env_chk, get_logger
 
 __author__ = "Anubhav Jain, Kiran Mathew"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
+
+logger = get_logger(__name__)
 
 
 @explicit_serialize

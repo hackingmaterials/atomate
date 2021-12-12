@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 import itertools
 import os
 from uuid import uuid4
@@ -8,7 +5,7 @@ from uuid import uuid4
 import numpy as np
 from fireworks import Firework, Workflow
 from pymatgen.core import Element, Structure
-from pymatgen.io.vasp.inputs import Incar, Poscar
+from pymatgen.io.vasp import Incar, Kpoints, Poscar
 from pymatgen.io.vasp.sets import MPStaticSet
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
@@ -23,7 +20,6 @@ from atomate.vasp.powerups import (
     add_common_powerups,
     add_wf_metadata,
 )
-from atomate.vasp.workflows.base.core import get_wf
 
 __author__ = "Guy Moore, Martin Siron"
 __maintainer__ = "Guy Moore"
@@ -345,14 +341,13 @@ def init_linresp_input_sets(
         if k == "LDAUL":
             # for LDAUL
             for i in range(num_perturb):
-                val_dict[k].update({"perturb" + str(i): -1})
+                val_dict[k].update({f"perturb{i}": -1})
             for s in vis_ldau.poscar.site_symbols[num_perturb:]:
-                l = -1
-                val_dict[k].update({s: l})
+                val_dict[k].update({s: -1})
         else:
             # for LDAUU and LDAUJ
             for i in range(num_perturb):
-                val_dict[k].update({"perturb" + str(i): 0})
+                val_dict[k].update({f"perturb{i}": 0})
             for s in vis_ldau.poscar.site_symbols[num_perturb:]:
                 v = 0
                 val_dict[k].update({s: v})
@@ -463,16 +458,16 @@ def append_linresp_perturb_fws(
                 for i in range(num_perturb):
                     if i == counter_perturb:
                         block = str(structure[counter_perturb].specie.block)
-                        val_dict[k].update({"perturb" + str(i): block_dict[block]})
+                        val_dict[k].update({f"perturb{i}": block_dict[block]})
                     else:
-                        val_dict[k].update({"perturb" + str(i): -1})
+                        val_dict[k].update({f"perturb{i}": -1})
             else:
                 # for LDAUU and LDAUJ
                 for i in range(num_perturb):
                     if i == counter_perturb:
-                        val_dict[k].update({"perturb" + str(i): spin_pot_dict[k]})
+                        val_dict[k].update({f"perturb{i}": spin_pot_dict[k]})
                     else:
-                        val_dict[k].update({"perturb" + str(i): 0})
+                        val_dict[k].update({f"perturb{i}": 0})
             uis_ldau.update({k: val_dict[k].copy()})
 
         # Non-SCF runs
@@ -640,7 +635,7 @@ class HubbardHundLinRespSet(MPStaticSet):
         prev_kpoints=None,
         reciprocal_density=100,
         small_gap_multiply=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Args:
@@ -729,7 +724,7 @@ class HubbardHundLinRespFW(Firework):
         vasptodb_kwargs=None,
         parents=None,
         additional_files=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Standard static calculation Firework - either from a previous location
@@ -753,7 +748,7 @@ class HubbardHundLinRespFW(Firework):
             parents (Firework): Parents of this particular Firework. FW or list
                 of FWS.
             vasptodb_kwargs (dict): kwargs to pass to VaspToDb
-            \*\*kwargs: Other kwargs that are passed to Firework.__init__.
+            kwargs: Other kwargs that are passed to Firework.__init__().
         """
         t = []
 
@@ -763,9 +758,8 @@ class HubbardHundLinRespFW(Firework):
             vasptodb_kwargs["additional_fields"] = {}
         vasptodb_kwargs["additional_fields"]["task_label"] = name
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         if prev_calc_dir:
             t.append(
