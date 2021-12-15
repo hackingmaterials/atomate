@@ -1,27 +1,24 @@
 #!/usr/bin/env python
-# coding: utf-8
 # Copyright (c) atomate Development Team.
 
-from __future__ import division, unicode_literals, print_function
+from __future__ import division, print_function, unicode_literals
 
 import argparse
+import ast
 import os
 import sys
-import yaml
-import ast
 from datetime import datetime
 
-from monty.serialization import loadfn
-
+import yaml
 from fireworks import LaunchPad
+from monty.serialization import loadfn
+from pymatgen.core import Lattice, Structure
+from pymatgen.ext.matproj import MPRester
+from pymatgen.util.testing import PymatgenTest
 
 from atomate.utils.utils import get_wf_from_spec_dict, load_class
 from atomate.vasp.powerups import add_namefile, add_tags
 from atomate.vasp.workflows.presets import core
-
-from pymatgen.core import Structure, Lattice
-from pymatgen.ext.matproj import MPRester
-from pymatgen.util.testing import PymatgenTest
 
 default_yaml = """fireworks:
 - fw: atomate.vasp.fireworks.core.OptimizeFW
@@ -280,7 +277,7 @@ if __name__ == "__main__":
         "-pk",
         "--powerup_kwargs",
         default="{}",
-        help="powerup keyword arguments, e.g. " '\'{"incar_update": {"ENCUT": 700}}\'',
+        help='powerup keyword arguments, e.g. \'{"incar_update": {"ENCUT": 700}}\'',
     )
     ppowerup.set_defaults(func=powerup_workflow)
 

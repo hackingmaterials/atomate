@@ -3,7 +3,6 @@ from argparse import ArgumentParser
 
 import numpy as np
 
-
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
 
@@ -110,7 +109,7 @@ def run():
     # lorentzian_width = 4 # cm^-1, Phys Rev B 73, 104304 2006
     frequencies, intensities = get_freq_intensities(args.input_file)
     print(
-        f"Frequencies(cm^-1) and Normalized intensities: \n {frequencies} \n{intensities}"
+        f"Frequencies(cm^-1) and Normalized intensities: \n{frequencies} \n{intensities}"
     )
     plot_spectrum(frequencies, intensities, args.width)
 
