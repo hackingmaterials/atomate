@@ -5,7 +5,7 @@ from importlib import import_module
 from typing import List
 
 from atomate.utils.utils import get_fws_and_tasks
-from fireworks import Workflow, FileWriteTask
+from fireworks import FileWriteTask, Workflow
 from fireworks.utilities.fw_utilities import get_slug
 
 __author__ = "Janine George, Guido Petretto, Ryan Kingsbury"
@@ -86,21 +86,23 @@ def add_tags(original_wf, tags_list):
     return original_wf
 
 
-def add_namefile(original_wf, use_slug=True):
+def add_namefile(original_wf: Workflow, use_slug: bool = True) -> Workflow:
     """
     Every FireWork begins by writing an empty file with the name
-    "FW--<fw.name>". This makes it easy to figure out what jobs are in what
-    launcher directories, e.g. "ls -l launch*/FW--*" from within a "block" dir.
+    "FW--<fw.name>-<fw.fw_id>". This makes it easy to figure out what jobs are
+    in what launcher directories, e.g. "ls -l launch*/FW--*" from within a
+    "block" dir.
 
     Args:
         original_wf (Workflow)
-        use_slug (bool): whether to replace whitespace-type chars with a slug
+        use_slug (bool): whether to replace whitespace-type chars with a slug.
+            Defaults to True.
 
     Returns:
        Workflow
     """
     for idx, fw in enumerate(original_wf.fws):
-        fname = f"FW--{fw.name}"
+        fname = f"FW--{fw.name}-{fw.fw_id}"
         if use_slug:
             fname = get_slug(fname)
 
