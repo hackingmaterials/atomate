@@ -10,7 +10,7 @@ from atomate.vasp.firetasks.parse_outputs import HubbardHundLinRespToDb
 from atomate.utils.testing import AtomateTest, DB_DIR
 
 from json import load
-from pymatgen import Structure
+from pymatgen.core.structure import Structure
 
 __author__ = "Guy Moore"
 __email__ = "gmoore@lbl.gov"
