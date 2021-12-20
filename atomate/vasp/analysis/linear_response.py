@@ -1,5 +1,5 @@
 
-from pymatgen import Structure
+from pymatgen.core.structure import Structure
 from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer
 
 import numpy as np
