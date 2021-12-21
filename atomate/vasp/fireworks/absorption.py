@@ -153,42 +153,59 @@ class AbsorptionFW(Firework):
 
         # when mode = "static"
         elif mode == "STATIC":
+            static_incar={"LWAVE": True,
+                          "ENCUT": 500,
+                          "ISMEAR": 0,
+                          "SIGMA": 0.01,
+                          "LREAL": False,
+                          "GGA": "PE",
+                          "LCHARG": False,
+                          "LAECHG": False,
+                          "METAGGA": "None",
+                          "LMIXTAU": False}
+
             if prev_calc_dir:
                 # Copy only the CONTCAR from previous calc directory (often a relaxation run)
-                t.append(CopyVaspOutputs(
-                    calc_dir=prev_calc_dir,
-                    contcar_to_poscar=True,
-                    additional_files=wavecars)
-                )
-
-                t.append(WriteVaspStaticFromPrev(other_params = {"user_incar_settings": {"LWAVE": "TRUE"}}))
-
-            elif parents:
-                # Copy only the CONTCAR from previous calc
                 t.append(
                     CopyVaspOutputs(
-                        calc_loc=True,
+                        calc_dir=prev_calc_dir,
                         contcar_to_poscar=True,
                         additional_files=wavecars
                     )
                 )
 
                 t.append(
-                    WriteVaspStaticFromPrev(other_params = {"user_incar_settings": {"LWAVE": "TRUE"}}))
+                    WriteVaspStaticFromPrev(structure=structure,
+                                            reciprocal_density=reciprocal_density,
+                                            other_params={"user_incar_settings": static_incar})
+                )
+
+            elif parents:
+                # Copy only the CONTCAR from previous calc
+                t.append(CopyVaspOutputs(calc_loc=True,
+                                         additional_files=wavecars,
+                                         contcar_to_poscar=True)
+                         )
+
+                t.append(
+                    WriteVaspStaticFromPrev(structure=structure,
+                                            reciprocal_density=reciprocal_density,
+                                            other_params={"user_incar_settings": static_incar})
+                )
 
             elif structure:
-                vasp_input_set = MPStaticSet(
-                    structure, user_incar_settings={"LWAVE": "TRUE"}
-                )
-                t.append(
-                        WriteVaspFromIOSet(structure=structure, vasp_input_set=vasp_input_set)
-                )
+                static_input_set = MPStaticSet(structure=structure,
+                                             reciprocal_density=reciprocal_density,
+                                             user_incar_settings=static_incar)
+
+                t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=static_input_set)
+                         )
 
             else:
                 raise ValueError("Must specify structure or previous calculation for static calculation")
 
         else:
-            raise ValueEroor("Must specify a mode from 'STATIC', 'IPA', or 'RPA'")
+            raise ValueError("Must specify a mode from 'STATIC', 'IPA', or 'RPA'")
 
         # use the 'default' custodian handler group
         handler_group = "default"
