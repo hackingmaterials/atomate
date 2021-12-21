@@ -175,8 +175,7 @@ class AbsorptionFW(Firework):
                 )
 
                 t.append(
-                    WriteVaspStaticFromPrev(structure=structure,
-                                            reciprocal_density=reciprocal_density,
+                    WriteVaspStaticFromPrev(reciprocal_density=reciprocal_density,
                                             other_params={"user_incar_settings": static_incar})
                 )
 
@@ -188,15 +187,14 @@ class AbsorptionFW(Firework):
                          )
 
                 t.append(
-                    WriteVaspStaticFromPrev(structure=structure,
-                                            reciprocal_density=reciprocal_density,
+                    WriteVaspStaticFromPrev(reciprocal_density=reciprocal_density,
                                             other_params={"user_incar_settings": static_incar})
                 )
 
             elif structure:
                 static_input_set = MPStaticSet(structure=structure,
-                                             reciprocal_density=reciprocal_density,
-                                             user_incar_settings=static_incar)
+                                               reciprocal_density=reciprocal_density,
+                                               user_incar_settings=static_incar)
 
                 t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=static_input_set)
                          )
