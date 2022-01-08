@@ -119,7 +119,7 @@ class CalcDb(metaclass=ABCMeta):
         self.collection = self.db[collection]
 
         # set counter collection
-        if self.db.counter.find({"_id": "taskid"}).count() == 0:
+        if  self.db.counter.count_documents({"_id": "taskid"}) == 0:
             self.db.counter.insert_one({"_id": "taskid", "c": 0})
             self.build_indexes()
 
