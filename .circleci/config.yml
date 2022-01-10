@@ -4,7 +4,7 @@ jobs:
     working_directory: ~/atomate
     docker:
       - image: materialsvirtuallab/circle-ci-pmg-py3:3.7.3
-      - image: circleci/mongo:3.4.15
+      - image: circleci/mongo:latest
     steps:
       - checkout
       - restore_cache:
@@ -37,7 +37,7 @@ jobs:
     working_directory: ~/atomate
     docker:
       - image: materialsvirtuallab/circle-ci-pmg-py3:3.7.3
-      - image: circleci/mongo:3.4.15
+      - image: circleci/mongo:latest
     steps:
       - checkout
       - restore_cache:
@@ -80,5 +80,3 @@ workflows:
               branches:
                   ignore:
                       main
-
-
