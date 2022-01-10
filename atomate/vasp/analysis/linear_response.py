@@ -46,7 +46,7 @@ def procure_response_dict(
         # Obtain occupancy values
         n_tot = float(outcar_dict["charge"][i][orbital])
         # FIXME: Adapt for noncollinear
-        m_z = float((outcar_dict["magnetization"][i][orbital]))
+        m_z = float(outcar_dict["magnetization"][i][orbital])
         n_up = 0.5 * (n_tot + m_z)
         n_dn = 0.5 * (n_tot - m_z)
 
