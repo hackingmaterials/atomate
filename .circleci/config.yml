@@ -3,7 +3,6 @@ jobs:
   py3test:
     working_directory: ~/atomate
     docker:
-      - image: materialsvirtuallab/circle-ci-pmg-py3:3.7.3
       - image: circleci/mongo:latest
     steps:
       - checkout
@@ -36,7 +35,6 @@ jobs:
   py3devtest:
     working_directory: ~/atomate
     docker:
-      - image: materialsvirtuallab/circle-ci-pmg-py3:3.7.3
       - image: circleci/mongo:latest
     steps:
       - checkout
@@ -56,9 +54,6 @@ jobs:
             tar -zxvf vampire-5.0-linux.tar.gz
             export PATH=/root/atomate/linux/:$PATH
             pip install --quiet -r requirements.txt -r requirements-ci.txt
-            pip install git+https://github.com/materialsproject/pymatgen.git --upgrade
-            pip install git+https://github.com/materialsproject/custodian.git --upgrade
-            pip install git+https://github.com/materialsproject/fireworks.git --upgrade
             # Add executables and path.
             for EXEPATH in `pwd`/cmd_line/*/Linux_64bit; do export PATH=$PATH:$EXEPATH; done
             pip install --quiet -e .
