@@ -30,7 +30,7 @@ class TestEXAFSPaths(unittest.TestCase):
     def test_wflow_composition(self):
         self.assertEqual(len(self.wf_dict["fws"]), 2)
         ans = sorted(["FeO-EXAFS-K-0", "FeO-EXAFS Paths"])
-        self.assertEqual(ans, sorted([ft["name"] for ft in self.wf_dict["fws"]]))
+        self.assertEqual(ans, sorted(ft["name"] for ft in self.wf_dict["fws"]))
 
     def test_feff_input_sets(self):
         ans_fis_fw1 = {

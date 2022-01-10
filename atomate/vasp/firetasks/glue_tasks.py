@@ -242,9 +242,7 @@ class CheckBandgap(FiretaskBase):
         vr = Vasprun(vr_path, parse_potcar_file=False)
         gap = vr.get_band_structure().get_band_gap()["energy"]
         stored_data = {"band_gap": gap}
-        logger.info(
-            "The gap is: {}. Min gap: {}. Max gap: {}".format(gap, min_gap, max_gap)
-        )
+        logger.info(f"The gap is: {gap}. Min gap: {min_gap}. Max gap: {max_gap}")
 
         if (min_gap and gap < min_gap) or (max_gap and gap > max_gap):
             logger.info("CheckBandgap: failed test!")

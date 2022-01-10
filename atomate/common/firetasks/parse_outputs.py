@@ -1,11 +1,10 @@
 import json
 import os
 
-from fireworks import explicit_serialize, FiretaskBase, FWAction
-from fireworks.utilities.fw_serializers import DATETIME_HANDLER
-
-from atomate.utils.utils import env_chk, get_logger, load_class
 from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.utils.utils import env_chk, get_logger, load_class
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 __author__ = "Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>"
 
@@ -53,9 +52,7 @@ class ToDbTask(FiretaskBase):
 
         # parse the calc directory
         logger.info(
-            "PARSING DIRECTORY: {} USING DRONE: {}".format(
-                calc_dir, self["drone"].__class__.__name__
-            )
+            f"PARSING DIRECTORY: {calc_dir} USING DRONE: {self['drone'].__class__.__name__}"
         )
         # get the database connection
         db_file = env_chk(self.get("db_file"), fw_spec)

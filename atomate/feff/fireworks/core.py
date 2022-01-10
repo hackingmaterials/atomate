@@ -33,7 +33,7 @@ class XASFW(Firework):
         db_file=None,
         parents=None,
         metadata=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Write the input set for FEFF-XAS spectroscopy, run FEFF and insert the absorption
@@ -63,7 +63,7 @@ class XASFW(Firework):
             structure,
             edge=edge,
             radius=radius,
-            **override_default_feff_params
+            **override_default_feff_params,
         )
         spectrum_type = feff_input_set.__class__.__name__[2:-3]
 
@@ -90,8 +90,8 @@ class XASFW(Firework):
         super().__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
+            name=f"{structure.composition.reduced_formula}-{name}",
+            **kwargs,
         )
 
 
@@ -114,7 +114,7 @@ class EELSFW(Firework):
         db_file=None,
         parents=None,
         metadata=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Write the input set for FEFF-EELSS spectroscopy, run feff and insert the core-loss spectrum
@@ -154,7 +154,7 @@ class EELSFW(Firework):
             collection_angle,
             convergence_angle,
             user_eels_settings=user_eels_settings,
-            **override_default_feff_params
+            **override_default_feff_params,
         )
         spectrum_type = feff_input_set.__class__.__name__[2:-3]
 
@@ -181,8 +181,8 @@ class EELSFW(Firework):
         super().__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
+            name=f"{structure.composition.reduced_formula}-{name}",
+            **kwargs,
         )
 
 
@@ -203,7 +203,7 @@ class EXAFSPathsFW(Firework):
         filepad_file=None,
         labels=None,
         metadata=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Write the input set for FEFF-EXAFS spectroscopy with customized scattering paths, run feff,
@@ -237,7 +237,7 @@ class EXAFSPathsFW(Firework):
             structure,
             edge=edge,
             radius=radius,
-            **override_default_feff_params
+            **override_default_feff_params,
         )
 
         t = [
@@ -260,6 +260,6 @@ class EXAFSPathsFW(Firework):
         super().__init__(
             t,
             parents=parents,
-            name="{}-{}".format(structure.composition.reduced_formula, name),
-            **kwargs
+            name=f"{structure.composition.reduced_formula}-{name}",
+            **kwargs,
         )

@@ -23,7 +23,7 @@ class FuncTest(PymatgenTest):
         for f in wf.fws:
             self.assertEqual(f.tasks[-1]["db_file"], "db.json")
 
-        self.assertEqual(sorted([len(v) for v in wf.links.values()]), [0, 0, 1, 2])
+        self.assertEqual(sorted(len(v) for v in wf.links.values()), [0, 0, 1, 2])
 
         self.assertEqual(wf.name, "Si:band structure")
         d = loadfn(
@@ -38,7 +38,7 @@ class FuncTest(PymatgenTest):
         )
         wf = get_wf_from_spec_dict(self.structure, d)
         self.assertEqual(len(wf.fws), 3)
-        self.assertEqual(sorted([len(v) for v in wf.links.values()]), [0, 1, 1])
+        self.assertEqual(sorted(len(v) for v in wf.links.values()), [0, 1, 1])
 
 
 if __name__ == "__main__":

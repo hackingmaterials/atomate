@@ -47,9 +47,7 @@ class RunQChemDirect(FiretaskBase):
 
         logger.info(f"Running command: {cmd}")
         return_code = subprocess.call(cmd, shell=True)
-        logger.info(
-            "Command {} finished running with return code: {}".format(cmd, return_code)
-        )
+        logger.info(f"Command {cmd} finished running with return code: {return_code}")
 
 
 @explicit_serialize

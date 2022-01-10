@@ -35,7 +35,11 @@ from atomate.utils.utils import get_uri
 
 from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
-from atomate.vasp.config import STORE_VOLUMETRIC_DATA, STORE_ADDITIONAL_JSON, STORE_BADER
+from atomate.vasp.config import (
+    STORE_VOLUMETRIC_DATA,
+    STORE_ADDITIONAL_JSON,
+    STORE_BADER,
+)
 
 __author__ = "Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath, Anubhav Jain"
 __email__ = "kmathew@lbl.gov"
@@ -44,9 +48,8 @@ __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
-BADER_EXE_EXISTS = (which("bader") or which("bader.exe"))
+BADER_EXE_EXISTS = which("bader") or which("bader.exe")
 STORE_BADER = STORE_BADER and BADER_EXE_EXISTS
-
 
 
 class VaspDrone(AbstractDrone):
@@ -292,7 +295,7 @@ class VaspDrone(AbstractDrone):
                     "System time (sec)",
                     "Elapsed time (sec)",
                 ]:
-                    overall_run_stats[key] = sum([v[key] for v in run_stats.values()])
+                    overall_run_stats[key] = sum(v[key] for v in run_stats.values())
                 run_stats["overall"] = overall_run_stats
             except Exception:
                 logger.error(f"Bad run stats for {fullpath}.")
@@ -674,9 +677,7 @@ class VaspDrone(AbstractDrone):
 
         # delta volume checks
         if abs(percent_delta_vol) > volume_change_threshold:
-            warning_msgs.append(
-                "Volume change > {}%".format(volume_change_threshold * 100)
-            )
+            warning_msgs.append(f"Volume change > {volume_change_threshold * 100}%")
 
         # max force and valid structure checks
         max_force = None
@@ -696,7 +697,7 @@ class VaspDrone(AbstractDrone):
             if calc["input"]["parameters"].get("NSW", 0) > 0:
 
                 drift = calc["output"]["outcar"].get("drift", [[0, 0, 0]])
-                max_drift = max([np.linalg.norm(d) for d in drift])
+                max_drift = max(np.linalg.norm(d) for d in drift)
                 ediffg = calc["input"]["parameters"].get("EDIFFG", None)
                 if ediffg and float(ediffg) < 0:
                     desired_force_convergence = -float(ediffg)

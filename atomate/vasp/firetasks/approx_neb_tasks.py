@@ -66,9 +66,7 @@ class HostToDb(FiretaskBase):
             {"$push": {"approx_neb.wf_uuids": wf_uuid}},
         )
         if host_tasks_doc == None:
-            raise ValueError(
-                "Error updating approx neb host with task_id: {}".format(t_id)
-            )
+            raise ValueError(f"Error updating approx neb host with task_id: {t_id}")
 
         # Initialize and store select host task doc fields in approx_neb_doc
         # (to be stored in the approx_neb collection)
@@ -431,7 +429,7 @@ class EndPointToDb(FiretaskBase):
         )
         if task_doc == None:
             raise ValueError(
-                "Error updating approx neb end point with task_id: {}".format(t_id)
+                f"Error updating approx neb end point with task_id: {t_id}"
             )
 
         # Store info in approx_neb collection for record keeping
@@ -504,7 +502,7 @@ class PathfinderToDb(FiretaskBase):
                 raise ValueError("NEBPathfinder requires exactly two end points")
         except:
             raise ValueError(
-                "{} end_points_combo input is incorrect".format(str(end_points_combo))
+                f"{str(end_points_combo)} end_points_combo input is incorrect"
             )
 
         # get the database connection
@@ -819,9 +817,7 @@ class ImageToDb(FiretaskBase):
             },
         )
         if task_doc == None:
-            raise ValueError(
-                "Error updating approx neb image with task_id: {}".format(t_id)
-            )
+            raise ValueError(f"Error updating approx neb image with task_id: {t_id}")
 
         # Store info in approx_neb collection for record keeping
         images_key = task_doc["approx_neb"]["images_key"]
