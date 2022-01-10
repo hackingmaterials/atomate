@@ -792,6 +792,4 @@ class HubbardHundLinRespFW(Firework):
         t.append(RunVaspCustodian(vasp_cmd=vasp_cmd, auto_npar=">>auto_npar<<"))
         t.append(PassCalcLocs(name=name))
         t.append(VaspToDb(db_file=db_file, **vasptodb_kwargs))
-        super(HubbardHundLinRespFW, self).__init__(
-            t, parents=parents, name=fw_name, **kwargs
-        )
+        super().__init__(t, parents=parents, name=fw_name, **kwargs)

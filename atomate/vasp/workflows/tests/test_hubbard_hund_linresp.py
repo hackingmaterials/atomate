@@ -25,7 +25,7 @@ class TestHubbardHundLinRespWorkflow(AtomateTest):
         formula_pretty = "LiNiPO4"
         tasks = self.get_task_collection()
         with open(
-            os.path.join(ref_dir, "sample_tasks_multisite_spinpolarized.json"), "r"
+            os.path.join(ref_dir, "sample_tasks_multisite_spinpolarized.json")
         ) as f:
             sample_tasks = load(f)
         wf_uuid = sample_tasks[0]["wf_meta"]["wf_uuid"]
