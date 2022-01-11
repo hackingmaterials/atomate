@@ -1,24 +1,24 @@
-import os
-import datetime
-from fnmatch import fnmatch
-from collections import OrderedDict
-import json
-import glob
-import traceback
-from itertools import chain
 import copy
+import datetime
+import glob
+import json
+import os
+import traceback
+from collections import OrderedDict
+from fnmatch import fnmatch
+from itertools import chain
 
 from monty.io import zopen
 from monty.json import jsanitize
-from pymatgen.core import Molecule
-from pymatgen.io.qchem.outputs import QCOutput
-from pymatgen.io.qchem.inputs import QCInput
 from pymatgen.apps.borg.hive import AbstractDrone
+from pymatgen.core import Molecule
 from pymatgen.io.babel import BabelMolAdaptor
+from pymatgen.io.qchem.inputs import QCInput
+from pymatgen.io.qchem.outputs import QCOutput
 from pymatgen.symmetry.analyzer import PointGroupAnalyzer
 
-from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
+from atomate.utils.utils import get_logger
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -95,7 +95,8 @@ class QChemDrone(AbstractDrone):
             if len(qcinput_files) > len(qcoutput_files):
                 if list(qcinput_files.items())[0][0] != "orig":
                     raise AssertionError(
-                        "Can only have inequal number of input and output files when there is a saved copy of the original input!"
+                        "Can only have unequal number of input and output files when there is a saved copy "
+                        "of the original input!"
                     )
             else:
                 raise AssertionError("Inequal number of input and output files!")
@@ -268,7 +269,7 @@ class QChemDrone(AbstractDrone):
                 d["opt_trajectory"] = opt_trajectory
 
             if "final_energy" not in d["output"]:
-                if d_calc_final["final_energy"] != None:
+                if d_calc_final["final_energy"] is not None:
                     d["output"]["final_energy"] = d_calc_final["final_energy"]
                 else:
                     d["output"]["final_energy"] = d_calc_final["SCF"][-1][-1][0]
@@ -292,7 +293,7 @@ class QChemDrone(AbstractDrone):
             d["formula_anonymous"] = comp.anonymized_formula
             d["formula_alphabetical"] = comp.alphabetical_formula
             d["chemsys"] = "-".join(sorted(set(d_calc_final["species"])))
-            if d_calc_final["point_group"] != None:
+            if d_calc_final["point_group"] is not None:
                 d["pointgroup"] = d_calc_final["point_group"]
             else:
                 try:
@@ -375,7 +376,8 @@ class QChemDrone(AbstractDrone):
         """
         if len(input_files) != 1:
             raise ValueError(
-                "ERROR: The drone can only process a directory containing a single input/output pair when each include multiple calculations."
+                "ERROR: The drone can only process a directory containing a single input/output pair when each "
+                "include multiple calculations."
             )
         else:
             for key in input_files:

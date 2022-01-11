@@ -1,18 +1,16 @@
+import copy
+import unittest
 from pathlib import Path
 
 import ruamel.yaml as yaml
-import unittest
-import copy
-
 from fireworks.core.fworker import FWorker
 from fireworks.core.rocket_launcher import rapidfire
-
-from atomate.vasp.powerups import use_fake_vasp, use_potcar_spec
-from atomate.vasp.workflows.presets.core import wf_nudged_elastic_band
-from atomate.utils.testing import AtomateTest
-
 from pymatgen.core import Structure
 from pymatgen.util.testing import PymatgenTest
+
+from atomate.utils.testing import AtomateTest
+from atomate.vasp.powerups import use_fake_vasp, use_potcar_spec
+from atomate.vasp.workflows.presets.core import wf_nudged_elastic_band
 
 try:
     from pymatgen.analysis.diffusion.neb.io import get_endpoints_from_index
@@ -51,7 +49,7 @@ class TestNudgedElasticBandWorkflow(AtomateTest):
 
         test_yaml = wf_dir / "config/neb_unittest.yaml"
         with open(test_yaml) as stream:
-            self.config = yaml.safe_load(stream)
+            self.config = yaml.load(stream)
 
         # Use scratch directory as destination directory for testing
         env = {"run_dest_root": self.scratch_dir}

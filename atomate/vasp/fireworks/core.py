@@ -1,56 +1,53 @@
-import warnings
-
-from atomate.vasp.config import (
-    HALF_KPOINTS_FIRST_RELAX,
-    RELAX_MAX_FORCE,
-    VASP_CMD,
-    DB_FILE,
-    VDW_KERNEL_DIR,
-)
-
 """
 Defines standardized Fireworks that can be chained easily to perform various
 sequences of VASP calculations.
 """
+import warnings
 
 from fireworks import Firework
-
 from pymatgen.core import Structure
 from pymatgen.io.vasp.sets import (
-    MPRelaxSet,
-    MPScanRelaxSet,
     MITMDSet,
     MITRelaxSet,
-    MPStaticSet,
+    MPRelaxSet,
+    MPScanRelaxSet,
     MPSOCSet,
+    MPStaticSet,
 )
 
 from atomate.common.firetasks.glue_tasks import (
-    PassCalcLocs,
     CopyFiles,
     DeleteFiles,
     GzipDir,
+    PassCalcLocs,
+)
+from atomate.vasp.config import (
+    DB_FILE,
+    HALF_KPOINTS_FIRST_RELAX,
+    RELAX_MAX_FORCE,
+    VASP_CMD,
+    VDW_KERNEL_DIR,
 )
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
-from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
-from atomate.vasp.firetasks.parse_outputs import VaspToDb, BoltztrapToDb
-from atomate.vasp.firetasks.run_calc import (
-    RunVaspCustodian,
-    RunBoltztrap,
+from atomate.vasp.firetasks.neb_tasks import (
+    TransferNEBTask,
+    WriteNEBFromEndpoints,
+    WriteNEBFromImages,
 )
+from atomate.vasp.firetasks.parse_outputs import BoltztrapToDb, VaspToDb
+from atomate.vasp.firetasks.run_calc import RunBoltztrap, RunVaspCustodian
 from atomate.vasp.firetasks.write_inputs import (
+    ModifyIncar,
     WriteNormalmodeDisplacedPoscar,
+    WriteScanRelaxFromPrev,
     WriteTransmutedStructureIOSet,
     WriteVaspFromIOSet,
+    WriteVaspFromIOSetFromInterpolatedPOSCAR,
     WriteVaspHSEBSFromPrev,
     WriteVaspNSCFFromPrev,
     WriteVaspSOCFromPrev,
     WriteVaspStaticFromPrev,
-    WriteVaspFromIOSetFromInterpolatedPOSCAR,
-    WriteScanRelaxFromPrev,
-    ModifyIncar,
 )
-from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, WriteNEBFromEndpoints
 
 
 class OptimizeFW(Firework):
