@@ -1,27 +1,22 @@
 #!/usr/bin/env python
-# coding: utf-8
 # Copyright (c) atomate Development Team.
 
-from __future__ import division, unicode_literals, print_function
-
 import argparse
+import ast
 import os
 import sys
-import yaml
-import ast
 from datetime import datetime
 
-from monty.serialization import loadfn
-
+import yaml
 from fireworks import LaunchPad
+from monty.serialization import loadfn
+from pymatgen.core import Lattice, Structure
+from pymatgen.ext.matproj import MPRester
+from pymatgen.util.testing import PymatgenTest
 
 from atomate.utils.utils import get_wf_from_spec_dict, load_class
 from atomate.vasp.powerups import add_namefile, add_tags
 from atomate.vasp.workflows.presets import core
-
-from pymatgen.core import Structure, Lattice
-from pymatgen.ext.matproj import MPRester
-from pymatgen.util.testing import PymatgenTest
 
 default_yaml = """fireworks:
 - fw: atomate.vasp.fireworks.core.OptimizeFW
@@ -66,7 +61,7 @@ def _get_wf(args, structure):
                     presets_dir, "..", "base", "library", spec_path
                 )
             else:
-                raise ValueError("Unknown library: {}".format(args.library))
+                raise ValueError(f"Unknown library: {args.library}")
         d = loadfn(spec_path)
         return get_wf_from_spec_dict(structure, d, args.common_param_updates)
 
@@ -133,7 +128,7 @@ def submit_test_suite(args):
                 wfs.append(wf_func(*custom_args[name]))
             else:
                 wfs.append(wf_func(structs[0]))
-    wfs = [add_tags(wf, "test set {}".format(dt)) for wf in wfs]
+    wfs = [add_tags(wf, f"test set {dt}") for wf in wfs]
     for wf in wfs:
         add_to_lpad(wf, write_namefile=False)
 
@@ -148,11 +143,11 @@ def verify_test_suite(args):
         ]
         rep_dict = {k["_id"]: k["count"] for k in lpad.fireworks.aggregate(pipeline)}
         dt = "".join(tag.split()[2:])
-        print("Test set submitted at {}".format(dt))
+        print(f"Test set submitted at {dt}")
         if args.report:
             print("   Test fw state summary:")
             for state, count in rep_dict.items():
-                print("   -{}: {}".format(state, count))
+                print(f"   -{state}: {count}")
         count = sum(rep_dict.values())
         if rep_dict.get("COMPLETED", None) == count:
             print("   All test workflows successfully completed")
@@ -280,7 +275,7 @@ if __name__ == "__main__":
         "-pk",
         "--powerup_kwargs",
         default="{}",
-        help="powerup keyword arguments, e.g. " '\'{"incar_update": {"ENCUT": 700}}\'',
+        help='powerup keyword arguments, e.g. \'{"incar_update": {"ENCUT": 700}}\'',
     )
     ppowerup.set_defaults(func=powerup_workflow)
 

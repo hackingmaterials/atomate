@@ -1,4 +1,3 @@
-#
 # Documentation build configuration file, created by
 # sphinx-quickstart on Fri Jan 11 16:36:11 2013.
 #

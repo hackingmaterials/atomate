@@ -5,18 +5,18 @@ import unittest
 from unittest import mock
 
 import gridfs
-from atomate.utils.testing import AtomateTest
-from atomate.utils.testing import DB_DIR
-from atomate.vasp.database import VaspCalcDb
-from atomate.vasp.firetasks.lobster_tasks import (
-    WriteLobsterinputfromIO,
-    LobsterRunToDb,
-    RunLobster,
-)
 from fireworks.utilities.fw_serializers import load_object
 from monty.serialization import dumpfn
 from monty.shutil import copy_r
 from pymatgen.io.lobster import Lobsterin
+
+from atomate.utils.testing import DB_DIR, AtomateTest
+from atomate.vasp.database import VaspCalcDb
+from atomate.vasp.firetasks.lobster_tasks import (
+    LobsterRunToDb,
+    RunLobster,
+    WriteLobsterinputfromIO,
+)
 
 DB_FILE = os.path.join(DB_DIR, "db.json")
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
@@ -100,7 +100,7 @@ class TestLobsterRunToDb(AtomateTest):
             for coll in db.collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
-        except:
+        except Exception:
             pass
 
     def test_jsonfile(self):
@@ -115,7 +115,7 @@ class TestLobsterRunToDb(AtomateTest):
     def test_mongodb(self):
         try:
             VaspCalcDb.from_db_file(DB_FILE)
-        except:
+        except Exception:
             raise unittest.SkipTest(
                 "Cannot connect to MongoDB! Is the database server running? "
                 "Are the credentials correct?"
@@ -133,7 +133,7 @@ class TestLobsterRunToDb(AtomateTest):
     def test_mongodb_more_files(self):
         try:
             VaspCalcDb.from_db_file(DB_FILE)
-        except:
+        except Exception:
             raise unittest.SkipTest(
                 "Cannot connect to MongoDB! Is the database server running? "
                 "Are the credentials correct?"

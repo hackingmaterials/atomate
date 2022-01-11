@@ -4,9 +4,8 @@ import unittest
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.structure import Structure
 
-from atomate.vasp.fireworks.nmr import *
-
-from atomate.vasp.firetasks.write_inputs import WriteVaspNMRFromPrev, WriteVaspFromIOSet
+from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspNMRFromPrev
+from atomate.vasp.fireworks.nmr import NMRFW
 
 __author__ = "Shyam Dwaraknath"
 __email__ = "shyamd@lbl.gov"

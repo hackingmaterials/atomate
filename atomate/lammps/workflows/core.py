@@ -5,9 +5,9 @@ This module defines functions that yield lammps workflows
 from fireworks import Workflow
 
 # from pymatgen.io.lammps.sets import LammpsInputSet
-# from pymatgen.io.lammps.data import Topology
+from pymatgen.io.lammps.data import Topology
 
-from atomate.lammps.fireworks.core import LammpsFW, PackmolFW, LammpsForceFieldFW
+from atomate.lammps.fireworks.core import LammpsForceFieldFW, LammpsFW, PackmolFW
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"

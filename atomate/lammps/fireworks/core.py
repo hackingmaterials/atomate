@@ -2,16 +2,15 @@
 Defines fireworks to be incorporated into workflows.
 """
 
-# from pymatgen.io.lammps.data import Topology
-
 from fireworks import Firework
+from pymatgen.io.lammps.data import Topology
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
-from atomate.lammps.firetasks.run_calc import RunLammpsDirect, RunPackmol
 from atomate.lammps.firetasks.parse_outputs import LammpsToDB
+from atomate.lammps.firetasks.run_calc import RunLammpsDirect, RunPackmol
 from atomate.lammps.firetasks.write_inputs import (
-    WriteInputFromIOSet,
     WriteInputFromForceFieldAndTopology,
+    WriteInputFromIOSet,
 )
 
 __author__ = "Brandon Wood, Kiran Mathew"
