@@ -83,17 +83,19 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
     Returns:
        Workflow
     """
-    custodian_params = custodian_params if custodian_params else {}
+    custodian_params = custodian_params or {}
     vasp_fws_and_tasks = get_fws_and_tasks(
         original_wf,
         fw_name_constraint=fw_name_constraint,
         task_name_constraint="RunVasp",
     )
     for idx_fw, idx_t in vasp_fws_and_tasks:
-        if "vasp_cmd" not in custodian_params:
-            custodian_params["vasp_cmd"] = original_wf.fws[idx_fw].tasks[idx_t][
-                "vasp_cmd"
-            ]
+        for param in (
+            RunVaspCustodian.optional_params + RunVaspCustodian.required_params
+        ):
+            value = original_wf.fws[idx_fw].tasks[idx_t].get(param, None)
+            if value is not None and param not in custodian_params:
+                custodian_params[param] = value
         original_wf.fws[idx_fw].tasks[idx_t] = RunVaspCustodian(**custodian_params)
     return original_wf
 
@@ -723,12 +725,14 @@ def use_gamma_vasp(original_wf, gamma_vasp_cmd):
 
 def modify_gzip_vasp(original_wf, gzip_output):
     """
-    For all RunVaspCustodian tasks, modify gzip_output boolean
+    For all RunVaspCustodian tasks, modify gzip_output boolean.
+
     Args:
         original_wf (Workflow)
         gzip_output (bool): Value to set gzip_output to for RunVaspCustodian
+
     Returns:
-       Workflow
+       Workflow: Same workflow as passed in with in-place modified gzip_output.
     """
     idx_list = get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian")
     for idx_fw, idx_t in idx_list:
