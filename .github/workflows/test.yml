@@ -21,7 +21,7 @@ jobs:
 
       - name: Install C++ dependencies
         run: |
-          snap install openbabel
+          sudo apt-get install openbabel
 
       - name: Cache pip
         uses: actions/cache@v2
