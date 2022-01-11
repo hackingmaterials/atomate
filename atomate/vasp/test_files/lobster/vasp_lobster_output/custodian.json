@@ -1,0 +1,21 @@
+[
+    {
+        "job": {
+            "@module": "custodian",
+            "@class": "LobsterJob",
+            "@version": null,
+            "lobster_cmd": "/home/ucl/naps/jgeorge/bin/lobster-3.2.0",
+            "output_file": "lobster.out",
+            "stderr_file": "std_err_lobster.txt",
+            "gzipped": true,
+            "backup": true
+        },
+        "corrections": [],
+        "handler": null,
+        "validator": null,
+        "max_errors": false,
+        "max_errors_per_job": false,
+        "max_errors_per_handler": false,
+        "nonzero_return_code": false
+    }
+]

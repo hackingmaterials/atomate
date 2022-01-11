@@ -1,0 +1,42 @@
+LOBSTER v3.2.0 (g++ 5.4.0)
+Copyright (C) 2019 by Chair of Solid-State and Quantum Chemistry, RWTH Aachen.
+All rights reserved. Contributions by S. Maintz, V. L. Deringer, M. Esser, R. Nelson, C. Ertural, A. L. Tchougreeff and R. Dronskowski
+starting on host mb-wes001.cism.ucl.ac.be on 2019-10-16 at 21:22:27 CEST using 8 threads
+detecting used PAW program... VASP
+initializing PW system...
+initializing Augmentations...
+recommended basis functions:
+K 3p 3s 4s 
+O 2p 2s 
+Sn 4d 5p 5s 
+initializing LCAO system...
+setting up local basis functions...
+ K (pbeVaspFit2015) 3s 4s 3p_y 3p_z 3p_x 
+ O (pbeVaspFit2015) 2s 2p_y 2p_z 2p_x 
+Sn (pbeVaspFit2015) 5s 5p_y 5p_z 5p_x 4d_xy 4d_yz 4d_z^2 4d_xz 4d_x^2-y^2 
+setting up CO interactions... found 48 interactions.
+projecting...
+WARNING: Cannot use the tetrahedron method for k-space integration and must fall
+WARNING: back to Gaussian smearing which can take significantly longer. Make
+WARNING: sure to use the tetrahedron method whenever applicable.
+
+calculating overlaps...
+post-processing projection...
+saving projection to projectionData.lobster...
+spillings for spin channel 1
+abs. total  spilling:   6.31%
+abs. charge spilling:   0.80%
+
+spillings for spin channel 2
+abs. total  spilling:   6.33%
+abs. charge spilling:   0.80%
+
+calculating pDOS... using Gaussian smearing integration (sigma=0.05eV)
+writing DOSCAR.lobster...
+writing COOPCAR.lobster and ICOOPLIST.lobster...
+calculating pCOHPs... using Gaussian smearing integration (sigma=0.05eV)
+writing COHPCAR.lobster and ICOHPLIST.lobster...
+writing CHARGE.lobster and GROSSPOP.lobster...
+finished in 0 h  0 min 17 s 992 ms of wall time
+            0 h  1 min 39 s 830 ms of user time
+            0 h  0 min  2 s 510 ms of sys  time
