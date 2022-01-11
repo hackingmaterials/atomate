@@ -138,7 +138,7 @@ def get_wf_lobster(
             lobsterin_key_dict=user_lobsterin_settings,
             user_supplied_basis=user_supplied_basis,
             handler_group="default",
-            validator_group="strict",
+            validator_group="default",
             additional_outputs=additional_outputs,
         )
     )

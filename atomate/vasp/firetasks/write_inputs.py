@@ -80,7 +80,7 @@ class WriteVaspFromIOSet(FiretaskBase):
             fw_struct = fw_spec.get(spec_structure_key)
             dd = vis.as_dict()
             dd["structure"] = fw_struct
-            vis.from_dict(dd)
+            vis = vis.from_dict(dd)
 
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
