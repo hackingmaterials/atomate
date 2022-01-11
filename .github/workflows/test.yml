@@ -1,6 +1,10 @@
 name: Testing
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   test:
@@ -27,7 +31,7 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r requirements-ci.txt
-          pip install .
+          pip install .[complete]
 
       - name: pytest
         run: |
