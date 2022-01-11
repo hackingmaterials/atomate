@@ -1,18 +1,16 @@
-#!/usr/bin/env python
-
 import os
+from os.path import abspath, dirname, join
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
-module_dir = os.path.dirname(os.path.abspath(__file__))
+module_dir = dirname(abspath(__file__))
 
 if __name__ == "__main__":
     setup(
         name="atomate",
         version="1.0.1",
-        description="atomate has implementations of FireWorks workflows for "
-        "Materials Science",
-        long_description=open(os.path.join(module_dir, "README.md")).read(),
+        description="atomate has implementations of FireWorks workflows for Materials Science",
+        long_description=open(join(module_dir, "README.md")).read(),
         url="https://github.com/hackingmaterials/atomate",
         author="Anubhav Jain, Kiran Mathew",
         author_email="anubhavster@gmail.com, kmathew@lbl.gov",
@@ -40,10 +38,15 @@ if __name__ == "__main__":
             "maggma>=0.26.0",
         ],
         extras_require={
-            "rtransfer": ["paramiko>=2.4.2"],
             "plotting": ["matplotlib>=1.5.2"],
             "phonons": ["phonopy>=1.10.8"],
-            "complete": ["paramiko>=2.4.2", "matplotlib>=1.5.2", "phonopy>=1.10.8"],
+            "qchem": ["openbabel"],
+            "complete": [
+                "paramiko>=2.4.2",
+                "matplotlib>=1.5.2",
+                "phonopy>=1.10.8",
+                "openbabel",
+            ],
         },
         classifiers=[
             "Programming Language :: Python :: 3",
@@ -57,10 +60,5 @@ if __name__ == "__main__":
             "Topic :: Other/Nonlisted Topic",
             "Topic :: Scientific/Engineering",
         ],
-        test_suite="nose.collector",
-        tests_require=["nose"],
-        scripts=[
-            os.path.join("scripts", f)
-            for f in os.listdir(os.path.join(module_dir, "scripts"))
-        ],
+        scripts=[join("scripts", f) for f in os.listdir(join(module_dir, "scripts"))],
     )
