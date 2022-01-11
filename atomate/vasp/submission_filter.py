@@ -87,7 +87,7 @@ class SubmissionFilter(AbstractStructureFilter):
                         except:
                             pass
                 else:
-                    failures.append("NOT_IN_MP=False ({})".format(mpids[0]))
+                    failures.append(f"NOT_IN_MP=False ({mpids[0]})")
         return True if not failures else False
 
     def as_dict(self):

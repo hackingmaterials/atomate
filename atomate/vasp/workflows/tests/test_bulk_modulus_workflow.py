@@ -63,12 +63,12 @@ class TestBulkModulusWorkflow(AtomateTest):
             if os.path.exists(os.path.join(reference_dir, str(i), "inputs")):
                 if not VASP_CMD:
                     fake_vasp_ref_dirs[
-                        "bulk_modulus deformation {}".format(i - 2)
+                        f"bulk_modulus deformation {i - 2}"
                     ] = os.path.join(reference_dir, str(i))
             else:
-                no_vasp_ref_dirs[
-                    "bulk_modulus deformation {}".format(i - 2)
-                ] = os.path.join(self.scratch_dir, str(i))
+                no_vasp_ref_dirs[f"bulk_modulus deformation {i - 2}"] = os.path.join(
+                    self.scratch_dir, str(i)
+                )
 
         fake_vasp_ref_dirs["structure optimization"] = os.path.join(reference_dir, "1")
         new_wf = use_no_vasp(wf, no_vasp_ref_dirs)
@@ -137,11 +137,7 @@ class TestBulkModulusWorkflow(AtomateTest):
                 with open(os.path.join(reference_dir, str(i), self.task_file)) as fp:
                     d = json.load(fp)
                     new_fw = self.lp.fireworks.find_one(
-                        {
-                            "name": {
-                                "$regex": "bulk_modulus deformation {}".format(i - 2)
-                            }
-                        }
+                        {"name": {"$regex": f"bulk_modulus deformation {i - 2}"}}
                     )
 
                     # the fw tag (inluded in "name") is important in pulling tasks in the last FW
@@ -175,11 +171,7 @@ class TestBulkModulusWorkflow(AtomateTest):
             # not to unnecessarily override available task.json
             if not os.path.exists(os.path.join(reference_dir, str(i), "task.json")):
                 d = self.get_task_collection().find_one(
-                    {
-                        "task_label": {
-                            "$regex": "bulk_modulus deformation {}".format(i - 2)
-                        }
-                    }
+                    {"task_label": {"$regex": f"bulk_modulus deformation {i - 2}"}}
                 )
                 rm_props = ["bandstructure", "input"]
                 for icalc in range(len(d["calcs_reversed"])):

@@ -69,7 +69,7 @@ def get_wf_thermal_expansion(
             "'phonopy' package NOT installed. Required for the final analysis step."
         )
 
-    tag = tag or "thermal_expansion group: >>{}<<".format(str(uuid4()))
+    tag = tag or f"thermal_expansion group: >>{str(uuid4())}<<"
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
 

@@ -630,7 +630,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
 
     def test_SCAN_small_bandgap(self):
         # A structure with a small bandgap (LiH) should result in a KSPACING
-        # value of 0.34292
+        # value of 0.40503
 
         structure = Structure.from_file(
             os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiH/inputs", "POSCAR")
@@ -671,7 +671,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         incar = Incar.from_file(os.path.join(self._get_launch_dir()[1], "INCAR.gz"))
         for p in incar.keys():
             if p == "KSPACING":
-                self.assertAlmostEqual(incar[p], 0.34292, 4)
+                self.assertAlmostEqual(incar[p], 0.40503, 4)
             elif p == "SIGMA":
                 self.assertEqual(incar[p], 0.05)
             elif p == "ICHARG":

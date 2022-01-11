@@ -80,7 +80,7 @@ class WriteVaspFromIOSet(FiretaskBase):
             fw_struct = fw_spec.get(spec_structure_key)
             dd = vis.as_dict()
             dd["structure"] = fw_struct
-            vis.from_dict(dd)
+            vis = vis.from_dict(dd)
 
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -265,8 +265,8 @@ class ModifyPotcar(FiretaskBase):
 
     Optional params:
         functional (dict): functional to use, e.g. PBE, PBE_52, LDA_US, PW91
-        input_filename (str): Input filename (if not "INCAR")
-        output_filename (str): Output filename (if not "INCAR")
+        input_filename (str): Input filename (if not "POTCAR")
+        output_filename (str): Output filename (if not "POTCAR")
     """
 
     required_params = ["potcar_symbols"]

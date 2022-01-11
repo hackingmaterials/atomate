@@ -87,7 +87,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
             common_keys = [k for k in q.keys() if k in self.query.keys()]
             if common_keys:
                 raise ValueError(
-                    "User query parameter cannot contain key(s): {}".format(common_keys)
+                    f"User query parameter cannot contain key(s): {common_keys}"
                 )
             q.update(self.query)
 
@@ -97,7 +97,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
         ]
         task_ids = [t_id for t_id in all_task_ids if t_id not in previous_task_ids]
 
-        logger.info("There are {} new task_ids to process.".format(len(task_ids)))
+        logger.info(f"There are {len(task_ids)} new task_ids to process.")
 
         pbar = tqdm(task_ids)
         for t_id in pbar:

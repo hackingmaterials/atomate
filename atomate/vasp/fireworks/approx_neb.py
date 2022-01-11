@@ -30,9 +30,9 @@ class HostFW(Firework):
         job_type="double_relaxation_run",
         additional_fields=None,
         tags=None,
-        **kwargs
+        **kwargs,
     ):
-        """
+        r"""
         Launches a VASP calculation for the provided empty host structure
         and adds task doc fields for approx_neb workflow record keeping.
         Initializes a doc in the approx_neb collection and stores relevant
@@ -124,9 +124,9 @@ class EndPointFW(Firework):
         override_default_vasp_params=None,
         job_type="double_relaxation_run",
         parents=None,
-        **kwargs
+        **kwargs,
     ):
-        """
+        r"""
         Pulls information from the approx_neb collection (e.g. host
         task_id) using the provided approx_neb_wf_uuid. Gets the host
         structure from the tasks collection and inserts the site(s)
@@ -169,14 +169,13 @@ class EndPointFW(Firework):
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "end point: insert " + insert_specie + " " + str(end_points_index)
+        fw_name = f"end point: insert {insert_specie} {end_points_index}"
         fw_spec = {
             "tags": ["approx_neb", approx_neb_wf_uuid, "end_point", "relaxation"]
         }
 
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
-        inserted_site_indexes = []
         additional_fields = {
             "approx_neb": {
                 "wf_uuids": [],
@@ -270,9 +269,9 @@ class ImageFW(Firework):
         parents=None,
         add_additional_fields=None,
         add_tags=None,
-        **kwargs
+        **kwargs,
     ):
-        """
+        r"""
         Pulls information from the approx_neb collection using the
         provided approx_neb_wf_uuid (including the image structure using
         structure_path and pydash.get() notation). Launches a VASP
