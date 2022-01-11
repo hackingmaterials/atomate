@@ -19,6 +19,10 @@ jobs:
         with:
           python-version: 3.7
 
+      - name: Install C++ dependencies
+        run: |
+          snap install openbabel
+
       - name: Cache pip
         uses: actions/cache@v2
         id: pip-cache
@@ -34,10 +38,6 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-ci.txt
           pip install .[complete]
-
-      - name: Install C++ dependencies
-        run: |
-          snap install openbabel
 
       - name: pytest
         run: |
