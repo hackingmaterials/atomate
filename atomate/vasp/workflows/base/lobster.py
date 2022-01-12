@@ -8,15 +8,15 @@ import logging
 import os
 from typing import List, Optional
 
-from atomate.common.firetasks.glue_tasks import DeleteFilesPrevFolder
-from atomate.vasp.config import VASP_CMD, DB_FILE, LOBSTER_CMD
-from atomate.vasp.fireworks import StaticFW, OptimizeFW
-from atomate.vasp.fireworks.lobster import LobsterFW
-from fireworks import Firework
-from fireworks.core.firework import Workflow
-from pymatgen.core.structure import Structure
+from fireworks import Firework, Workflow
+from pymatgen.core import Structure
 from pymatgen.io.lobster import Lobsterin
 from pymatgen.io.vasp.sets import LobsterSet
+
+from atomate.common.firetasks.glue_tasks import DeleteFilesPrevFolder
+from atomate.vasp.config import DB_FILE, LOBSTER_CMD, VASP_CMD
+from atomate.vasp.fireworks import OptimizeFW, StaticFW
+from atomate.vasp.fireworks.lobster import LobsterFW
 
 __author__ = "Janine George, Guido Petretto"
 __email__ = "janine.george@uclouvain.be, guido.petretto@uclouvain.be"

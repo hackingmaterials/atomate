@@ -178,7 +178,7 @@ class TestBulkModulusWorkflow(AtomateTest):
                     for prop in rm_props:
                         try:
                             del d["calcs_reversed"][icalc][prop]
-                        except:
+                        except Exception:
                             pass
                 with open(os.path.join(reference_dir, str(i), "task.json"), "w") as fp:
                     json.dump(

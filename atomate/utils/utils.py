@@ -70,7 +70,7 @@ def get_mongolike(d, key):
     lead_key = key.split(".", 1)[0]
     try:
         lead_key = int(lead_key)  # for searching array data
-    except:
+    except Exception:
         pass
 
     if "." in key:
@@ -334,7 +334,7 @@ def get_uri(dir_name):
     fullpath = os.path.abspath(dir_name)
     try:
         hostname = socket.gethostbyaddr(socket.gethostname())[0]
-    except:
+    except Exception:
         hostname = socket.gethostname()
     return f"{hostname}:{fullpath}"
 
