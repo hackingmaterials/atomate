@@ -2,25 +2,22 @@ import os
 import unittest
 
 import numpy as np
-
-from monty.serialization import loadfn
-
-from fireworks import FWorker, Firework, Workflow
+from fireworks import Firework, FWorker, Workflow
 from fireworks.core.rocket_launcher import rapidfire
+from monty.serialization import loadfn
+from pymatgen.core import Structure
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.util.testing import PymatgenTest
 
-from atomate.vasp.powerups import use_fake_vasp, add_modify_incar
+from atomate.utils.testing import AtomateTest
+from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDb
+from atomate.vasp.powerups import add_modify_incar, use_fake_vasp
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
 from atomate.vasp.workflows.presets.core import (
+    get_wf,
     wf_elastic_constant,
     wf_elastic_constant_minimal,
-    get_wf,
 )
-from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDb
-from atomate.utils.testing import AtomateTest
-
-from pymatgen.util.testing import PymatgenTest
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.core import Structure
 
 __author__ = "Kiran Mathew, Joseph Montoya"
 __email__ = "montoyjh@lbl.gov"

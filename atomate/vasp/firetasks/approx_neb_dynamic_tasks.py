@@ -1,8 +1,9 @@
-from fireworks import FiretaskBase, FWAction, explicit_serialize, Workflow
+from fireworks import FiretaskBase, FWAction, Workflow, explicit_serialize
+
+from atomate.common.powerups import powerup_by_kwargs
 from atomate.utils.utils import env_chk
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.fireworks.approx_neb import ImageFW
-from atomate.common.powerups import powerup_by_kwargs
 
 __author__ = "Ann Rutt"
 __email__ = "acrutt@lbl.gov"
@@ -114,7 +115,7 @@ class GetImageFireworks(FiretaskBase):
                     )
 
         # get list of fireworks to launch
-        if isinstance(structure_paths, (list)):
+        if isinstance(structure_paths, list):
             if isinstance(structure_paths[0], (str)):
                 relax_image_fws = []
                 for path in structure_paths:
@@ -175,7 +176,7 @@ class GetImageFireworks(FiretaskBase):
             add_additional_fields=self.get("add_additional_fields"),
             add_tags=add_tags,
         )
-        if isinstance(add_tags, (list)):
+        if isinstance(add_tags, list):
             if "tags" in fw.spec.keys():
                 fw.spec["tags"].extend(add_tags)
             else:
@@ -183,9 +184,9 @@ class GetImageFireworks(FiretaskBase):
         return fw
 
     def get_screening_fws(self, sorted_paths):
-        if isinstance(sorted_paths, (list)) != True:
+        if not isinstance(sorted_paths, list):
             if (
-                any([isinstance(i, (list)) for i in sorted_paths]) != True
+                any([isinstance(i, list) for i in sorted_paths]) is not True
                 or len(sorted_paths) != 3
             ):
                 raise TypeError("sorted_paths must be a list containing 3 lists")

@@ -2,7 +2,7 @@ import os
 import unittest
 
 from pymatgen.core import IStructure, Lattice
-from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
+from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 from pymatgen.io.vasp.sets import MPRelaxSet
 
 __author__ = "Anubhav Jain, Kiran Mathew"

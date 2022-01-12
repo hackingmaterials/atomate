@@ -1,7 +1,7 @@
 import os
 import unittest
-import pandas as pd
 
+import pandas as pd
 from pymatgen.core.structure import Structure
 
 from atomate.utils.testing import AtomateTest
@@ -28,8 +28,6 @@ class TestExchangeFireworks(AtomateTest):
         ]
         cls.heisenberg_settings = {"cutoff": 3.0, "tol": 0.04}
         cls.db_file = os.path.join(db_dir, "db.json")
-
-        new_fw_spec = {"_fw_env": {"db_file": os.path.join(db_dir, "db.json")}}
 
     def test_EFWs(self):
         hmfw = HeisenbergModelFW(

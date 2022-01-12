@@ -1,8 +1,8 @@
 import os
 import unittest
 
-from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.utils.testing import AtomateTest
+from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 
 __author__ = "Anubhav Jain"
 __email__ = "ajain@lbl.gov"

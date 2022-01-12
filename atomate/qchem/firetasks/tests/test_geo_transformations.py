@@ -1,10 +1,11 @@
 import os
 import unittest
 
+import numpy as np
+from pymatgen.core import Molecule
+
 from atomate.qchem.firetasks.geo_transformations import RotateTorsion
 from atomate.utils.testing import AtomateTest
-from pymatgen.core import Molecule
-import numpy as np
 
 __author__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"

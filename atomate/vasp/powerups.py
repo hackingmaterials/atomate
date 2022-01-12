@@ -1,34 +1,35 @@
+from fireworks.core.firework import Tracker
+from monty.dev import deprecated
+
 from atomate.common.firetasks.glue_tasks import DeleteFiles
+from atomate.common.powerups import (
+    add_additional_fields_to_taskdocs as common_add_additional_fields_to_taskdocs,
+)
+from atomate.common.powerups import add_namefile as common_add_namefile
 from atomate.common.powerups import add_priority as common_add_priority
+from atomate.common.powerups import add_tags as common_add_tags
 from atomate.common.powerups import preserve_fworker as common_preserve_fworker
 from atomate.common.powerups import (
     set_execution_options as common_set_execution_options,
 )
-from atomate.common.powerups import add_namefile as common_add_namefile
-from atomate.common.powerups import (
-    add_additional_fields_to_taskdocs as common_add_additional_fields_to_taskdocs,
-)
-from atomate.common.powerups import add_tags as common_add_tags
-from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
+from atomate.utils.utils import get_fws_and_tasks, get_meta_from_structure
 from atomate.vasp.config import (
-    ADD_NAMEFILE,
-    SCRATCH_DIR,
     ADD_MODIFY_INCAR,
+    ADD_NAMEFILE,
     GAMMA_VASP_CMD,
+    SCRATCH_DIR,
 )
-from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
+from atomate.vasp.firetasks.glue_tasks import CheckBandgap, CheckStability
 from atomate.vasp.firetasks.lobster_tasks import RunLobsterFake
 from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
 from atomate.vasp.firetasks.parse_outputs import JsonToDb
 from atomate.vasp.firetasks.run_calc import (
-    RunVaspCustodian,
-    RunVaspFake,
-    RunVaspDirect,
     RunNoVasp,
+    RunVaspCustodian,
+    RunVaspDirect,
+    RunVaspFake,
 )
-from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyPotcar, ModifyKpoints
-from monty.dev import deprecated
-from fireworks.core.firework import Tracker
+from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyKpoints, ModifyPotcar
 
 __author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"

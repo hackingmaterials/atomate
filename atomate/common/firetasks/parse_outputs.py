@@ -1,10 +1,11 @@
 import json
 import os
 
-from atomate.common.firetasks.glue_tasks import get_calc_loc
-from atomate.utils.utils import env_chk, get_logger, load_class
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+
+from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.utils.utils import env_chk, get_logger, load_class
 
 __author__ = "Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>"
 

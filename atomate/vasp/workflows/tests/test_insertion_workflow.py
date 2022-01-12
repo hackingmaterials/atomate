@@ -1,16 +1,14 @@
 import os
 from pathlib import Path
 
-
 from fireworks.core.fworker import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from pymatgen.analysis.structure_matcher import StructureMatcher
+from pymatgen.core import Structure
 
+from atomate.utils.testing import AtomateTest
 from atomate.vasp.powerups import use_fake_vasp, use_potcar_spec
 from atomate.vasp.workflows.base.electrode import get_ion_insertion_wf
-from atomate.utils.testing import AtomateTest
-
-from pymatgen.core import Structure
 
 __author__ = "Jimmy Shen"
 __email__ = "jmmshn@gmail.com"

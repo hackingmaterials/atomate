@@ -2,15 +2,13 @@ import os
 import unittest
 
 import numpy as np
-
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from pymatgen.util.testing import PymatgenTest
 
+from atomate.utils.testing import AtomateTest
 from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.presets.core import wf_raman_spectra
-from atomate.utils.testing import AtomateTest
-
-from pymatgen.util.testing import PymatgenTest
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"

@@ -1,7 +1,8 @@
 from fireworks import Firework
-from atomate.vasp.firetasks.approx_neb_tasks import PathfinderToDb, AddSelectiveDynamics
+
+from atomate.vasp.config import DB_FILE, VASP_CMD
 from atomate.vasp.firetasks.approx_neb_dynamic_tasks import GetImageFireworks
-from atomate.vasp.config import VASP_CMD, DB_FILE
+from atomate.vasp.firetasks.approx_neb_tasks import AddSelectiveDynamics, PathfinderToDb
 
 __author__ = "Ann Rutt"
 __email__ = "acrutt@lbl.gov"

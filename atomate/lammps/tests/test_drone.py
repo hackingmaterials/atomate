@@ -1,11 +1,12 @@
 import os
 import unittest
 
+from atomate.lammps.drones import LammpsDrone
+from atomate.utils.testing import AtomateTest
+
 # from pymatgen.io.lammps.sets import LammpsInputSet
 # from pymatgen.io.lammps.output import LammpsLog
 
-from atomate.utils.testing import AtomateTest
-from atomate.lammps.drones import LammpsDrone
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"

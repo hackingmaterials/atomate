@@ -2,11 +2,12 @@
 
 import os
 
-from atomate.utils.utils import load_class
 from fireworks import FiretaskBase, explicit_serialize
-from pymatgen.io.qchem.inputs import QCInput
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
+from pymatgen.io.qchem.inputs import QCInput
+
+from atomate.utils.utils import load_class
 
 __author__ = "Brandon Wood"
 __copyright__ = "Copyright 2018, The Materials Project"

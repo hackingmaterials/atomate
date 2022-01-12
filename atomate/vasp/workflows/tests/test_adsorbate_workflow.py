@@ -1,22 +1,21 @@
 import os
 import unittest
-import numpy as np
 
+import numpy as np
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
-
-from atomate.vasp.powerups import use_fake_vasp
-from atomate.vasp.workflows.base.adsorption import (
-    get_wf_slab,
-    get_slab_trans_params,
-    MPSurfaceSet,
-)
-from atomate.utils.testing import AtomateTest
-
-from pymatgen.core import Structure, Molecule, Lattice
-from pymatgen.util.testing import PymatgenTest
+from pymatgen.core import Lattice, Molecule, Structure
 from pymatgen.core.surface import generate_all_slabs
 from pymatgen.transformations.advanced_transformations import SlabTransformation
+from pymatgen.util.testing import PymatgenTest
+
+from atomate.utils.testing import AtomateTest
+from atomate.vasp.powerups import use_fake_vasp
+from atomate.vasp.workflows.base.adsorption import (
+    MPSurfaceSet,
+    get_slab_trans_params,
+    get_wf_slab,
+)
 
 __author__ = "Kiran Mathew, Joseph Montoya"
 __email__ = "montoyjh@lbl.gov"

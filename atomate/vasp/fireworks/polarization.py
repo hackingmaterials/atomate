@@ -9,7 +9,7 @@ from atomate.vasp.firetasks import (
     RunVaspCustodian,
     VaspToDb,
 )
-from atomate.vasp.fireworks import StaticInterpolateFW, StaticFW
+from atomate.vasp.fireworks import StaticFW, StaticInterpolateFW
 
 
 class LcalcpolFW(Firework):

@@ -3,18 +3,16 @@ This module defines the elastic workflow
 """
 
 import numpy as np
-
+from fireworks import Firework, Workflow
 from pymatgen.analysis.elasticity.strain import Deformation, Strain
 from pymatgen.core.tensors import symmetry_reduce
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from pymatgen.io.vasp.sets import MPStaticSet
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
-from fireworks import Firework, Workflow
-
-from atomate.utils.utils import get_logger, get_fws_and_tasks
-from atomate.vasp.workflows.base.deformations import get_wf_deformations
-from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDb
+from atomate.utils.utils import get_fws_and_tasks, get_logger
 from atomate.vasp.firetasks.glue_tasks import pass_vasp_result
+from atomate.vasp.firetasks.parse_outputs import ElasticTensorToDb
+from atomate.vasp.workflows.base.deformations import get_wf_deformations
 
 __author__ = "Shyam Dwaraknath, Joseph Montoya"
 __email__ = "shyamd@lbl.gov, montoyjh@lbl.gov"

@@ -1,13 +1,10 @@
 from fireworks import FiretaskBase, FWAction, explicit_serialize
-
-from monty.serialization import loadfn, dumpfn
-
-from atomate.utils.utils import get_logger, env_chk
-from atomate.vasp.database import VaspCalcDb
-
-
+from monty.serialization import dumpfn, loadfn
 from pymatgen.analysis.magnetism.heisenberg import HeisenbergMapper, HeisenbergModel
 from pymatgen.command_line.vampire_caller import VampireCaller
+
+from atomate.utils.utils import env_chk, get_logger
+from atomate.vasp.database import VaspCalcDb
 
 __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"

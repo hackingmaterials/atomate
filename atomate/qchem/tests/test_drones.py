@@ -3,12 +3,14 @@
 
 import os
 import unittest
-from monty.serialization import loadfn
-from atomate.qchem.drones import QChemDrone
-from pymatgen.core.structure import Molecule
+
 import numpy as np
-from pymatgen.analysis.local_env import OpenBabelNN
+from monty.serialization import loadfn
 from pymatgen.analysis.graphs import MoleculeGraph
+from pymatgen.analysis.local_env import OpenBabelNN
+from pymatgen.core.structure import Molecule
+
+from atomate.qchem.drones import QChemDrone
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2019, The Materials Project"

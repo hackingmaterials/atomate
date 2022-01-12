@@ -1,11 +1,9 @@
+from pymatgen.analysis.structure_matcher import ElementComparator, StructureMatcher
+from pymatgen.core import Structure
+from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from tqdm import tqdm
 
-from atomate.utils.utils import get_logger, get_database
-
-from pymatgen.core import Structure
-from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
-from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
-
+from atomate.utils.utils import get_database, get_logger
 from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)

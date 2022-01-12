@@ -6,22 +6,22 @@ import logging
 import os
 from typing import List, Union
 
+from custodian.custodian import ErrorHandler, Validator
 from fireworks import Firework
+from pymatgen.core.structure import Structure
 
 from atomate.common.firetasks.glue_tasks import (
     DeleteFiles,
-    PassCalcLocs,
     DeleteFilesPrevFolder,
+    PassCalcLocs,
 )
 from atomate.vasp.config import DB_FILE, LOBSTER_CMD, VASP_OUTPUT_FILES
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.vasp.firetasks.lobster_tasks import (
-    WriteLobsterinputfromIO,
-    RunLobster,
     LobsterRunToDb,
+    RunLobster,
+    WriteLobsterinputfromIO,
 )
-from custodian.custodian import ErrorHandler, Validator
-from pymatgen.core.structure import Structure
 
 __author__ = "Janine George, Guido Petretto"
 __email__ = "janine.george@uclouvain.be, guido.petretto@uclouvain.be"

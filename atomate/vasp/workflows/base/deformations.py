@@ -2,10 +2,11 @@
 This module defines the deformation workflow.
 """
 
-from atomate.utils.utils import get_logger
-from atomate.vasp.fireworks.core import TransmuterFW
 from fireworks import Workflow
 from pymatgen.io.vasp.sets import MPStaticSet
+
+from atomate.utils.utils import get_logger
+from atomate.vasp.fireworks.core import TransmuterFW
 
 __author__ = "Kiran Mathew"
 __credits__ = "Joseph Montoya"

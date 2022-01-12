@@ -3,14 +3,12 @@ This module defines FEFF XAS(XANES/EXAFS) workflows.
 """
 
 import numpy as np
-
+from fireworks import Workflow
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
-from fireworks import Workflow
-
-from atomate.utils.utils import get_logger
-from atomate.feff.fireworks.core import XASFW, EXAFSPathsFW, EELSFW
 from atomate.feff.firetasks.write_inputs import get_feff_input_set_obj
+from atomate.feff.fireworks.core import EELSFW, XASFW, EXAFSPathsFW
+from atomate.utils.utils import get_logger
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"

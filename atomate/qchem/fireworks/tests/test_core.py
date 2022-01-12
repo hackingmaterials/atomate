@@ -1,20 +1,21 @@
 import os
 import unittest
 
-from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
-from atomate.qchem.firetasks.run_calc import RunQChemCustodian
-from atomate.qchem.firetasks.parse_outputs import QChemToDb
+from pymatgen.io.qchem.outputs import QCOutput
+
+from atomate.qchem.firetasks.critic2 import ProcessCritic2, RunCritic2
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
-from atomate.qchem.firetasks.critic2 import RunCritic2, ProcessCritic2
+from atomate.qchem.firetasks.parse_outputs import QChemToDb
+from atomate.qchem.firetasks.run_calc import RunQChemCustodian
+from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.fireworks.core import (
-    OptimizeFW,
-    FrequencyFlatteningOptimizeFW,
-    FragmentFW,
-    SinglePointFW,
     CubeAndCritic2FW,
+    FragmentFW,
+    FrequencyFlatteningOptimizeFW,
+    OptimizeFW,
+    SinglePointFW,
 )
 from atomate.utils.testing import AtomateTest
-from pymatgen.io.qchem.outputs import QCOutput
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
