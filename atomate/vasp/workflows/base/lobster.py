@@ -138,7 +138,7 @@ def get_wf_lobster(
             lobsterin_key_dict=user_lobsterin_settings,
             user_supplied_basis=user_supplied_basis,
             handler_group="default",
-            validator_group="default",
+            validator_group="strict",
             additional_outputs=additional_outputs,
         )
     )
@@ -295,7 +295,7 @@ def get_wf_lobster_test_basis(
                 user_supplied_basis=basis_dict,
                 lobsterin_key_dict=user_lobsterin_settings,
                 handler_group="default",
-                validator_group="strict",
+                validator_group="default",
                 name=f"lobster_calculation_{ibasis}",
                 lobstertodb_kwargs={
                     "basis_id": ibasis,
