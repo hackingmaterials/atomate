@@ -47,7 +47,7 @@ class AtomateTest(unittest.TestCase):
             try:
                 self.lp = LaunchPad.from_file(os.path.join(DB_DIR, "my_launchpad.yaml"))
                 self.lp.reset("", require_password=False)
-            except:
+            except Exception:
                 raise unittest.SkipTest(
                     "Cannot connect to MongoDB! Is the database server running? "
                     "Are the credentials correct?"

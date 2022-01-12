@@ -3,17 +3,15 @@ This module defines a workflow for adsorption on surfaces
 """
 
 import numpy as np
-
 from fireworks import Workflow
-
-from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW
-from atomate.utils.utils import get_meta_from_structure
-
 from pymatgen.analysis.adsorption import AdsorbateSiteFinder
-from pymatgen.core.surface import generate_all_slabs, Slab
+from pymatgen.core.surface import Slab, generate_all_slabs
+from pymatgen.io.vasp.sets import MVLSlabSet
 from pymatgen.transformations.advanced_transformations import SlabTransformation
 from pymatgen.transformations.standard_transformations import SupercellTransformation
-from pymatgen.io.vasp.sets import MVLSlabSet
+
+from atomate.utils.utils import get_meta_from_structure
+from atomate.vasp.fireworks.core import OptimizeFW, TransmuterFW
 
 __author__ = "Joseph Montoya, Richard Tran"
 __email__ = "montoyjh@lbl.gov"
@@ -176,12 +174,6 @@ def get_slab_trans_params(slab):
 
     min_slab_size = slab_cell_height * slab_layers / total_layers - 0.001
     min_vac_size = slab_cell_height * vac_layers / total_layers - 0.001
-    # params = {"miller_index": [0, 0, 1], "shift": slab.shift,
-    #           "min_slab_size": min_slab_size, "min_vacuum_size": min_vac_size}
-    # trans = SlabTransformation(**params)
-    # new_slab = trans.apply_transformation(slab.oriented_unit_cell)
-    # if slab.composition.reduced_formula == "Si":
-    #     import nose; nose.tools.set_trace()
 
     return {
         "miller_index": [0, 0, 1],

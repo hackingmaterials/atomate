@@ -59,7 +59,7 @@ class BandgapEstimationBuilder:
                     {"material_id": m["material_id"]}, {"$set": d}
                 )
 
-            except:
+            except Exception:
                 import traceback
 
                 logger.exception(traceback.format_exc())

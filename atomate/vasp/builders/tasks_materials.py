@@ -1,16 +1,15 @@
 import os
 from datetime import datetime
 
+from monty.serialization import loadfn
+from pymatgen.analysis.structure_matcher import ElementComparator, StructureMatcher
+from pymatgen.core import Structure
 from pymongo import ReturnDocument
 from tqdm import tqdm
 
-from atomate.utils.utils import get_mongolike, get_logger
+from atomate.utils.utils import get_database, get_logger, get_mongolike
 from atomate.vasp.builders.base import AbstractBuilder
-from atomate.vasp.builders.utils import dbid_to_str, dbid_to_int
-from atomate.utils.utils import get_database
-from monty.serialization import loadfn
-from pymatgen.core import Structure
-from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
+from atomate.vasp.builders.utils import dbid_to_int, dbid_to_str
 
 logger = get_logger(__name__)
 
@@ -62,11 +61,11 @@ class TasksMaterialsBuilder(AbstractBuilder):
         self.properties_root = x.get("properties_root", [])
 
         self._materials = materials_write
-        if self._materials.count() == 0:
+        if self._materials.count_documents({}) == 0:
             self._build_indexes()
 
         self._counter = counter_write
-        if self._counter.find({"_id": "materialid"}).count() == 0:
+        if self._counter.count_documents({"_id": "materialid"}) == 0:
             self._counter.insert_one({"_id": "materialid", "c": 0})
 
         self._tasks = tasks_read
@@ -109,7 +108,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
                     m_id = self._create_new_material(taskdoc)
                 self._update_material(m_id, taskdoc)
 
-            except:
+            except Exception:
                 import traceback
 
                 logger.exception("<---")
@@ -143,7 +142,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
         try:
             db_read = get_database(db_file, admin=False)
             db_read.collection_names()  # throw error if auth failed
-        except:
+        except Exception:
             logger.warning(
                 "Warning: could not get read-only database; using write creds"
             )

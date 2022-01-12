@@ -4,13 +4,10 @@ This module defines the ferroelectric workflow
 
 from fireworks import Firework, Workflow
 
-from atomate.utils.utils import get_logger, get_a_unique_id
-
-
-from atomate.vasp.fireworks.core import OptimizeFW
-from atomate.vasp.fireworks.polarization import LcalcpolFW
-from atomate.vasp.fireworks.core import HSEBSFW
+from atomate.utils.utils import get_a_unique_id, get_logger
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDb
+from atomate.vasp.fireworks.core import HSEBSFW, OptimizeFW
+from atomate.vasp.fireworks.polarization import LcalcpolFW
 from atomate.vasp.powerups import add_tags
 
 __author__ = "Tess Smidt"

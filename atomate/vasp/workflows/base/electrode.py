@@ -1,21 +1,20 @@
-from typing import List
-
-from fireworks import Workflow
-from pymatgen.core import Structure
-from pymatgen.analysis.structure_matcher import StructureMatcher
-
-from atomate.vasp.config import DB_FILE
-from atomate.vasp.firetasks.electrode_tasks import AnalyzeChgcar, GetInsertionCalcs
-
-__author__ = "Jimmy Shen"
-__email__ = "jmmshn@lbl.gov"
-
-from atomate.vasp.fireworks import Firework, OptimizeFW, StaticFW, pass_vasp_result
-from atomate.common.powerups import powerup_by_kwargs
-
 """
 Define workflow related to battery material simulation --- they all have a working ion
 """
+from typing import List
+
+from fireworks import Firework, Workflow
+from pymatgen.analysis.structure_matcher import StructureMatcher
+from pymatgen.core import Structure
+
+from atomate.common.powerups import powerup_by_kwargs
+from atomate.vasp.config import DB_FILE
+from atomate.vasp.firetasks import pass_vasp_result
+from atomate.vasp.firetasks.electrode_tasks import AnalyzeChgcar, GetInsertionCalcs
+from atomate.vasp.fireworks import OptimizeFW, StaticFW
+
+__author__ = "Jimmy Shen"
+__email__ = "jmmshn@lbl.gov"
 
 
 def get_ion_insertion_wf(
@@ -41,8 +40,8 @@ def get_ion_insertion_wf(
     (GetInsertionCalcs) <- This task contains the dynamic workflow creation that will keep inserting working ions
 
     If you use this workflow please cite the following paper:
-        Shen, J.-X., Horton, M., & Persson, K. A. (2020). 
-        A charge-density-based general cation insertion algorithm for generating new Li-ion cathode materials. 
+        Shen, J.-X., Horton, M., & Persson, K. A. (2020).
+        A charge-density-based general cation insertion algorithm for generating new Li-ion cathode materials.
         npj Comput. Mater., 6(161), 1–7. doi: 10.1038/s41524-020-00422-3
 
     Args:
