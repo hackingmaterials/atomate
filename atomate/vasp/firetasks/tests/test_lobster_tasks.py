@@ -157,11 +157,11 @@ class TestLobsterRunToDb(AtomateTest):
         self.assertListEqual(load_dict["output"]["chargespilling"], [0.008, 0.008])
         db = self.get_task_database()
         gfs = gridfs.GridFS(db, "lobster_files")
-        results = gfs.find({}).count()
+        results = gfs.count_documents({})
         self.assertEqual(results, 2)
         for fn in ["ICOHPLIST", "COOPCAR"]:
             oid = load_dict[fn.lower() + "_id"]
-            results = gfs.find({"_id": oid}).count()
+            results = gfs.count_documents({"_id": oid})
             self.assertEqual(results, 1)
 
     def test_jsonfile_si(self):
