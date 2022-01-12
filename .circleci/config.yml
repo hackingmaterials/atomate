@@ -76,4 +76,4 @@ workflows:
           filters:  # don't run dev tests on main branch
               branches:
                   ignore:
-                      main
+#                      main
