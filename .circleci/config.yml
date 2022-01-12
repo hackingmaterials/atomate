@@ -3,6 +3,7 @@ jobs:
   py3test:
     working_directory: ~/atomate
     docker:
+      - image: materialsvirtuallab/circle-ci-pmg-py3:3.7.3
       - image: circleci/mongo:latest
     steps:
       - checkout
