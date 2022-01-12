@@ -160,7 +160,11 @@ class AbsorptionFW(Firework):
                           "LREAL": False,
                           "GGA": "PE",
                           "LCHARG": False,
+                          "LELF": False,
                           "LAECHG": False,
+                          "LASPH": False,
+                          "LVHAR": False,
+                          "LVTOT": False,
                           "METAGGA": "None",
                           "LMIXTAU": False}
 
@@ -213,8 +217,7 @@ class AbsorptionFW(Firework):
             RunVaspCustodian(
                 vasp_cmd=vasp_cmd,
                 auto_npar=">>auto_npar<<",
-                handler_group=handler_group,
-                gzip_output=False,
+                handler_group=handler_group
             )
         )
         t.append(PassCalcLocs(name=name))
@@ -222,8 +225,6 @@ class AbsorptionFW(Firework):
         t.append(VaspToDb(db_file=db_file,
                           additional_fields={
                               "task_label": structure.composition.reduced_formula + " " + name + " " + mode}))
-        # zip the output (don't rely on custodian to do it)
-        t.append(GzipDir())
 
         super().__init__(t, parents=parents, name=fw_name, **kwargs)
 
