@@ -377,7 +377,7 @@ class CopyFiles(FiretaskBase):
             try:
                 self.fileclient.copy(prev_path_full, dest_path)
             except FileNotFoundError as exc:
-                if continue_on_missing:
+                if self.continue_on_missing:
                     continue
                 else:
                     raise exc

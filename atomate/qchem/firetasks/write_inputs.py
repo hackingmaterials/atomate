@@ -78,7 +78,7 @@ class WriteInputFromIOSet(FiretaskBase):
                     mol, OpenBabelNN(), reorder=False, extend_structure=False
                 )
                 prev_mol_graph = MoleculeGraph.with_local_env_strategy(
-                    prev_calc_molecule,
+                    prev_calc_mol,
                     OpenBabelNN(),
                     reorder=False,
                     extend_structure=False,
@@ -159,7 +159,7 @@ class WriteCustomInput(FiretaskBase):
                     mol, OpenBabelNN(), reorder=False, extend_structure=False
                 )
                 prev_mol_graph = MoleculeGraph.with_local_env_strategy(
-                    prev_calc_molecule,
+                    prev_calc_mol,
                     OpenBabelNN(),
                     reorder=False,
                     extend_structure=False,
