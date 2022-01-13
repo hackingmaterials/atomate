@@ -4,6 +4,8 @@ from itertools import chain
 
 import numpy as np
 
+from pymatgen.io.qchem.outputs import QCOutput
+
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
