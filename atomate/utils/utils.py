@@ -1,17 +1,16 @@
 import logging
 import os
-import sys
 import socket
+import sys
 from random import randint
 from time import time
 
-from pymongo import MongoClient
+from fireworks import Workflow
 from monty.json import MontyDecoder
 from monty.serialization import loadfn
-from pymatgen.core import Composition
-
-from fireworks import Workflow
 from pymatgen.alchemy.materials import TransformedStructure
+from pymatgen.core import Composition
+from pymongo import MongoClient
 
 __author__ = "Anubhav Jain, Kiran Mathew"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"

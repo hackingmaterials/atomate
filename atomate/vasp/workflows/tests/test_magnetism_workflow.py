@@ -1,17 +1,16 @@
 import os
 import unittest
+from json import load
 
 from monty.os.path import which
+from pymatgen.core import Structure
 
-from atomate.vasp.workflows.base.magnetism import MagneticOrderingsWF
+from atomate.utils.testing import DB_DIR, AtomateTest
 from atomate.vasp.firetasks.parse_outputs import (
     MagneticDeformationToDb,
     MagneticOrderingsToDb,
 )
-from atomate.utils.testing import AtomateTest, DB_DIR
-
-from json import load
-from pymatgen.core import Structure
+from atomate.vasp.workflows.base.magnetism import MagneticOrderingsWF
 
 __author__ = "Matthew Horton"
 __email__ = "mkhorton@lbl.gov"

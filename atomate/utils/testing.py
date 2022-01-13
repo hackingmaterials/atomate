@@ -4,9 +4,8 @@ import shutil
 import unittest
 
 from fireworks import LaunchPad
-from pymongo import MongoClient
-
 from pymatgen.core import SETTINGS
+from pymongo import MongoClient
 
 __author__ = "Kiran Mathew"
 __credits__ = "Anubhav Jain"

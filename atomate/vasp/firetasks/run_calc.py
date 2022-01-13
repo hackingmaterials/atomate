@@ -1,42 +1,41 @@
-from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
 from monty.os.path import zpath
 from monty.serialization import loadfn
+
+from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
 
 """
 This module defines tasks that support running vasp in various ways.
 """
 
-import shutil
-import shlex
 import os
+import shlex
+import shutil
 import subprocess
-
-from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
-from pymatgen.io.vasp.sets import get_vasprun_outcar
-from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
 
 from custodian import Custodian
 from custodian.vasp.handlers import (
-    VaspErrorHandler,
     AliasingErrorHandler,
-    MeshSymmetryErrorHandler,
-    UnconvergedErrorHandler,
-    MaxForceErrorHandler,
-    PotimErrorHandler,
+    DriftErrorHandler,
     FrozenJobErrorHandler,
+    IncorrectSmearingHandler,
+    LargeSigmaHandler,
+    MaxForceErrorHandler,
+    MeshSymmetryErrorHandler,
     NonConvergingErrorHandler,
     PositiveEnergyErrorHandler,
-    WalltimeHandler,
-    StdErrHandler,
-    DriftErrorHandler,
-    LargeSigmaHandler,
-    IncorrectSmearingHandler,
+    PotimErrorHandler,
     ScanMetalHandler,
+    StdErrHandler,
+    UnconvergedErrorHandler,
+    VaspErrorHandler,
+    WalltimeHandler,
 )
 from custodian.vasp.jobs import VaspJob, VaspNEBJob
-from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
-
-from fireworks import explicit_serialize, FiretaskBase, FWAction
+from custodian.vasp.validators import VaspFilesValidator, VasprunXMLValidator
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
+from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
+from pymatgen.io.vasp.sets import get_vasprun_outcar
 
 from atomate.utils.utils import env_chk, get_logger
 from atomate.vasp.config import CUSTODIAN_MAX_ERRORS
@@ -300,6 +299,7 @@ class RunVaspCustodian(FiretaskBase):
         if os.path.exists(zpath("custodian.json")):
             if os.path.exists(zpath("FW_offline.json")):
                 import json
+
                 with open(zpath("custodian.json")) as f:
                     stored_custodian_data = {"custodian": json.load(f)}
             else:
@@ -400,7 +400,7 @@ class RunVaspFake(FiretaskBase):
             defaults = {"ISPIN": 1, "ISMEAR": 1, "SIGMA": 0.2}
             for p in params_to_check:
                 if user_incar.get(p, defaults.get(p)) != ref_incar.get(
-                        p, defaults.get(p)
+                    p, defaults.get(p)
                 ):
                     raise ValueError(f"INCAR value of {p} is inconsistent!")
 
@@ -411,8 +411,8 @@ class RunVaspFake(FiretaskBase):
                 os.path.join(self["ref_dir"], "inputs", "KPOINTS")
             )
             if (
-                    user_kpoints.style != ref_kpoints.style
-                    or user_kpoints.num_kpts != ref_kpoints.num_kpts
+                user_kpoints.style != ref_kpoints.style
+                or user_kpoints.num_kpts != ref_kpoints.num_kpts
             ):
                 raise ValueError(
                     "KPOINT files are inconsistent! Paths are:\n{}\n{} with kpoints {} and {}".format(
@@ -430,8 +430,8 @@ class RunVaspFake(FiretaskBase):
                 os.path.join(self["ref_dir"], "inputs", "POSCAR")
             )
             if (
-                    user_poscar.natoms != ref_poscar.natoms
-                    or user_poscar.site_symbols != ref_poscar.site_symbols
+                user_poscar.natoms != ref_poscar.natoms
+                or user_poscar.site_symbols != ref_poscar.site_symbols
             ):
                 raise ValueError(
                     "POSCAR files are inconsistent! Paths are:\n{}\n{}".format(

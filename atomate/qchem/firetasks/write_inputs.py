@@ -2,11 +2,12 @@
 
 import os
 
-from atomate.utils.utils import load_class
 from fireworks import FiretaskBase, explicit_serialize
-from pymatgen.io.qchem.inputs import QCInput
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
+from pymatgen.io.qchem.inputs import QCInput
+
+from atomate.utils.utils import load_class
 
 __author__ = "Brandon Wood"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -77,7 +78,7 @@ class WriteInputFromIOSet(FiretaskBase):
                     mol, OpenBabelNN(), reorder=False, extend_structure=False
                 )
                 prev_mol_graph = MoleculeGraph.with_local_env_strategy(
-                    prev_calc_molecule,
+                    prev_calc_mol,
                     OpenBabelNN(),
                     reorder=False,
                     extend_structure=False,
@@ -158,7 +159,7 @@ class WriteCustomInput(FiretaskBase):
                     mol, OpenBabelNN(), reorder=False, extend_structure=False
                 )
                 prev_mol_graph = MoleculeGraph.with_local_env_strategy(
-                    prev_calc_molecule,
+                    prev_calc_mol,
                     OpenBabelNN(),
                     reorder=False,
                     extend_structure=False,

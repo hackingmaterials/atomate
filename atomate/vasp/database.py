@@ -2,28 +2,25 @@
 This module defines the database classes.
 """
 
+import json
+import zlib
 from typing import Any
 
-from monty.json import MontyEncoder
-from pymatgen.io.vasp import Chgcar
-
-import zlib
-import json
+import gridfs
 from bson import ObjectId
-
+from maggma.stores.aws import S3Store
+from monty.dev import deprecated
+from monty.json import MontyEncoder
 from pymatgen.electronic_structure.bandstructure import (
     BandStructure,
     BandStructureSymmLine,
 )
 from pymatgen.electronic_structure.dos import CompleteDos
-
-import gridfs
+from pymatgen.io.vasp import Chgcar
 from pymongo import ASCENDING, DESCENDING
 
 from atomate.utils.database import CalcDb
 from atomate.utils.utils import get_logger
-from maggma.stores.aws import S3Store
-from monty.dev import deprecated
 
 __author__ = "Kiran Mathew"
 __credits__ = "Anubhav Jain"

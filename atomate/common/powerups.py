@@ -4,9 +4,10 @@ This module defines general powerups that can be used for all workflows
 from importlib import import_module
 from typing import List
 
-from atomate.utils.utils import get_fws_and_tasks
 from fireworks import FileWriteTask, Workflow
 from fireworks.utilities.fw_utilities import get_slug
+
+from atomate.utils.utils import get_fws_and_tasks
 
 __author__ = "Janine George, Guido Petretto, Ryan Kingsbury"
 __email__ = (

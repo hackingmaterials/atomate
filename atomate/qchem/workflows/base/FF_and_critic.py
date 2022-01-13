@@ -2,7 +2,8 @@
 # electron density critical points with Critic2.
 
 from fireworks import Workflow
-from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW, CubeAndCritic2FW
+
+from atomate.qchem.fireworks.core import CubeAndCritic2FW, FrequencyFlatteningOptimizeFW
 from atomate.utils.utils import get_logger
 
 __author__ = "Samuel Blau"

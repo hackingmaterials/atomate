@@ -8,7 +8,6 @@ import boto3
 from maggma.stores import MemoryStore
 from moto import mock_s3
 
-
 __author__ = "Jimmy Shen <jmmshn@gmail.com>"
 
 from atomate.utils.database import CalcDb

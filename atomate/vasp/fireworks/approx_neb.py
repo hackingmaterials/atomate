@@ -1,18 +1,19 @@
-from pymatgen.io.vasp.sets import MPRelaxSet
 from fireworks import Firework
+from pymatgen.io.vasp.sets import MPRelaxSet
+
+from atomate.common.firetasks.glue_tasks import PassCalcLocs
+from atomate.vasp.config import DB_FILE, VASP_CMD
+from atomate.vasp.firetasks.approx_neb_tasks import (
+    EndPointToDb,
+    HostToDb,
+    ImageToDb,
+    InsertSites,
+    PassFromDb,
+    WriteVaspInput,
+)
+from atomate.vasp.firetasks.parse_outputs import VaspToDb
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
-from atomate.common.firetasks.glue_tasks import PassCalcLocs
-from atomate.vasp.firetasks.parse_outputs import VaspToDb
-from atomate.vasp.firetasks.approx_neb_tasks import (
-    HostToDb,
-    PassFromDb,
-    InsertSites,
-    WriteVaspInput,
-    EndPointToDb,
-    ImageToDb,
-)
-from atomate.vasp.config import VASP_CMD, DB_FILE
 
 __author__ = "Ann Rutt"
 __email__ = "acrutt@lbl.gov"

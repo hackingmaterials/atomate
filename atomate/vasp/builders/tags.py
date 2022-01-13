@@ -1,10 +1,8 @@
 from tqdm import tqdm
 
-from atomate.vasp.builders.utils import dbid_to_int, dbid_to_str
-from atomate.utils.utils import get_database
-
-from atomate.utils.utils import get_logger
+from atomate.utils.utils import get_database, get_logger
 from atomate.vasp.builders.base import AbstractBuilder
+from atomate.vasp.builders.utils import dbid_to_int, dbid_to_str
 
 logger = get_logger(__name__)
 

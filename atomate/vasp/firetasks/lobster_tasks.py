@@ -8,10 +8,6 @@ import os
 import shutil
 import warnings
 
-from atomate.common.firetasks.glue_tasks import get_calc_loc
-from atomate.utils.utils import env_chk, get_meta_from_structure
-from atomate.vasp.config import VASP_OUTPUT_FILES
-from atomate.vasp.database import VaspCalcDb, put_file_in_gridfs
 from custodian import Custodian
 from custodian.lobster.handlers import (
     ChargeSpillingValidator,
@@ -19,13 +15,18 @@ from custodian.lobster.handlers import (
     LobsterFilesValidator,
 )
 from custodian.lobster.jobs import LobsterJob
-from fireworks import FiretaskBase, explicit_serialize, FWAction
+from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from monty.json import jsanitize
 from monty.os.path import zpath
 from monty.serialization import loadfn
 from pymatgen.core.structure import Structure
-from pymatgen.io.lobster import Lobsterout, Lobsterin
+from pymatgen.io.lobster import Lobsterin, Lobsterout
+
+from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.utils.utils import env_chk, get_meta_from_structure
+from atomate.vasp.config import VASP_OUTPUT_FILES
+from atomate.vasp.database import VaspCalcDb, put_file_in_gridfs
 
 __author__ = "Janine George, Guido Petretto"
 __email__ = "janine.george@uclouvain.be, guido.petretto@uclouvain.be"
@@ -164,6 +165,7 @@ class RunLobster(FiretaskBase):
         if os.path.exists(zpath("custodian.json")):
             if os.path.exists(zpath("FW_offline.json")):
                 import json
+
                 with open(zpath("custodian.json")) as f:
                     stored_custodian_data = {"custodian": json.load(f)}
             else:
@@ -211,7 +213,7 @@ class LobsterRunToDb(FiretaskBase):
         "CHARGE.lobster",
         "DOSCAR.lobster",
         "MadelungEnergies.lobster",
-        "SitePotentials.lobster"
+        "SitePotentials.lobster",
     ]
 
     def __init__(self, *args, **kwargs):

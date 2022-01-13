@@ -1,14 +1,15 @@
 import os
-import unittest
 import shutil
+import unittest
 
-from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
-from atomate.qchem.firetasks.run_calc import RunQChemDirect
-from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from fireworks import Firework, Workflow
-from atomate.utils.testing import AtomateTest
 from pymatgen.io.qchem.outputs import QCOutput
+
+from atomate.qchem.firetasks.parse_outputs import QChemToDb
+from atomate.qchem.firetasks.run_calc import RunQChemDirect
+from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.powerups import use_fake_qchem
+from atomate.utils.testing import AtomateTest
 
 __author__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"

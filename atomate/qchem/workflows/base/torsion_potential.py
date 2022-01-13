@@ -2,10 +2,11 @@
 
 
 from fireworks import Workflow
-from atomate.qchem.fireworks.core import OptimizeFW
-from atomate.utils.utils import get_logger
+
 from atomate.qchem.firetasks.geo_transformations import RotateTorsion
 from atomate.qchem.firetasks.write_inputs import WriteCustomInput
+from atomate.qchem.fireworks.core import OptimizeFW
+from atomate.utils.utils import get_logger
 
 __author__ = "Brandon Wood"
 __copyright__ = "Copyright 2018, The Materials Project"

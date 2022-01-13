@@ -1,15 +1,16 @@
 import os
 import unittest
 
+import numpy as np
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
-from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
-from pymatgen.io.qchem.outputs import QCOutput
-from atomate.qchem.workflows.base.torsion_potential import get_wf_torsion_potential
-from atomate.qchem.powerups import use_fake_qchem
 from pymatgen.io.qchem.inputs import QCInput
-import numpy as np
+from pymatgen.io.qchem.outputs import QCOutput
+
+from atomate.qchem.powerups import use_fake_qchem
+from atomate.qchem.workflows.base.torsion_potential import get_wf_torsion_potential
+from atomate.utils.testing import AtomateTest
 
 __author__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"

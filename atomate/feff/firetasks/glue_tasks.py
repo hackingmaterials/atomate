@@ -1,6 +1,6 @@
 from fireworks import explicit_serialize
 
-from atomate.common.firetasks.glue_tasks import get_calc_loc, CopyFiles
+from atomate.common.firetasks.glue_tasks import CopyFiles, get_calc_loc
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"

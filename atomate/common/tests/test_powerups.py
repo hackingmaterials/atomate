@@ -1,20 +1,19 @@
 import unittest
 
-from atomate.utils.utils import get_fws_and_tasks
-from atomate.vasp.workflows.base.core import get_wf
-
+from fireworks import Firework, ScriptTask, Workflow
 from pymatgen.io.vasp.sets import MPRelaxSet
 from pymatgen.util.testing import PymatgenTest
 
 from atomate.common.powerups import (
-    set_queue_adapter,
+    add_additional_fields_to_taskdocs,
+    add_metadata,
     add_priority,
     add_tags,
     powerup_by_kwargs,
-    add_additional_fields_to_taskdocs,
-    add_metadata,
+    set_queue_adapter,
 )
-from fireworks import Firework, ScriptTask, Workflow
+from atomate.utils.utils import get_fws_and_tasks
+from atomate.vasp.workflows.base.core import get_wf
 
 __author__ = "Janine George, Guido Petretto"
 __email__ = "janine.george@uclouvain.be"

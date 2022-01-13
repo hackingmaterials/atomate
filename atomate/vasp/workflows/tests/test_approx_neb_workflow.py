@@ -1,9 +1,11 @@
 from pathlib import Path
-from atomate.utils.testing import AtomateTest
-from pymatgen.core import Structure
-from atomate.vasp.workflows.base.approx_neb import get_aneb_wf
+
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from pymatgen.core import Structure
+
+from atomate.utils.testing import AtomateTest
+from atomate.vasp.workflows.base.approx_neb import get_aneb_wf
 
 __author__ = "Ann Rutt"
 __email__ = "acrutt@lbl.gov"

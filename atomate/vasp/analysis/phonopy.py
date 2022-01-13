@@ -90,9 +90,8 @@ def get_phonopy_qha(
     Returns:
         PhonopyQHA
     """
-    from phonopy import Phonopy
+    from phonopy import Phonopy, PhonopyQHA
     from phonopy.structure.atoms import Atoms as PhonopyAtoms
-    from phonopy import PhonopyQHA
     from phonopy.units import EVAngstromToGPa
 
     phon_atoms = PhonopyAtoms(

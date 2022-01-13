@@ -1,17 +1,15 @@
 import os
 import unittest
+
 import pandas as pd
-
-from monty.os.path import which
-
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from monty.os.path import which
+from pymatgen.core import Structure
 
-from atomate.vasp.workflows.base.exchange import ExchangeWF
 from atomate.utils.testing import AtomateTest
 from atomate.utils.utils import get_a_unique_id
-
-from pymatgen.core import Structure
+from atomate.vasp.workflows.base.exchange import ExchangeWF
 
 __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"

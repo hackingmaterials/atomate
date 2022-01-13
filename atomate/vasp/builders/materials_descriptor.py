@@ -1,11 +1,8 @@
+from pymatgen.analysis.structure_analyzer import get_dimensionality
+from pymatgen.core import Structure
 from tqdm import tqdm
 
-from atomate.utils.utils import get_database
-
-from pymatgen.core import Structure
-from pymatgen.analysis.structure_analyzer import get_dimensionality
-
-from atomate.utils.utils import get_logger
+from atomate.utils.utils import get_database, get_logger
 from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)

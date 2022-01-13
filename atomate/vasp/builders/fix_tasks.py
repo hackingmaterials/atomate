@@ -1,6 +1,4 @@
-from atomate.utils.utils import get_database
-
-from atomate.utils.utils import get_logger
+from atomate.utils.utils import get_database, get_logger
 from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)

@@ -5,7 +5,6 @@ This module defines the thermal expansion coefficient workflow.
 from uuid import uuid4
 
 from fireworks import Firework, Workflow
-
 from pymatgen.analysis.elasticity.strain import Deformation
 from pymatgen.io.vasp.sets import MPStaticSet
 

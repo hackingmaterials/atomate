@@ -1,11 +1,10 @@
 import os
 import unittest
 
-from pymatgen.core import Structure
-from pymatgen.io.feff.inputs import Tags
-
 from fireworks.core.fworker import FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from pymatgen.core import Structure
+from pymatgen.io.feff.inputs import Tags
 
 from atomate.feff.workflows.core import get_wf_eels
 from atomate.utils.testing import AtomateTest

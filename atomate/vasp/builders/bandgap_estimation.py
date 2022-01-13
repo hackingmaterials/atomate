@@ -1,6 +1,8 @@
-from tqdm import tqdm
 import math
-from atomate.utils.utils import get_logger, get_database
+
+from tqdm import tqdm
+
+from atomate.utils.utils import get_database, get_logger
 
 logger = get_logger(__name__)
 
