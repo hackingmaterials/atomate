@@ -8,6 +8,8 @@ on:
 
 jobs:
   test:
+    # don't run on forks
+    if: github.repository_owner == 'hackingmaterials'
     runs-on: ubuntu-latest
 
     steps:
@@ -19,23 +21,20 @@ jobs:
         with:
           python-version: 3.7
 
-      - name: Install C++ dependencies
+      - name: Install OpenBabel
         run: |
-          sudo apt-get install openbabel
+          sudo apt-get install openbabel python3-openbabel
 
       - name: Cache pip
         uses: actions/cache@v2
-        id: pip-cache
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements-ci.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
       - name: Install dependencies
-        if: steps.pip-cache.outputs.cache-hit != 'true'
         run: |
-          pip install -r requirements.txt
           pip install -r requirements-ci.txt
           pip install .[complete]
 

@@ -5,7 +5,6 @@ from collections import defaultdict
 from datetime import datetime
 
 import numpy as np
-import scipy
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from monty.json import MontyEncoder, jsanitize
