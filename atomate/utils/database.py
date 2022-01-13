@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 """
 This module defines a base class for derived database classes that store calculation data.
 """
@@ -8,8 +5,7 @@ This module defines a base class for derived database classes that store calcula
 import datetime
 from abc import ABCMeta, abstractmethod
 
-from maggma.stores import MongoStore
-from maggma.stores import S3Store, MongoURIStore
+from maggma.stores import MongoStore, MongoURIStore, S3Store
 from monty.json import jsanitize
 from monty.serialization import loadfn
 from pymongo import MongoClient, ReturnDocument
@@ -122,19 +118,19 @@ class CalcDb(metaclass=ABCMeta):
         self.collection = self.db[collection]
 
         # set counter collection
-        if self.db.counter.find({"_id": "taskid"}).count() == 0:
+        if self.db.counter.count_documents({"_id": "taskid"}) == 0:
             self.db.counter.insert_one({"_id": "taskid", "c": 0})
             self.build_indexes()
 
     @abstractmethod
     def build_indexes(self, indexes=None, background=True):
         """
-         Build the indexes.
+        Build the indexes.
 
-         Args:
-             indexes (list): list of single field indexes to be built.
-             background (bool): Run in the background or not.
-         """
+        Args:
+            indexes (list): list of single field indexes to be built.
+            background (bool): Run in the background or not.
+        """
 
     def insert(self, d, update_duplicates=True):
         """

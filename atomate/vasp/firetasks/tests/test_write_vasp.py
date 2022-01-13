@@ -36,7 +36,7 @@ class TestWriteVasp(AtomateTest):
         cls.ref_incar_preserve = Incar.from_file(p_preserve_incar / "INCAR")
 
     def setUp(self):
-        super(TestWriteVasp, self).setUp(lpad=False)
+        super().setUp(lpad=False)
 
     def tearDown(self):
         for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS", "POTCAR.spec"]:
@@ -74,9 +74,7 @@ class TestWriteVasp(AtomateTest):
         self._verify_files()
 
     def test_ioset_implicit(self):
-        ft = WriteVaspFromIOSet(
-            structure=self.struct_si, vasp_input_set="MPRelaxSet"
-        )
+        ft = WriteVaspFromIOSet(structure=self.struct_si, vasp_input_set="MPRelaxSet")
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files(skip_kpoints=True)
@@ -157,10 +155,10 @@ class TestWriteVasp(AtomateTest):
 
         # modify and test
         ft = ModifyKpoints(
-            kpoints_update={"kpts": [[3,4,5]]},
+            kpoints_update={"kpts": [[3, 4, 5]]},
         )
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
 
         kpoints_mod = Kpoints.from_file("KPOINTS")
-        self.assertEqual(kpoints_mod.kpts, [[3,4,5]])
+        self.assertEqual(kpoints_mod.kpts, [[3, 4, 5]])

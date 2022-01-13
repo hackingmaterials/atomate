@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomate.common.firetasks.tests
 
@@ -34,7 +35,6 @@ atomate.common.firetasks.run\_calc module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

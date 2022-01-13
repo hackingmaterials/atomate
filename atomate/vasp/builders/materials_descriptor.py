@@ -2,7 +2,7 @@ from tqdm import tqdm
 
 from atomate.utils.utils import get_database
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.analysis.structure_analyzer import get_dimensionality
 
 from atomate.utils.utils import get_logger
@@ -10,7 +10,7 @@ from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = "Anubhav Jain <ajain@lbl.gov>"
 
 
 class MaterialsDescriptorBuilder(AbstractBuilder):
@@ -18,7 +18,7 @@ class MaterialsDescriptorBuilder(AbstractBuilder):
         """
         Starting with an existing materials collection, adds some compositional and structural
         descriptors.
-        
+
         Args:
             materials_write: mongodb collection for materials (write access needed)
             update_all: (bool) - if true, updates all docs. If false, updates incrementally
@@ -38,7 +38,7 @@ class MaterialsDescriptorBuilder(AbstractBuilder):
 
         pbar = tqdm(mats)
         for m in pbar:
-            pbar.set_description("Processing materials_id: {}".format(m['material_id']))
+            pbar.set_description("Processing materials_id: {}".format(m["material_id"]))
             struct = Structure.from_dict(m["structure"])
             d = {"descriptors": {}}
             d["descriptors"]["dimensionality"] = get_dimensionality(struct)
@@ -55,7 +55,11 @@ class MaterialsDescriptorBuilder(AbstractBuilder):
         logger.info("Finished resetting MaterialsDescriptorBuilder")
 
     def _build_indexes(self):
-        for i in ["descriptors.dimensionality", "descriptors.density", "descriptors.nsites"]:
+        for i in [
+            "descriptors.dimensionality",
+            "descriptors.density",
+            "descriptors.nsites",
+        ]:
             self._materials.create_index(i)
 
     @classmethod

@@ -1,37 +1,32 @@
-# coding: utf-8
-
 import os
-
-from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
-from fireworks import Workflow, Firework
-from atomate.vasp.powerups import (
-    add_tags,
-    add_additional_fields_to_taskdocs,
-    add_wf_metadata,
-    add_common_powerups,
-)
-from atomate.vasp.workflows.base.core import get_wf
-from atomate.vasp.firetasks.parse_outputs import (
-    MagneticDeformationToDb,
-    MagneticOrderingsToDb,
-)
-
-from pymatgen.alchemy.materials import TransformedStructure
-
-from atomate.utils.utils import get_logger
-
-logger = get_logger(__name__)
-
-from atomate.vasp.config import VASP_CMD, DB_FILE, ADD_WF_METADATA
-
-from atomate.vasp.workflows.presets.scan import wf_scan_opt
 from uuid import uuid4
-from pymatgen.io.vasp.sets import MPRelaxSet
-from pymatgen.core import Lattice, Structure
+
+import numpy as np
+from fireworks import Firework, Workflow
+from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.analysis.magnetism.analyzer import (
     CollinearMagneticStructureAnalyzer,
     MagneticStructureEnumerator,
 )
+from pymatgen.analysis.structure_matcher import ElementComparator, StructureMatcher
+from pymatgen.core import Lattice, Structure
+from pymatgen.io.vasp.sets import MPRelaxSet
+
+from atomate.utils.utils import get_logger
+from atomate.vasp.config import ADD_WF_METADATA, DB_FILE, VASP_CMD
+from atomate.vasp.firetasks.parse_outputs import (
+    MagneticDeformationToDb,
+    MagneticOrderingsToDb,
+)
+from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
+from atomate.vasp.powerups import (
+    add_additional_fields_to_taskdocs,
+    add_common_powerups,
+    add_tags,
+    add_wf_metadata,
+)
+from atomate.vasp.workflows.base.core import get_wf
+from atomate.vasp.workflows.presets.scan import wf_scan_opt
 
 __author__ = "Matthew Horton"
 __maintainer__ = "Matthew Horton"
@@ -43,6 +38,8 @@ __magnetic_deformation_wf_version__ = 1.2
 __magnetic_ordering_wf_version__ = 2.0
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+
+logger = get_logger(__name__)
 
 
 def get_wf_magnetic_deformation(structure, c=None, vis=None):
@@ -169,7 +166,7 @@ class MagneticOrderingsWF:
             strategies (tuple): different ordering strategies to use, choose
                 from: ferromagnetic, antiferromagnetic,
                 antiferromagnetic_by_motif, ferrimagnetic_by_motif and
-                ferrimagnetic_by_species (here, "motif", 
+                ferrimagnetic_by_species (here, "motif",
                 means to use a different ordering parameter for symmetry
                 inequivalent sites)
             automatic (bool): if True, will automatically choose sensible
@@ -179,7 +176,7 @@ class MagneticOrderingsWF:
             transformation_kwargs (dict): keyword arguments to pass to
                 MagOrderingTransformation, to change automatic cell size
                 limits, etc.
-            static (bool): Run only static calcs (no optimization) of 
+            static (bool): Run only static calcs (no optimization) of
                 different magnetic orderings in a fixed ground state
                 geometry.
 
@@ -303,7 +300,7 @@ class MagneticOrderingsWF:
 
             analyzer = CollinearMagneticStructureAnalyzer(ordered_structure)
 
-            name = " ordering {} {} -".format(idx, analyzer.ordering.value)
+            name = f" ordering {idx} {analyzer.ordering.value} -"
 
             if not scan:
 
@@ -335,10 +332,10 @@ class MagneticOrderingsWF:
                         name=name + " static",
                         prev_calc_loc=True,
                         parents=fws[-1],
-                        vasptodb_kwargs={'parse_chgcar': True, 'parse_aeccar': True}
+                        vasptodb_kwargs={"parse_chgcar": True, "parse_aeccar": True},
                     )
                 )
-                
+
                 if not self.static:
                     # so a failed optimize doesn't crash workflow
                     fws[-1].spec["_allow_fizzled_parents"] = True
@@ -375,14 +372,14 @@ class MagneticOrderingsWF:
         fws.append(fw_analysis)
 
         formula = self.sanitized_structure.composition.reduced_formula
-        wf_name = "{} - magnetic orderings".format(formula)
+        wf_name = f"{formula} - magnetic orderings"
         if scan:
             wf_name += " - SCAN"
         wf = Workflow(fws, name=wf_name)
 
         wf = add_additional_fields_to_taskdocs(wf, {"wf_meta": self.wf_meta})
 
-        tag = "magnetic_orderings group: >>{}<<".format(self.uuid)
+        tag = f"magnetic_orderings group: >>{self.uuid}<<"
         wf = add_tags(wf, [tag, ordered_structure_origins])
 
         return wf
@@ -403,7 +400,7 @@ def get_commensurate_orderings(magnetic_structures, energies):
         energies (list): Energies per atom.
 
     Returns:
-        matched_structures (list): Commensurate supercells for static 
+        matched_structures (list): Commensurate supercells for static
             calculations.
 
     TODO:
@@ -416,7 +413,6 @@ def get_commensurate_orderings(magnetic_structures, energies):
     ordered_structures = [
         s for _, s in sorted(zip(energies, magnetic_structures), reverse=False)
     ]
-    ordered_energies = sorted(energies, reverse=False)
 
     # Ground state and 1st excited state
     gs_struct = ordered_structures[0]
@@ -425,7 +421,7 @@ def get_commensurate_orderings(magnetic_structures, energies):
     cmsa = CollinearMagneticStructureAnalyzer(
         es_struct, threshold=0.0, threshold_nonmag=1.0, make_primitive=False
     )
-    es_ordering = cmsa.ordering.value
+    cmsa.ordering.value
     es_struct = cmsa.structure
 
     cmsa = CollinearMagneticStructureAnalyzer(
@@ -469,7 +465,7 @@ def get_commensurate_orderings(magnetic_structures, energies):
     for s in mse.ordered_structures:
         try:
             s2 = sm.get_s2_like_s1(enum_struct, s)
-        except:
+        except Exception:
             s2 = None
         if s2 is not None:
             # Standardize magnetic structure
@@ -484,7 +480,7 @@ def get_commensurate_orderings(magnetic_structures, energies):
         gs_struct, threshold=0.0, make_primitive=False
     )
 
-    enum_index = [cmsa.matches_ordering(s) for s in matched_structures].index(True)
+    [cmsa.matches_ordering(s) for s in matched_structures].index(True)
 
     # Enforce all magmom magnitudes to match the gs
     for s in matched_structures:

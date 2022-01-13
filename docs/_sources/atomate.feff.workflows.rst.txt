@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomate.feff.workflows.tests
 
@@ -26,7 +27,6 @@ atomate.feff.workflows.presets module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

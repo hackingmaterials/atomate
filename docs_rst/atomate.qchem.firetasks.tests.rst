@@ -4,6 +4,14 @@ atomate.qchem.firetasks.tests package
 Submodules
 ----------
 
+atomate.qchem.firetasks.tests.test\_critic2 module
+--------------------------------------------------
+
+.. automodule:: atomate.qchem.firetasks.tests.test_critic2
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.qchem.firetasks.tests.test\_fragmenter module
 -----------------------------------------------------
 
@@ -35,7 +43,6 @@ atomate.qchem.firetasks.tests.test\_write\_inputs module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

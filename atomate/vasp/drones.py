@@ -1,44 +1,41 @@
-# coding: utf-8
-
-
 """
 This Drone tries to produce a more sensible task dictionary than the default VaspToDbTaskDrone.
 Some of the changes are documented in this thread:
 https://groups.google.com/forum/#!topic/pymatgen/pQ-emBpeV5U
 """
 
+import datetime
+import glob
+import json
 import os
 import re
-import datetime
-from fnmatch import fnmatch
-from collections import OrderedDict
-import json
-import glob
 import traceback
 import warnings
+from collections import OrderedDict
+from fnmatch import fnmatch
 
+import numpy as np
 from monty.io import zopen
 from monty.json import jsanitize
 from monty.os.path import which
-
-import numpy as np
-
-from pymatgen.core.composition import Composition
-from pymatgen.core.structure import Structure
-from pymatgen.core.operations import SymmOp
-from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
-from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
-from pymatgen.io.vasp.outputs import Chgcar
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
+from pymatgen.core.composition import Composition
+from pymatgen.core.operations import SymmOp
+from pymatgen.core.structure import Structure
+from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
+from pymatgen.io.vasp import BSVasprun, Locpot, Outcar, Vasprun
+from pymatgen.io.vasp.inputs import Incar, Kpoints, Poscar, Potcar
+from pymatgen.io.vasp.outputs import Chgcar
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
-from atomate.utils.utils import get_uri
-
-from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
-from atomate.vasp.config import STORE_VOLUMETRIC_DATA, STORE_ADDITIONAL_JSON
+from atomate.utils.utils import get_logger, get_uri
+from atomate.vasp.config import (
+    STORE_ADDITIONAL_JSON,
+    STORE_BADER,
+    STORE_VOLUMETRIC_DATA,
+)
 
 __author__ = "Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath, Anubhav Jain"
 __email__ = "kmathew@lbl.gov"
@@ -48,6 +45,7 @@ __version__ = "0.1.0"
 logger = get_logger(__name__)
 
 BADER_EXE_EXISTS = which("bader") or which("bader.exe")
+STORE_BADER = STORE_BADER and BADER_EXE_EXISTS
 
 
 class VaspDrone(AbstractDrone):
@@ -138,7 +136,7 @@ class VaspDrone(AbstractDrone):
         parse_locpot=True,
         additional_fields=None,
         use_full_uri=True,
-        parse_bader=BADER_EXE_EXISTS,
+        parse_bader=STORE_BADER,
         parse_chgcar=False,
         parse_aeccar=False,
         parse_potcar_file=True,
@@ -212,7 +210,7 @@ class VaspDrone(AbstractDrone):
         Returns:
             (dict): a task dictionary
         """
-        logger.info("Getting task doc for base dir :{}".format(path))
+        logger.info(f"Getting task doc for base dir :{path}")
         vasprun_files = self.filter_files(path, file_pattern="vasprun.xml")
         outcar_files = self.filter_files(path, file_pattern="OUTCAR")
         if len(vasprun_files) > 0 and len(outcar_files) > 0:
@@ -246,17 +244,17 @@ class VaspDrone(AbstractDrone):
             # try subfolder schema
             if r in files:
                 for f in os.listdir(os.path.join(path, r)):
-                    if fnmatch(f, "{}*".format(file_pattern)):
+                    if fnmatch(f, f"{file_pattern}*"):
                         processed_files[r] = os.path.join(r, f)
             # try extension schema
             else:
                 for f in files:
-                    if fnmatch(f, "{}.{}*".format(file_pattern, r)):
+                    if fnmatch(f, f"{file_pattern}.{r}*"):
                         processed_files[r] = f
         if len(processed_files) == 0:
             # get any matching file from the folder
             for f in files:
-                if fnmatch(f, "{}*".format(file_pattern)):
+                if fnmatch(f, f"{file_pattern}*"):
                     processed_files["standard"] = f
         return processed_files
 
@@ -293,10 +291,10 @@ class VaspDrone(AbstractDrone):
                     "System time (sec)",
                     "Elapsed time (sec)",
                 ]:
-                    overall_run_stats[key] = sum([v[key] for v in run_stats.values()])
+                    overall_run_stats[key] = sum(v[key] for v in run_stats.values())
                 run_stats["overall"] = overall_run_stats
             except Exception:
-                logger.error("Bad run stats for {}.".format(fullpath))
+                logger.error(f"Bad run stats for {fullpath}.")
             d["run_stats"] = run_stats
 
             # reverse the calculations data order so newest calc is first
@@ -484,12 +482,12 @@ class VaspDrone(AbstractDrone):
             d["output"][k] = d["output"].pop(v)
 
         # Process bandstructure and DOS
-        if self.bandstructure_mode != False:  # noqa
+        if self.bandstructure_mode is not False:  # noqa
             bs = self.process_bandstructure(vrun)
             if bs:
                 d["bandstructure"] = bs
 
-        if self.parse_dos != False:  # noqa
+        if self.parse_dos is not False:  # noqa
             dos = self.process_dos(vrun)
             if dos:
                 d["dos"] = dos
@@ -575,7 +573,7 @@ class VaspDrone(AbstractDrone):
 
         # perform Bader analysis using Henkelman bader
         if self.parse_bader and "chgcar" in d["output_file_paths"]:
-            suffix = "" if taskname == "standard" else ".{}".format(taskname)
+            suffix = "" if taskname == "standard" else f".{taskname}"
             bader = bader_analysis_from_path(dir_name, suffix=suffix)
             d["bader"] = bader
 
@@ -675,9 +673,7 @@ class VaspDrone(AbstractDrone):
 
         # delta volume checks
         if abs(percent_delta_vol) > volume_change_threshold:
-            warning_msgs.append(
-                "Volume change > {}%".format(volume_change_threshold * 100)
-            )
+            warning_msgs.append(f"Volume change > {volume_change_threshold * 100}%")
 
         # max force and valid structure checks
         max_force = None
@@ -697,7 +693,7 @@ class VaspDrone(AbstractDrone):
             if calc["input"]["parameters"].get("NSW", 0) > 0:
 
                 drift = calc["output"]["outcar"].get("drift", [[0, 0, 0]])
-                max_drift = max([np.linalg.norm(d) for d in drift])
+                max_drift = max(np.linalg.norm(d) for d in drift)
                 ediffg = calc["input"]["parameters"].get("EDIFFG", None)
                 if ediffg and float(ediffg) < 0:
                     desired_force_convergence = -float(ediffg)
@@ -736,7 +732,7 @@ class VaspDrone(AbstractDrone):
             d:
                 Current doc generated.
         """
-        logger.info("Post-processing dir:{}".format(dir_name))
+        logger.info(f"Post-processing dir:{dir_name}")
         fullpath = os.path.abspath(dir_name)
         # VASP input generated by pymatgen's alchemy has a transformations.json file that tracks
         # the origin of a particular structure. If such a file is found, it is inserted into the
@@ -828,7 +824,7 @@ class VaspDrone(AbstractDrone):
             else:
                 diff = v.difference(set(d.get(k, d).keys()))
             if diff:
-                logger.warning("The keys {0} in {1} not set".format(diff, k))
+                logger.warning(f"The keys {diff} in {k} not set")
 
     def get_valid_paths(self, path):
         """

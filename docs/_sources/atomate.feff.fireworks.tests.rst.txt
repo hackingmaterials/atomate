@@ -12,7 +12,6 @@ atomate.feff.fireworks.tests.test\_fireworks module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

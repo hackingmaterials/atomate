@@ -15,13 +15,7 @@ from fireworks.utilities.dict_mods import apply_mod
 from pymatgen.core.structure import Structure
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
-from pymatgen.io.vasp import (
-    Incar,
-    Poscar,
-    Potcar,
-    PotcarSingle,
-    Kpoints
-)
+from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle, Kpoints
 from pymatgen.io.vasp.sets import (
     MPStaticSet,
     MPNonSCFSet,
@@ -63,10 +57,12 @@ class WriteVaspFromIOSet(FiretaskBase):
         potcar_spec (bool): Instead of writing the POTCAR, write a
             "POTCAR.spec". This is intended to allow testing of workflows
             without requiring pseudo-potentials to be installed on the system.
+        spec_structure_key (str): If supplied, then attempt to read this from the fw_spec
+            to obtain the structure
     """
 
     required_params = ["structure", "vasp_input_set"]
-    optional_params = ["vasp_input_params", "potcar_spec"]
+    optional_params = ["vasp_input_params", "potcar_spec", "spec_structure_key"]
 
     def run_task(self, fw_spec):
         # if a full VaspInputSet object was provided
@@ -75,12 +71,16 @@ class WriteVaspFromIOSet(FiretaskBase):
 
         # if VaspInputSet String + parameters was provided
         else:
-            vis_cls = load_class(
-                "pymatgen.io.vasp.sets", self["vasp_input_set"]
-            )
-            vis = vis_cls(
-                self["structure"], **self.get("vasp_input_params", {})
-            )
+            vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
+            vis = vis_cls(self["structure"], **self.get("vasp_input_params", {}))
+
+        # over-write structure with fw_spec structure
+        spec_structure_key = self.get("spec_structure_key", None)
+        if spec_structure_key is not None:
+            fw_struct = fw_spec.get(spec_structure_key)
+            dd = vis.as_dict()
+            dd["structure"] = fw_struct
+            vis = vis.from_dict(dd)
 
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -265,8 +265,8 @@ class ModifyPotcar(FiretaskBase):
 
     Optional params:
         functional (dict): functional to use, e.g. PBE, PBE_52, LDA_US, PW91
-        input_filename (str): Input filename (if not "INCAR")
-        output_filename (str): Output filename (if not "INCAR")
+        input_filename (str): Input filename (if not "POTCAR")
+        output_filename (str): Output filename (if not "POTCAR")
     """
 
     required_params = ["potcar_symbols"]
@@ -308,6 +308,7 @@ class WriteScanRelaxFromPrev(FiretaskBase):
             without requiring pseudo-potentials to be installed on the system.
 
     """
+
     optional_params = ["vasp_input_set_params", "potcar_spec"]
 
     def run_task(self, fw_spec):
@@ -325,7 +326,9 @@ class WriteScanRelaxFromPrev(FiretaskBase):
             else:
                 parse_potcar_file = not potcar_spec
                 vasprun = Vasprun("vasprun.xml", parse_potcar_file=parse_potcar_file)
-                bandgap = vasprun.get_band_structure(efermi="smart").get_band_gap()["energy"]
+                bandgap = vasprun.get_band_structure(efermi="smart").get_band_gap()[
+                    "energy"
+                ]
                 vasp_input_set_params["bandgap"] = bandgap
 
         # read the structure from the output of the previous calculation
@@ -390,11 +393,9 @@ class WriteVaspStaticFromPrev(FiretaskBase):
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get(
-                "international_monoclinic", True
-            ),
+            international_monoclinic=self.get("international_monoclinic", True),
             lepsilon=lepsilon,
-            **other_params
+            **other_params,
         )
 
         potcar_spec = self.get("potcar_spec", False)
@@ -482,13 +483,11 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get(
-                "international_monoclinic", True
-            ),
+            international_monoclinic=self.get("international_monoclinic", True),
             mode=self.get("mode", "uniform"),
             nedos=self.get("nedos", 2001),
             optics=self.get("optics", False),
-            **self.get("other_params", {})
+            **self.get("other_params", {}),
         )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -542,10 +541,8 @@ class WriteVaspSOCFromPrev(FiretaskBase):
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get(
-                "international_monoclinic", True
-            ),
-            **self.get("other_params", {})
+            international_monoclinic=self.get("international_monoclinic", True),
+            **self.get("other_params", {}),
         )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -585,7 +582,7 @@ class WriteVaspNMRFromPrev(FiretaskBase):
             mode=self.get("mode", "cs"),
             isotopes=self.get("isotopes", None),
             reciprocal_density=self.get("reciprocal_density", 100),
-            **self.get("other_params", {})
+            **self.get("other_params", {}),
         )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -641,7 +638,7 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
                 "site_transformations",
                 "standard_transformations",
             ]:
-                mod = import_module("pymatgen.transformations.{}".format(m))
+                mod = import_module(f"pymatgen.transformations.{m}")
 
                 try:
                     t_cls = getattr(mod, t)
@@ -651,7 +648,7 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
                     pass
 
             if not found:
-                raise ValueError("Could not find transformation: {}".format(t))
+                raise ValueError(f"Could not find transformation: {t}")
 
             t_obj = t_cls(**transformation_params.pop(0))
             transformations.append(t_obj)
@@ -667,9 +664,7 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
         )
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
-        final_structure = transmuter.transformed_structures[
-            -1
-        ].final_structure.copy()
+        final_structure = transmuter.transformed_structures[-1].final_structure.copy()
         vis_orig = self["vasp_input_set"]
         vis_dict = vis_orig.as_dict()
         vis_dict["structure"] = final_structure.as_dict()

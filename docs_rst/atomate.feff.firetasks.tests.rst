@@ -12,7 +12,6 @@ atomate.feff.firetasks.tests.test\_tasks module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

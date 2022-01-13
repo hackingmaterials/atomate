@@ -1,5 +1,3 @@
-# coding: utf-8
-
 # Defines standardized Fireworks that can be chained easily to perform various
 # sequences of QChem calculations.
 
@@ -28,16 +26,18 @@ __credits__ = "Brandon Wood, Shyam Dwaraknath"
 
 
 class SinglePointFW(Firework):
-    def __init__(self,
-                 molecule=None,
-                 name="single point",
-                 qchem_cmd=">>qchem_cmd<<",
-                 multimode=">>multimode<<",
-                 max_cores=">>max_cores<<",
-                 qchem_input_params=None,
-                 db_file=None,
-                 parents=None,
-                 **kwargs):
+    def __init__(
+        self,
+        molecule=None,
+        name="single point",
+        qchem_cmd=">>qchem_cmd<<",
+        multimode=">>multimode<<",
+        max_cores=">>max_cores<<",
+        qchem_input_params=None,
+        db_file=None,
+        parents=None,
+        **kwargs
+    ):
         """
 
         Args:
@@ -70,15 +70,17 @@ class SinglePointFW(Firework):
         """
 
         qchem_input_params = qchem_input_params or {}
-        input_file="mol.qin"
-        output_file="mol.qout"
+        input_file = "mol.qin"
+        output_file = "mol.qout"
         t = []
         t.append(
             WriteInputFromIOSet(
                 molecule=molecule,
                 qchem_input_set="SinglePointSet",
                 input_file=input_file,
-                qchem_input_params=qchem_input_params))
+                qchem_input_params=qchem_input_params,
+            )
+        )
         t.append(
             RunQChemCustodian(
                 qchem_cmd=qchem_cmd,
@@ -86,18 +88,18 @@ class SinglePointFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
-                job_type="normal"))
+                job_type="normal",
+            )
+        )
         t.append(
             QChemToDb(
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
-                additional_fields={"task_label": name}))
-        super(SinglePointFW, self).__init__(
-            t,
-            parents=parents,
-            name=name,
-            **kwargs)
+                additional_fields={"task_label": name},
+            )
+        )
+        super().__init__(t, parents=parents, name=name, **kwargs)
 
 
 class ForceFW(Firework):
@@ -178,16 +180,18 @@ class ForceFW(Firework):
 
 
 class OptimizeFW(Firework):
-    def __init__(self,
-                 molecule=None,
-                 name="structure optimization",
-                 qchem_cmd=">>qchem_cmd<<",
-                 multimode=">>multimode<<",
-                 max_cores=">>max_cores<<",
-                 qchem_input_params=None,
-                 db_file=None,
-                 parents=None,
-                 **kwargs):
+    def __init__(
+        self,
+        molecule=None,
+        name="structure optimization",
+        qchem_cmd=">>qchem_cmd<<",
+        multimode=">>multimode<<",
+        max_cores=">>max_cores<<",
+        qchem_input_params=None,
+        db_file=None,
+        parents=None,
+        **kwargs
+    ):
         """
         Optimize the given structure.
 
@@ -221,15 +225,17 @@ class OptimizeFW(Firework):
         """
 
         qchem_input_params = qchem_input_params or {}
-        input_file="mol.qin"
-        output_file="mol.qout"
+        input_file = "mol.qin"
+        output_file = "mol.qout"
         t = []
         t.append(
             WriteInputFromIOSet(
                 molecule=molecule,
                 qchem_input_set="OptSet",
                 input_file=input_file,
-                qchem_input_params=qchem_input_params))
+                qchem_input_params=qchem_input_params,
+            )
+        )
         t.append(
             RunQChemCustodian(
                 qchem_cmd=qchem_cmd,
@@ -237,18 +243,18 @@ class OptimizeFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
-                job_type="normal"))
+                job_type="normal",
+            )
+        )
         t.append(
             QChemToDb(
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
-                additional_fields={"task_label": name}))
-        super(OptimizeFW, self).__init__(
-            t,
-            parents=parents,
-            name=name,
-            **kwargs)
+                additional_fields={"task_label": name},
+            )
+        )
+        super().__init__(t, parents=parents, name=name, **kwargs)
 
 
 class TransitionStateFW(Firework):
@@ -326,16 +332,18 @@ class TransitionStateFW(Firework):
 
 
 class FrequencyFW(Firework):
-    def __init__(self,
-                 molecule=None,
-                 name="frequency calculation",
-                 qchem_cmd=">>qchem_cmd<<",
-                 multimode=">>multimode<<",
-                 max_cores=">>max_cores<<",
-                 qchem_input_params=None,
-                 db_file=None,
-                 parents=None,
-                 **kwargs):
+    def __init__(
+        self,
+        molecule=None,
+        name="frequency calculation",
+        qchem_cmd=">>qchem_cmd<<",
+        multimode=">>multimode<<",
+        max_cores=">>max_cores<<",
+        qchem_input_params=None,
+        db_file=None,
+        parents=None,
+        **kwargs
+    ):
         """
         Optimize the given structure.
 
@@ -369,15 +377,17 @@ class FrequencyFW(Firework):
         """
 
         qchem_input_params = qchem_input_params or {}
-        input_file="mol.qin"
-        output_file="mol.qout"
+        input_file = "mol.qin"
+        output_file = "mol.qout"
         t = []
         t.append(
             WriteInputFromIOSet(
                 molecule=molecule,
                 qchem_input_set="FreqSet",
                 input_file=input_file,
-                qchem_input_params=qchem_input_params))
+                qchem_input_params=qchem_input_params,
+            )
+        )
         t.append(
             RunQChemCustodian(
                 qchem_cmd=qchem_cmd,
@@ -385,18 +395,18 @@ class FrequencyFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
-                job_type="normal"))
+                job_type="normal",
+            )
+        )
         t.append(
             QChemToDb(
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
-                additional_fields={"task_label": name}))
-        super(FrequencyFW, self).__init__(
-            t,
-            parents=parents,
-            name=name,
-            **kwargs)
+                additional_fields={"task_label": name},
+            )
+        )
+        super().__init__(t, parents=parents, name=name, **kwargs)
 
 
 class PESScanFW(Firework):
@@ -543,8 +553,8 @@ class FrequencyFlatteningOptimizeFW(Firework):
         """
 
         qchem_input_params = qchem_input_params or {}
-        input_file="mol.qin"
-        output_file="mol.qout"
+        input_file = "mol.qin"
+        output_file = "mol.qout"
         t = []
 
         if perturb_geometry:
@@ -592,13 +602,11 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 additional_fields={
                     "task_label": name,
                     "special_run_type": "frequency_flattener",
-                    "linked": linked
-                }))
-        super(FrequencyFlatteningOptimizeFW, self).__init__(
-            t,
-            parents=parents,
-            name=name,
-            **kwargs)
+                    "linked": linked,
+                },
+            )
+        )
+        super().__init__(t, parents=parents, name=name, **kwargs)
 
 
 class FrequencyFlatteningTransitionStateFW(Firework):
@@ -734,19 +742,21 @@ class FrequencyFlatteningTransitionStateFW(Firework):
 
 
 class FragmentFW(Firework):
-    def __init__(self,
-                 molecule=None,
-                 depth=1,
-                 open_rings=True,
-                 additional_charges=None,
-                 do_triplets=True,
-                 linked=False,
-                 name="fragment and optimize",
-                 qchem_input_params=None,
-                 db_file=None,
-                 check_db=True,
-                 parents=None,
-                 **kwargs):
+    def __init__(
+        self,
+        molecule=None,
+        depth=1,
+        open_rings=True,
+        additional_charges=None,
+        do_triplets=True,
+        linked=False,
+        name="fragment and optimize",
+        qchem_input_params=None,
+        db_file=None,
+        check_db=True,
+        parents=None,
+        **kwargs
+    ):
         """
         Fragment the given structure and optimize all unique fragments
 
@@ -798,25 +808,25 @@ class FragmentFW(Firework):
                 linked=linked,
                 qchem_input_params=qchem_input_params,
                 db_file=db_file,
-                check_db=check_db))
-        super(FragmentFW, self).__init__(
-            t,
-            parents=parents,
-            name=name,
-            **kwargs)
+                check_db=check_db,
+            )
+        )
+        super().__init__(t, parents=parents, name=name, **kwargs)
 
 
 class CubeAndCritic2FW(Firework):
-    def __init__(self,
-                 molecule=None,
-                 name="cube and critic2",
-                 qchem_cmd=">>qchem_cmd<<",
-                 multimode=">>multimode<<",
-                 max_cores=">>max_cores<<",
-                 qchem_input_params=None,
-                 db_file=None,
-                 parents=None,
-                 **kwargs):
+    def __init__(
+        self,
+        molecule=None,
+        name="cube and critic2",
+        qchem_cmd=">>qchem_cmd<<",
+        multimode=">>multimode<<",
+        max_cores=">>max_cores<<",
+        qchem_input_params=None,
+        db_file=None,
+        parents=None,
+        **kwargs
+    ):
         """
         Perform a Q-Chem single point calculation in order to generate a cube file of the electron density
         and then analyze the electron density critical points with the Critic2 package.
@@ -852,15 +862,17 @@ class CubeAndCritic2FW(Firework):
 
         qchem_input_params = copy.deepcopy(qchem_input_params) or {}
         qchem_input_params["plot_cubes"] = True
-        input_file="mol.qin"
-        output_file="mol.qout"
+        input_file = "mol.qin"
+        output_file = "mol.qout"
         t = []
         t.append(
             WriteInputFromIOSet(
                 molecule=molecule,
                 qchem_input_set="SinglePointSet",
                 input_file=input_file,
-                qchem_input_params=qchem_input_params))
+                qchem_input_params=qchem_input_params,
+            )
+        )
         t.append(
             RunQChemCustodian(
                 qchem_cmd=qchem_cmd,
@@ -868,22 +880,17 @@ class CubeAndCritic2FW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
-                job_type="normal"))
-        t.append(
-            RunCritic2(
-                molecule=molecule,
-                cube_file="dens.0.cube.gz"))
-        t.append(
-            ProcessCritic2(
-                molecule=molecule))
+                job_type="normal",
+            )
+        )
+        t.append(RunCritic2(molecule=molecule, cube_file="dens.0.cube.gz"))
+        t.append(ProcessCritic2(molecule=molecule))
         t.append(
             QChemToDb(
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
-                additional_fields={"task_label": name}))
-        super(CubeAndCritic2FW, self).__init__(
-            t,
-            parents=parents,
-            name=name,
-            **kwargs)
+                additional_fields={"task_label": name},
+            )
+        )
+        super().__init__(t, parents=parents, name=name, **kwargs)

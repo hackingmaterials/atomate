@@ -4,14 +4,7 @@ from monty.serialization import loadfn, dumpfn
 
 from atomate.utils.utils import get_logger, env_chk
 from atomate.vasp.database import VaspCalcDb
-
-from datetime import datetime
-import numpy as np
-
-from pymatgen.core.structure import Structure
-from pymatgen.command_line.bader_caller import bader_analysis_from_path
 from pymatgen.analysis.magnetism.heisenberg import HeisenbergMapper, HeisenbergModel
-from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering
 from pymatgen.command_line.vampire_caller import VampireCaller
 
 __author__ = "Nathan C. Frey"
@@ -26,7 +19,7 @@ class HeisenbergModelMapping(FiretaskBase):
     Map structures and energies to a Heisenberg model and compute exchange
     parameters for a given NN cutoff.
 
-    * heisenberg_settings: 
+    * heisenberg_settings:
         cutoff (float): Starting point for nearest neighbor search.
         tol (float): Tolerance for equivalent NN bonds.
 
@@ -35,7 +28,7 @@ class HeisenbergModelMapping(FiretaskBase):
         energies (list): Energies / atom (eV).
 
     Optional parameters:
-        heisenberg_settings (dict): A config dict for Heisenberg model 
+        heisenberg_settings (dict): A config dict for Heisenberg model
             mapping, detailed above.
 
     """
@@ -122,7 +115,7 @@ class HeisenbergConvergence(FiretaskBase):
     """
     Quick check to see if the Heisenberg model has "converged" for any
     particular nearest neighbor cutoff value in the sense that |J_ij| < |E_0|
-    for all i, j. 
+    for all i, j.
 
     If not, it doesn't make sense to do Monte Carlo and the system is either
     1) not well described by the Heisenberg Model (perhaps the magnetic

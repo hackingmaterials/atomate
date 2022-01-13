@@ -1,18 +1,15 @@
-# coding: utf-8
-
-
 from tqdm import tqdm
 
 from atomate.utils.utils import get_database
 
-from pymatgen import Composition
+from pymatgen.core import Composition
 
 from atomate.vasp.builders.base import AbstractBuilder
 from atomate.utils.utils import get_logger
 
 logger = get_logger(__name__)
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = "Anubhav Jain <ajain@lbl.gov>"
 
 
 class FileMaterialsBuilder(AbstractBuilder):
@@ -36,7 +33,7 @@ class FileMaterialsBuilder(AbstractBuilder):
 
     def run(self):
         logger.info("Starting FileMaterials Builder.")
-        with open(self._data_file, 'rt') as f:
+        with open(self._data_file) as f:
             line_no = 0
             lines = [line for line in f]  # only good for smaller files
             pbar = tqdm(lines)
@@ -51,17 +48,20 @@ class FileMaterialsBuilder(AbstractBuilder):
                             search_key = "material_id"
                         else:
                             search_key = "formula_reduced_abc"
-                            search_val = Composition(line[0]).\
-                                reduced_composition.alphabetical_formula
+                            search_val = Composition(
+                                line[0]
+                            ).reduced_composition.alphabetical_formula
 
                         key = line[1]
                         val = line[2]
                         try:
                             val = float(val)
-                        except:
+                        except Exception:
                             pass
 
-                        self._materials.update({search_key: search_val}, {"$set": {key: val}})
+                        self._materials.update(
+                            {search_key: search_val}, {"$set": {key: val}}
+                        )
 
         logger.info("FileMaterials Builder finished processing")
 

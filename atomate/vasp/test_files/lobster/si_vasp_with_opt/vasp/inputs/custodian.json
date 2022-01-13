@@ -1,0 +1,33 @@
+[
+    {
+        "job": {
+            "@module": "custodian.vasp.jobs",
+            "@class": "VaspJob",
+            "@version": "2021.2.8",
+            "vasp_cmd": [
+                "mpirun",
+                "-np",
+                "16",
+                "/opt/vasp-6.2.1/bin/vasp_std"
+            ],
+            "output_file": "vasp.out",
+            "stderr_file": "std_err.txt",
+            "suffix": "",
+            "final": true,
+            "backup": true,
+            "auto_npar": true,
+            "auto_gamma": true,
+            "settings_override": null,
+            "gamma_vasp_cmd": null,
+            "copy_magmom": false,
+            "auto_continue": false
+        },
+        "corrections": [],
+        "handler": null,
+        "validator": null,
+        "max_errors": false,
+        "max_errors_per_job": false,
+        "max_errors_per_handler": false,
+        "nonzero_return_code": false
+    }
+]

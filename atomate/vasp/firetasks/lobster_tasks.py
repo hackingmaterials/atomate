@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
 This module defines tasks that can be used to handle Lobster calculations that are based on VASP wavefunctions.
 """
@@ -9,12 +7,6 @@ import logging
 import os
 import shutil
 import warnings
-
-from fireworks import FiretaskBase, explicit_serialize, FWAction
-from fireworks.utilities.fw_serializers import DATETIME_HANDLER
-from monty.json import jsanitize
-from monty.os.path import zpath
-from monty.serialization import loadfn
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_meta_from_structure
@@ -27,6 +19,11 @@ from custodian.lobster.handlers import (
     LobsterFilesValidator,
 )
 from custodian.lobster.jobs import LobsterJob
+from fireworks import FiretaskBase, explicit_serialize, FWAction
+from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+from monty.json import jsanitize
+from monty.os.path import zpath
+from monty.serialization import loadfn
 from pymatgen.core.structure import Structure
 from pymatgen.io.lobster import Lobsterout, Lobsterin
 
@@ -165,7 +162,12 @@ class RunLobster(FiretaskBase):
         c.run()
 
         if os.path.exists(zpath("custodian.json")):
-            stored_custodian_data = {"custodian": loadfn(zpath("custodian.json"))}
+            if os.path.exists(zpath("FW_offline.json")):
+                import json
+                with open(zpath("custodian.json")) as f:
+                    stored_custodian_data = {"custodian": json.load(f)}
+            else:
+                stored_custodian_data = {"custodian": loadfn(zpath("custodian.json"))}
             return FWAction(stored_data=stored_custodian_data)
 
 
@@ -202,18 +204,21 @@ class LobsterRunToDb(FiretaskBase):
     std_additional_outputs = [
         "ICOHPLIST.lobster",
         "ICOOPLIST.lobster",
+        "ICOBILIST.lobster",
         "COHPCAR.lobster",
         "COOPCAR.lobster",
         "GROSSPOP.lobster",
         "CHARGE.lobster",
         "DOSCAR.lobster",
+        "MadelungEnergies.lobster",
+        "SitePotentials.lobster"
     ]
 
     def __init__(self, *args, **kwargs):
         # override the original __init__ method to check the values of
         # "additional_outputs" and raise warnings in case of potentially
         # misspelled names.
-        super(LobsterRunToDb, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         additional_outputs = self.get("additional_outputs", [])
         if additional_outputs:
@@ -231,7 +236,7 @@ class LobsterRunToDb(FiretaskBase):
         elif os.path.exists(filename):
             return filename
         else:
-            raise ValueError("{}/{} does not exist".format(filename, gz_filename))
+            raise ValueError(f"{filename}/{gz_filename} does not exist")
 
     def run_task(self, fw_spec):
 
@@ -245,7 +250,7 @@ class LobsterRunToDb(FiretaskBase):
         # get the directory that contains the Lobster dir to parse
         current_dir = os.getcwd()
         # parse the Lobster directory
-        logger.info("PARSING DIRECTORY: {}".format(current_dir))
+        logger.info(f"PARSING DIRECTORY: {current_dir}")
         task_doc = {}
         struct = Structure.from_file(self._find_gz_file("POSCAR"))
         Lobsterout_here = Lobsterout(self._find_gz_file("lobsterout"))
@@ -266,7 +271,7 @@ class LobsterRunToDb(FiretaskBase):
             task_doc.update(additional_fields)
 
         task_doc.update(get_meta_from_structure(struct))
-        if vasp_calc_dir != None:
+        if vasp_calc_dir is not None:
             task_doc["vasp_dir_name"] = vasp_calc_dir
         else:
             task_doc["vasp_dir_name"] = vasp_calc_loc["path"]
@@ -283,7 +288,7 @@ class LobsterRunToDb(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
 
         # db insertion or taskdoc dump
-        if not db_file:
+        if not db_file or os.path.exists(zpath("FW_offline.json")):
             with open("task_lobster.json", "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
@@ -318,14 +323,14 @@ class LobsterRunToDb(FiretaskBase):
 @explicit_serialize
 class RunLobsterFake(FiretaskBase):
     """
-     Lobster Emulator
-     Required params:
-         ref_dir (string): Path to reference lobster run directory with input files in the folder
-            named 'inputs' and output files in the folder named 'outputs'.
-     Optional params:
-         params_to_check (list): optional list of lobsterin parameters to check
-         check_lobsterin (bool): whether to confirm the lobsterin params (default: True)
-     """
+    Lobster Emulator
+    Required params:
+        ref_dir (string): Path to reference lobster run directory with input files in the folder
+           named 'inputs' and output files in the folder named 'outputs'.
+    Optional params:
+        params_to_check (list): optional list of lobsterin parameters to check
+        check_lobsterin (bool): whether to confirm the lobsterin params (default: True)
+    """
 
     required_params = ["ref_dir"]
     optional_params = ["params_to_check", "check_lobsterin"]
@@ -341,12 +346,12 @@ class RunLobsterFake(FiretaskBase):
         # Check lobsterin
         if self.get("check_lobsterin", True):
             ref_lobsterin = Lobsterin.from_file(
-                os.path.join(self["ref_dir"], "inputs", "lobsterin")
+                os.path.join(self["ref_dir"], "inputs", "lobsterin.gz")
             )
             params_to_check = self.get("params_to_check", [])
             for p in params_to_check:
                 if user_lobsterin.get(p, None) != ref_lobsterin.get(p, None):
-                    raise ValueError("lobsterin value of {} is inconsistent!".format(p))
+                    raise ValueError(f"lobsterin value of {p} is inconsistent!")
 
         logger.info("RunLobsterFake: verified inputs successfully")
 

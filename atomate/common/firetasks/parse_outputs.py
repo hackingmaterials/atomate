@@ -1,16 +1,12 @@
-# coding: utf-8
-
-
 import json
 import os
 
-from fireworks import explicit_serialize, FiretaskBase, FWAction
+from atomate.common.firetasks.glue_tasks import get_calc_loc
+from atomate.utils.utils import env_chk, get_logger, load_class
+from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
-from atomate.utils.utils import env_chk, get_logger, load_class
-from atomate.common.firetasks.glue_tasks import get_calc_loc
-
-__author__ = 'Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>'
+__author__ = "Shyam Dwaraknath <shyamd@lbl.gov>, Anubhav Jain <ajain@lbl.gov>"
 
 logger = get_logger(__name__)
 
@@ -37,7 +33,14 @@ class ToDbTask(FiretaskBase):
     """
 
     required_params = ["drone"]
-    optional_params = ["mmdb", "db_file", "calc_dir", "calc_loc", "additional_fields", "options"]
+    optional_params = [
+        "mmdb",
+        "db_file",
+        "calc_dir",
+        "calc_loc",
+        "additional_fields",
+        "options",
+    ]
 
     def run_task(self, fw_spec):
         # get the directory that contains the dir to parse
@@ -48,12 +51,13 @@ class ToDbTask(FiretaskBase):
             calc_dir = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])["path"]
 
         # parse the calc directory
-        logger.info("PARSING DIRECTORY: {} USING DRONE: {}".format(
-            calc_dir, self['drone'].__class__.__name__))
+        logger.info(
+            f"PARSING DIRECTORY: {calc_dir} USING DRONE: {self['drone'].__class__.__name__}"
+        )
         # get the database connection
-        db_file = env_chk(self.get('db_file'), fw_spec)
+        db_file = env_chk(self.get("db_file"), fw_spec)
 
-        drone = self['drone'].__class__()
+        drone = self["drone"].__class__()
         task_doc = drone.assimilate(calc_dir)
         if not db_file:
             with open("task.json", "w") as f:
@@ -66,7 +70,9 @@ class ToDbTask(FiretaskBase):
 
             # insert the task document
             t_id = db.insert(task_doc)
-            logger.info("Finished parsing with task_id: {}".format(t_id))
+            logger.info(f"Finished parsing with task_id: {t_id}")
 
-        return FWAction(stored_data={"task_id": task_doc.get("task_id", None)},
-                        defuse_children=(task_doc["state"] != "successful"))
+        return FWAction(
+            stored_data={"task_id": task_doc.get("task_id", None)},
+            defuse_children=(task_doc["state"] != "successful"),
+        )

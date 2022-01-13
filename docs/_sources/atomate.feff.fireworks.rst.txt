@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomate.feff.fireworks.tests
 
@@ -18,7 +19,6 @@ atomate.feff.fireworks.core module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

@@ -28,7 +28,6 @@ atomate.vasp.tests.test\_vasp\_powerups module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

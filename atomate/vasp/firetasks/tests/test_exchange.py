@@ -1,19 +1,13 @@
-# coding: utf-8
-
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import unittest
 import pandas as pd
 
 from monty.os.path import which
 
-from fireworks.utilities.fw_serializers import load_object
 
 from atomate.vasp.firetasks.exchange import (
     HeisenbergModelMapping,
     HeisenbergModelToDb,
-    HeisenbergConvergence,
     VampireMC,
     VampireToDb,
 )
