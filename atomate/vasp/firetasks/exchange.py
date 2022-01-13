@@ -1,13 +1,7 @@
 from fireworks import FiretaskBase, FWAction, explicit_serialize
-<<<<<<< HEAD
 
-from monty.serialization import loadfn, dumpfn
-
-from atomate.utils.utils import get_logger, env_chk
-from atomate.vasp.database import VaspCalcDb
-=======
 from monty.serialization import dumpfn, loadfn
->>>>>>> main
+
 from pymatgen.analysis.magnetism.heisenberg import HeisenbergMapper, HeisenbergModel
 from pymatgen.command_line.vampire_caller import VampireCaller
 
