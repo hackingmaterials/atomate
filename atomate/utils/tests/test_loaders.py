@@ -1,11 +1,10 @@
+import os
 import unittest
 
-import os
-
-from atomate.utils.utils import get_wf_from_spec_dict
+from monty.serialization import loadfn
 from pymatgen.util.testing import PymatgenTest
 
-from monty.serialization import loadfn
+from atomate.utils.utils import get_wf_from_spec_dict
 
 # TODO: @computron - move this test if you also move the loader code -computron
 

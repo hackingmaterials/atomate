@@ -1,20 +1,18 @@
 # This module defines tasks that support running QChem in various ways.
 
 
-import shutil
 import os
+import shutil
 import subprocess
 
-from pymatgen.io.qchem.inputs import QCInput
-
+import numpy as np
 from custodian import Custodian
 from custodian.qchem.handlers import QChemErrorHandler
 from custodian.qchem.jobs import QCJob
-
-from fireworks import explicit_serialize, FiretaskBase
+from fireworks import FiretaskBase, explicit_serialize
+from pymatgen.io.qchem.inputs import QCInput
 
 from atomate.utils.utils import env_chk, get_logger
-import numpy as np
 
 __author__ = "Samuel Blau, Evan Spotte-Smith"
 __copyright__ = "Copyright 2018, The Materials Project"

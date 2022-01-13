@@ -3,11 +3,10 @@ Compute the quasi harmonic approximation gibbs free energy using phonopy.
 """
 
 import json
-from pymongo import MongoClient
 
 import numpy as np
-
 from pymatgen.core import Structure
+from pymongo import MongoClient
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
@@ -145,6 +144,7 @@ def get_gibbs(
 # TODO: @matk86 please cleanup, e.g. into an actual unit test -computron
 if __name__ == "__main__":
     import os
+
     from pymatgen.util.testing import PymatgenTest
 
     structure = PymatgenTest.get_structure("Si")

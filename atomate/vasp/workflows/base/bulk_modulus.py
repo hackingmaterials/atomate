@@ -4,12 +4,13 @@ This module defines the bulk modulus workflow.
 
 from uuid import uuid4
 
-from atomate.utils.utils import get_logger
-from atomate.vasp.firetasks.parse_outputs import FitEOSToDb
-from atomate.vasp.workflows.base.deformations import get_wf_deformations
 from fireworks import Firework, Workflow
 from pymatgen.analysis.elasticity.strain import Deformation
 from pymatgen.io.vasp.sets import MPStaticSet
+
+from atomate.utils.utils import get_logger
+from atomate.vasp.firetasks.parse_outputs import FitEOSToDb
+from atomate.vasp.workflows.base.deformations import get_wf_deformations
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"

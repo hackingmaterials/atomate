@@ -4,7 +4,7 @@ This module defines tasks to run FEFF.
 
 import subprocess
 
-from fireworks import explicit_serialize, FiretaskBase
+from fireworks import FiretaskBase, explicit_serialize
 
 from atomate.utils.utils import env_chk, get_logger
 

@@ -2,7 +2,8 @@
 # It will most often be used in order to obtain the bond dissociation energies of a molecule.
 
 from fireworks import Workflow
-from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW, FragmentFW
+
+from atomate.qchem.fireworks.core import FragmentFW, FrequencyFlatteningOptimizeFW
 from atomate.utils.utils import get_logger
 
 __author__ = "Samuel Blau"

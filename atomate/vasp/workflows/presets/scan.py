@@ -1,5 +1,4 @@
 from atomate.vasp.config import ADD_WF_METADATA
-
 from atomate.vasp.powerups import add_common_powerups, add_wf_metadata
 from atomate.vasp.workflows.base.core import get_wf
 

@@ -2,6 +2,7 @@
 # in PCM. Both optimizations will include automatic frequency flattening.
 
 from fireworks import Workflow
+
 from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
 from atomate.utils.utils import get_logger
 

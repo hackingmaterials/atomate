@@ -3,7 +3,8 @@ import unittest
 
 from atomate.qchem.firetasks.geo_transformations import RotateTorsion, PerturbGeometry
 from atomate.utils.testing import AtomateTest
-from pymatgen.core import Molecule
+from pymatgen.core.structure import Molecule
+import numpy as np
 from pymatgen.io.qchem.outputs import QCOutput
 import numpy as np
 

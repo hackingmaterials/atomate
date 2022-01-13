@@ -1,6 +1,7 @@
 import numpy as np
-from atomate.utils.utils import get_database, get_logger
 from tqdm import tqdm
+
+from atomate.utils.utils import get_database, get_logger
 
 logger = get_logger(__name__)
 

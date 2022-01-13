@@ -6,9 +6,8 @@ from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.qchem.database import QChemCalcDb
-from atomate.utils.utils import env_chk
-from atomate.utils.utils import get_logger
 from atomate.qchem.drones import QChemDrone
+from atomate.utils.utils import env_chk, get_logger
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"

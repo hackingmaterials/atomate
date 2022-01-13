@@ -5,9 +5,9 @@
 
 import copy
 
-from fireworks import FiretaskBase, explicit_serialize, FWAction
-from pymatgen.io.babel import BabelMolAdaptor
 import numpy as np
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from pymatgen.io.babel import BabelMolAdaptor
 
 __author__ = "Brandon Wood"
 __copyright__ = "Copyright 2018, The Materials Project"

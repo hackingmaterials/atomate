@@ -1,10 +1,11 @@
 import os
 import unittest
+
 import pandas as pd
-
 from monty.os.path import which
+from pymatgen.core import Structure
 
-
+from atomate.utils.testing import AtomateTest
 from atomate.vasp.firetasks.exchange import (
     HeisenbergModelMapping,
     HeisenbergModelToDb,
@@ -50,8 +51,6 @@ class TestExchangeTasks(AtomateTest):
         }
 
         cls.db_file = os.path.join(db_dir, "db.json")
-
-        new_fw_spec = {"_fw_env": {"db_file": os.path.join(db_dir, "db.json")}}
 
     @unittest.skipIf(not vampire_present, "vampire not present")
     def test_heisenberg_mm(self):

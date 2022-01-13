@@ -3,8 +3,8 @@ import unittest
 from glob import glob
 
 from pymatgen.core import Structure
-from pymatgen.io.feff.sets import MPEXAFSSet
 from pymatgen.io.feff.inputs import Paths
+from pymatgen.io.feff.sets import MPEXAFSSet
 
 from atomate.feff.firetasks.glue_tasks import CopyFeffOutputs
 from atomate.feff.firetasks.write_inputs import WriteEXAFSPaths

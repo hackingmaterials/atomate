@@ -1,15 +1,12 @@
 from fireworks import Firework
 
-
+from atomate.vasp.config import DB_FILE
 from atomate.vasp.firetasks.exchange import (
     HeisenbergModelMapping,
     HeisenbergModelToDb,
     VampireMC,
     VampireToDb,
 )
-
-from atomate.vasp.config import DB_FILE
-
 
 __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"
@@ -55,11 +52,6 @@ class HeisenbergModelFW(Firework):
 
         fw_name = f"{parent_structure.composition.reduced_formula} {name}"
 
-        additional_fields = {
-            "task_label": fw_name,
-            "exchange": {"calc_type": name, "wf_uuids": [], "_source_wf_uuid": wf_uuid},
-        }
-
         tasks = []
 
         tasks.append(
@@ -103,11 +95,6 @@ class VampireCallerFW(Firework):
         """
 
         fw_name = f"{parent_structure.composition.reduced_formula} {name}"
-
-        additional_fields = {
-            "task_label": fw_name,
-            "exchange": {"calc_type": name, "wf_uuids": [], "_source_wf_uuid": wf_uuid},
-        }
 
         tasks = []
         # tasks.append(

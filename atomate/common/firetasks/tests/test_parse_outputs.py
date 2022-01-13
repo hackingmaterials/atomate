@@ -3,7 +3,6 @@ import unittest
 
 from fireworks import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
-
 from pymatgen.apps.borg.hive import AbstractDrone
 
 from atomate.common.firetasks.parse_outputs import ToDbTask

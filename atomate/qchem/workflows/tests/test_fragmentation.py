@@ -1,20 +1,21 @@
+import json
 import os
 import unittest
-import json
 
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
-from atomate.utils.testing import AtomateTest
+from pymatgen.core import Molecule
 from pymatgen.io.qchem.inputs import QCInput
+
+from atomate.qchem.database import QChemCalcDb
 from atomate.qchem.powerups import use_fake_qchem
 from atomate.qchem.workflows.base.fragmentation import get_fragmentation_wf
-from atomate.qchem.database import QChemCalcDb
-from pymatgen.core import Molecule
+from atomate.utils.testing import AtomateTest
 
 try:
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
 except ImportError:
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"

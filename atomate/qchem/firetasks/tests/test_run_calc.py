@@ -1,20 +1,23 @@
 import os
-import unittest
 import shutil
+import unittest
 
 try:
     from unittest.mock import patch
 except ImportError:
     from unittest.mock import patch
 
-from atomate.qchem.firetasks.run_calc import RunQChemCustodian
-from atomate.qchem.firetasks.run_calc import RunQChemDirect
-from atomate.qchem.firetasks.run_calc import RunQChemFake
-from atomate.utils.testing import AtomateTest
+import numpy as np
 from custodian.qchem.handlers import QChemErrorHandler
 from custodian.qchem.jobs import QCJob
 from pymatgen.io.qchem.outputs import QCOutput
-import numpy as np
+
+from atomate.qchem.firetasks.run_calc import (
+    RunQChemCustodian,
+    RunQChemDirect,
+    RunQChemFake,
+)
+from atomate.utils.testing import AtomateTest
 
 __author__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"

@@ -1,8 +1,9 @@
 import os
 
-from atomate.qchem.workflows.base.double_FF_opt import get_wf_double_FF_opt
 from fireworks.core.launchpad import LaunchPad
 from pymatgen.io.qchem.outputs import QCOutput
+
+from atomate.qchem.workflows.base.double_FF_opt import get_wf_double_FF_opt
 
 out_file = os.path.join("/global/cscratch1/sd/sblau", "FF_working", "test.qout.opt_0")
 qc_out = QCOutput(filename=out_file)

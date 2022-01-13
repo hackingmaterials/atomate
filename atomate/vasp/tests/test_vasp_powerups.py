@@ -1,31 +1,29 @@
 import unittest
 
-from atomate.utils.utils import get_fws_and_tasks
 from fireworks import Firework, ScriptTask, Workflow
-
-from atomate.vasp.powerups import (
-    add_priority,
-    modify_gzip_vasp,
-    use_custodian,
-    add_trackers,
-    add_modify_incar,
-    add_small_gap_multiply,
-    use_scratch_dir,
-    remove_custodian,
-    add_tags,
-    add_wf_metadata,
-    add_modify_potcar,
-    add_modify_kpoints,
-    clean_up_files,
-    set_queue_options,
-    use_potcar_spec,
-)
-from atomate.common.powerups import powerup_by_kwargs
-from atomate.vasp.workflows.base.core import get_wf
-
 from pymatgen.io.vasp.sets import MPRelaxSet
 from pymatgen.util.testing import PymatgenTest
 
+from atomate.common.powerups import powerup_by_kwargs
+from atomate.utils.utils import get_fws_and_tasks
+from atomate.vasp.powerups import (
+    add_modify_incar,
+    add_modify_kpoints,
+    add_modify_potcar,
+    add_priority,
+    add_small_gap_multiply,
+    add_tags,
+    add_trackers,
+    add_wf_metadata,
+    clean_up_files,
+    modify_gzip_vasp,
+    remove_custodian,
+    set_queue_options,
+    use_custodian,
+    use_potcar_spec,
+    use_scratch_dir,
+)
+from atomate.vasp.workflows.base.core import get_wf
 
 __author__ = "Anubhav Jain"
 __email__ = "ajain@lbl.gov"

@@ -1,10 +1,11 @@
 import os
 import unittest
 
-from atomate.vasp.fireworks.core import StaticFW
-from atomate.vasp.fireworks.lobster import LobsterFW
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.structure import Structure
+
+from atomate.vasp.fireworks.core import StaticFW
+from atomate.vasp.fireworks.lobster import LobsterFW
 
 __author__ = "Janine George, Guido Petretto"
 __email__ = "janine.george@uclouvain.be"

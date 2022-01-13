@@ -1,17 +1,16 @@
-import os
 import glob
+import os
 import shutil
 
-from pymatgen.core import Structure
-from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
+from fireworks.core.firework import FiretaskBase, FWAction
+from fireworks.utilities.fw_utilities import explicit_serialize
 from pymatgen.analysis.diffusion.neb.io import (
     MVLCINEBSet,
     get_endpoint_dist,
     get_endpoints_from_index,
 )
-
-from fireworks.core.firework import FiretaskBase, FWAction
-from fireworks.utilities.fw_utilities import explicit_serialize
+from pymatgen.core import Structure
+from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 
 from atomate.utils.utils import get_logger
 

@@ -1,10 +1,8 @@
 import os
 import unittest
 
-
 from atomate.utils.testing import AtomateTest
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDb
-
 
 __author__ = "Tess Smidt"
 __email__ = "blondegeek@gmail.com"
@@ -25,8 +23,9 @@ VASP_CMD = (
 class TestFerroelectricWorkflow(AtomateTest):
     def test_polarizationtodb(self):
 
-        import bson
         import gzip
+
+        import bson
 
         reference_dir = os.path.abspath(os.path.join(ref_dir, "ferroelectric_wf"))
 

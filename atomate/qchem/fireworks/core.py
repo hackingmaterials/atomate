@@ -5,9 +5,12 @@ from itertools import chain
 import os
 import copy
 
+import copy
+
 from fireworks import Firework
 
-import copy
+from atomate.qchem.firetasks.critic2 import ProcessCritic2, RunCritic2
+from atomate.qchem.firetasks.fragmenter import FragmentMolecule
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet

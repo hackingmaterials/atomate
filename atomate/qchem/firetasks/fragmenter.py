@@ -1,13 +1,15 @@
 # This module defines a task that returns all fragments of a molecule
 
 import copy
-from pymatgen.core.structure import Molecule
+
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from pymatgen.analysis.fragmenter import Fragmenter
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
-from pymatgen.analysis.fragmenter import Fragmenter
-from atomate.utils.utils import env_chk
+from pymatgen.core.structure import Molecule
+
 from atomate.qchem.database import QChemCalcDb
-from fireworks import FiretaskBase, FWAction, explicit_serialize
+from atomate.utils.utils import env_chk
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -251,8 +253,10 @@ class FragmentMolecule(FiretaskBase):
         molecule, unless the fragment is a single atom, in which case add a SinglePointFW instead.
         If the fragment is already in the database, don't add any new firework.
         """
-        from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
-        from atomate.qchem.fireworks.core import SinglePointFW
+        from atomate.qchem.fireworks.core import (
+            FrequencyFlatteningOptimizeFW,
+            SinglePointFW,
+        )
 
         new_FWs = []
         for ii, unique_molecule in enumerate(self.unique_molecules):

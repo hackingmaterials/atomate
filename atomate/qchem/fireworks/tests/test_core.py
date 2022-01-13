@@ -22,7 +22,6 @@ from atomate.qchem.fireworks.core import (
     CubeAndCritic2FW
 )
 from atomate.utils.testing import AtomateTest
-from pymatgen.io.qchem.outputs import QCOutput
 
 __author__ = "Samuel Blau, Evan Spotte-Smith"
 __copyright__ = "Copyright 2018, The Materials Project"

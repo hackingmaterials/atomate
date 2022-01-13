@@ -1,11 +1,13 @@
 import json
 import os
-import unittest
 import shutil
+import unittest
+
 from monty.os.path import which
-from atomate.qchem.firetasks.critic2 import RunCritic2, ProcessCritic2
-from atomate.utils.testing import AtomateTest
 from pymatgen.io.qchem.outputs import QCOutput
+
+from atomate.qchem.firetasks.critic2 import ProcessCritic2, RunCritic2
+from atomate.utils.testing import AtomateTest
 
 __author__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"

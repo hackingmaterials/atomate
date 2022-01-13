@@ -7,13 +7,13 @@ from fireworks import Firework
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.feff.firetasks.glue_tasks import CopyFeffOutputs
+from atomate.feff.firetasks.parse_outputs import AddPathsToFilepadTask, SpectrumToDbTask
+from atomate.feff.firetasks.run_calc import RunFeffDirect
 from atomate.feff.firetasks.write_inputs import (
-    WriteFeffFromIOSet,
     WriteEXAFSPaths,
+    WriteFeffFromIOSet,
     get_feff_input_set_obj,
 )
-from atomate.feff.firetasks.run_calc import RunFeffDirect
-from atomate.feff.firetasks.parse_outputs import SpectrumToDbTask, AddPathsToFilepadTask
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"

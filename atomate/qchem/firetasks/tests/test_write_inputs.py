@@ -1,15 +1,16 @@
 import os
-import unittest
 import shutil
+import unittest
 
-from atomate.qchem.firetasks.write_inputs import (
-    WriteInputFromIOSet,
-    WriteInput,
-    WriteCustomInput,
-)
-from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
 from pymatgen.io.qchem.inputs import QCInput
+
+from atomate.qchem.firetasks.write_inputs import (
+    WriteCustomInput,
+    WriteInput,
+    WriteInputFromIOSet,
+)
+from atomate.utils.testing import AtomateTest
 
 __author__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"

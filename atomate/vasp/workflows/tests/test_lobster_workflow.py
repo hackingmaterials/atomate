@@ -5,15 +5,15 @@ import json
 import os
 import unittest
 
-from atomate.utils.testing import AtomateTest
-from atomate.utils.testing import DB_DIR
-from atomate.vasp.powerups import use_fake_lobster
-from atomate.vasp.powerups import use_fake_vasp, use_custodian
-from atomate.vasp.workflows.base.lobster import (
-    get_wf_lobster, get_wf_lobster_test_basis
-)
 from fireworks.core.rocket_launcher import rapidfire
 from pymatgen.core.structure import Structure
+
+from atomate.utils.testing import DB_DIR, AtomateTest
+from atomate.vasp.powerups import use_custodian, use_fake_lobster, use_fake_vasp
+from atomate.vasp.workflows.base.lobster import (
+    get_wf_lobster,
+    get_wf_lobster_test_basis,
+)
 
 module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 
@@ -38,8 +38,12 @@ refs_dirs_si_lobster = {
     )
 }
 refs_dirs_si_vasp_opt = {
-    "optimization": os.path.join(module_dir, "../../test_files/lobster/si_vasp_with_opt/vasp_opt/"),
-    "static": os.path.join(module_dir, "../../test_files/lobster/si_vasp_with_opt/vasp/")
+    "optimization": os.path.join(
+        module_dir, "../../test_files/lobster/si_vasp_with_opt/vasp_opt/"
+    ),
+    "static": os.path.join(
+        module_dir, "../../test_files/lobster/si_vasp_with_opt/vasp/"
+    ),
 }
 
 refs_dirs_si_lobster_opt = {
@@ -63,12 +67,12 @@ refs_dirs_complex_lobster = {
 }
 
 refs_dirs_complex_vasp_opt = {
-"optimization": os.path.join(
+    "optimization": os.path.join(
         module_dir, "../../test_files/lobster/complex_vasp_lobster_opt/opt"
     ),
     "static": os.path.join(
         module_dir, "../../test_files/lobster/complex_vasp_lobster_opt/vasp"
-    )
+    ),
 }
 
 refs_dirs_complex_lobster_opt = {
@@ -118,7 +122,7 @@ class TestWFLobster(AtomateTest):
                 self.assertTrue(wavecar_present)
 
     def _single_vasp_lobster_optimization(
-            self, delete_wavecars=False, user_supplied_basis=None, fake=True
+        self, delete_wavecars=False, user_supplied_basis=None, fake=True
     ):
         # add the workflow
         structure = self.struct_si
@@ -129,7 +133,7 @@ class TestWFLobster(AtomateTest):
             delete_all_wavecars=delete_wavecars,
             user_supplied_basis=user_supplied_basis,
             additional_optimization=True,
-            user_kpoints_settings_optimization={"grid_density": 100}
+            user_kpoints_settings_optimization={"grid_density": 100},
         )
         if fake:
             my_wf = use_fake_vasp(my_wf, refs_dirs_si_vasp_opt)
@@ -151,7 +155,7 @@ class TestWFLobster(AtomateTest):
         self.assertTrue(all([s == "COMPLETED" for s in wf.fw_states.values()]))
 
     def _single_vasp_lobster(
-            self, delete_wavecars=False, user_supplied_basis=None, fake=True
+        self, delete_wavecars=False, user_supplied_basis=None, fake=True
     ):
         # add the workflow
         structure = self.struct_si
@@ -182,7 +186,7 @@ class TestWFLobster(AtomateTest):
         self.assertTrue(all([s == "COMPLETED" for s in wf.fw_states.values()]))
 
     def _single_lobster_db_insertion(
-            self, delete_wavecars=False, user_supplied_basis=None, fake=True
+        self, delete_wavecars=False, user_supplied_basis=None, fake=True
     ):
 
         structure = self.struct_si
@@ -312,7 +316,7 @@ class TestWFLobsterTestBasis(AtomateTest):
             c={"vasp_cmd": VASP_CMD, "DB_FILE": None},
             user_kpoints_settings={"grid_density": 100},
             delete_all_wavecars=False,
-            additional_optimization=True
+            additional_optimization=True,
         )
         if fake:
             my_wf = use_fake_vasp(my_wf, refs_dirs_complex_vasp_opt)
@@ -333,7 +337,6 @@ class TestWFLobsterTestBasis(AtomateTest):
 
         wf = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(all([s == "COMPLETED" for s in wf.fw_states.values()]))
-
 
     def _single_lobster_db_insertion(self, fake=True):
         structure = self.struct_mp
@@ -369,7 +372,6 @@ class TestWFLobsterTestBasis(AtomateTest):
     def test_single_vasp_lobster_opt(self):
         # will only test lobster_calculation_1
         self._single_vasp_lobster_opt(fake=True)
-
 
     def test_single_lobster_db_insertion(self):
         self._single_lobster_db_insertion(fake=True)
