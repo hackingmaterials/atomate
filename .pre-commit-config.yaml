@@ -1,4 +1,4 @@
-exclude: ^(docs/|docs_rst/|.*test_files/|.*tests/).*$
+exclude: ^(docs/|.*test_files/|.*tests/)
 
 repos:
   - repo: https://github.com/myint/autoflake

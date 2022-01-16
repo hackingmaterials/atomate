@@ -219,4 +219,3 @@ Which POTCAR file you want to use is controlled by the input set as well. The ea
 
 .. _pymatgen's vasp sets: http://pymatgen.org/pymatgen.io.vasp.sets.html
 .. _pymatgen.io.vasp.sets.MPHSERelaxSet: http://pymatgen.org/pymatgen.io.vasp.sets.html#pymatgen.io.vasp.sets.MPHSERelaxSet
-
