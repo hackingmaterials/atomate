@@ -107,14 +107,7 @@ class CalcDb(metaclass=ABCMeta):
             except Exception:
                 logger.error("Mongodb connection failed")
                 raise Exception
-            try:
-                if self.user:
-                    self.db.authenticate(
-                        self.user, self.password, source=kwargs.get("authsource", None)
-                    )
-            except Exception:
-                logger.error("Mongodb authentication failed")
-                raise ValueError
+
         self.collection = self.db[collection]
 
         # set counter collection
