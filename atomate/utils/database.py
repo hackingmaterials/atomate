@@ -134,7 +134,7 @@ class CalcDb(metaclass=ABCMeta):
 
     def insert(self, d, update_duplicates=True):
         """
-        Insert the task document ot the database collection.
+        Insert the task document to the database collection.
 
         Args:
             d (dict): task document

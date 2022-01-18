@@ -81,7 +81,7 @@ class RunVaspCustodian(FiretaskBase):
     Optional params:
         job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive
             jobs), "full_opt_run" (multiple optimizations), and "neb"
-        handler_group: (str or [ErrorHandler]) - group of handlers to use. See handler_groups dict in the code for
+        handler_group: (str | list[ErrorHandler]) - group of handlers to use. See handler_groups dict in the code or
             the groups and complete list of handlers in each group. Alternatively, you can
             specify a list of ErrorHandler objects.
         max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for
@@ -279,9 +279,8 @@ class RunVaspCustodian(FiretaskBase):
             handlers.append(WalltimeHandler(wall_time=self["wall_time"]))
 
         if job_type == "neb":
-            validators = (
-                []
-            )  # CINEB vasprun.xml sometimes incomplete, file structure different
+            # CINEB vasprun.xml sometimes incomplete, file structure different
+            validators = []
         else:
             validators = [VasprunXMLValidator(), VaspFilesValidator()]
 

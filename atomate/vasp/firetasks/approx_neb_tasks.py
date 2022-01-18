@@ -675,7 +675,7 @@ class AddSelectiveDynamics(FiretaskBase):
     def get_images_list(self, structure_docs, scheme, fixed_index, fixed_specie):
         """
         Returns a list of structure objects with selective
-        dynamics applied according ot the specified scheme.
+        dynamics applied according to the specified scheme.
 
         Args:
             structure_docs (list): list of structure

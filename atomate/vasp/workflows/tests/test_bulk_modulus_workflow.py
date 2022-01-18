@@ -138,7 +138,7 @@ class TestBulkModulusWorkflow(AtomateTest):
                         {"name": {"$regex": f"bulk_modulus deformation {i - 2}"}}
                     )
 
-                    # the fw tag (inluded in "name") is important in pulling tasks in the last FW
+                    # the fw tag (included in "name") is important in pulling tasks in the last FW
                     # in wf_bulk_modulus
                     d["task_label"] = new_fw["name"]
                     d["task_id"] += i + 1000000  # to avoid duplicate task_id

@@ -65,7 +65,7 @@ def get_wf_hubbard_hund_linresp(
     non-magnetic calculation, using WAVECAR
         spin_polarized: Perform spin-dependent perturbations
         applied_potential_range: Bounds of applied potential
-        num_evals: Number of perturbation evalutaions
+        num_evals: Number of perturbation evaluations
         site_indices_perturb: (must specify if species_perturb=None)
     List of site indices within
     Structure indicating perturbation sites;

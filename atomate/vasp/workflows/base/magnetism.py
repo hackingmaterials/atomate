@@ -49,7 +49,7 @@ def get_wf_magnetic_deformation(structure, c=None, vis=None):
 
     Args:
         structure: input structure, must be structure with magnetic
-    elements, such that pymatgen will initalize ferromagnetic input by
+    elements, such that pymatgen will initialize ferromagnetic input by
     default -- see MPRelaxSet.yaml for list of default elements
         c: Workflow config dict, in the same format
     as in presets/core.py and elsewhere in atomate

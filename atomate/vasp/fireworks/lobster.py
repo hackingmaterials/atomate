@@ -73,8 +73,8 @@ class LobsterFW(Firework):
                 specify a list of Validator objects.
             calculation_type (str): only 'standard' is fully implemented so far
             parents (Union[List[Firework],Firework]): parent Firework
-            prev_calc_dir (str): address to previous vasp calculation
-            prev_calc_loc (bool): If true, calc wil be started from previous directory
+            prev_calc_dir (str): address to previous VASP calculation
+            prev_calc_loc (bool): If true, calc will be started from previous directory
             user_supplied_basis (dict): the user can supply their own basis functions
             lobsterin_key_dict (dict): the user can supply additional changes to the lobsterin with {"COHPendEnergy":10.0}
             lobstertodb_kwargs (dict): dict that will be saved in the mongodb database

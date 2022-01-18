@@ -53,7 +53,7 @@ class AtomateTest(unittest.TestCase):
                 )
 
     # Note: the functions in matgendb.util, get_database and get_collection require db authentication
-    # but the db.json config file used for atomate testing purpose doesnt require db authentication.
+    # but the db.json config file used for atomate testing purpose doesn't require db authentication.
     # Hence the following 2 methods.
     def get_task_database(self):
         """
