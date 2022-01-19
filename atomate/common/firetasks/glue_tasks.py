@@ -231,7 +231,7 @@ class CreateFolder(FiretaskBase):
         if self.get("relative_path", True):
             new_dir = os.path.join(os.getcwd(), self["folder_name"])
         else:
-            new_dir = os.path.join(self["folder_name"])
+            new_dir = self["folder_name"]
         if not os.path.exists(new_dir):
             os.makedirs(new_dir)
         if self.get("change_dir", False):

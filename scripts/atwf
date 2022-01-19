@@ -35,7 +35,7 @@ common_params:
   db_file: None
 """
 
-presets_dir = os.path.join(os.path.dirname(os.path.abspath(core.__file__)))
+presets_dir = os.path.dirname(os.path.abspath(core.__file__))
 lpad = LaunchPad.auto_load()
 
 
