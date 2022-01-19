@@ -25,7 +25,7 @@ from pymatgen.analysis.magnetism import (
     magnetic_deformation,
 )
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
-from pymatgen.core import Structure
+from pymatgen.core.structure import Structure
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer

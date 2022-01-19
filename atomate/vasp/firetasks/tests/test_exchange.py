@@ -13,6 +13,13 @@ from atomate.vasp.firetasks.exchange import (
     VampireToDb,
 )
 
+from atomate.utils.testing import AtomateTest
+
+from pymatgen.core.structure import Structure
+from pymatgen.util.testing import PymatgenTest
+from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
+from pymatgen.io.vasp.sets import MPRelaxSet
+
 __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"
 

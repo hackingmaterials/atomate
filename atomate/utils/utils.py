@@ -9,7 +9,7 @@ from fireworks import Workflow
 from monty.json import MontyDecoder
 from monty.serialization import loadfn
 from pymatgen.alchemy.materials import TransformedStructure
-from pymatgen.core import Composition
+from pymatgen.core.composition import Composition
 from pymongo import MongoClient
 
 __author__ = "Anubhav Jain, Kiran Mathew"
@@ -137,25 +137,24 @@ def get_logger(
 
 
 def get_meta_from_structure(structure):
-    if isinstance(structure, TransformedStructure):
-        structure = structure.final_structure
+   if isinstance(structure, TransformedStructure):
+       structure = structure.final_structure
 
-    comp = structure.composition
-    elsyms = sorted({e.symbol for e in comp.elements})
-    meta = {
-        "nsites": structure.num_sites,
-        "elements": elsyms,
-        "nelements": len(elsyms),
-        "formula": comp.formula,
-        "formula_pretty": comp.reduced_formula,
-        "formula_reduced_abc": Composition(comp.reduced_formula).alphabetical_formula,
-        "formula_anonymous": comp.anonymized_formula,
-        "chemsys": "-".join(elsyms),
-        "is_ordered": structure.is_ordered,
-        "is_valid": structure.is_valid(),
-    }
-    return meta
-
+   comp = structure.composition
+   elsyms = sorted({e.symbol for e in comp.elements})
+   meta = {
+       "nsites": structure.num_sites,
+       "elements": elsyms,
+       "nelements": len(elsyms),
+       "formula": comp.formula,
+       "formula_pretty": comp.reduced_formula,
+       "formula_reduced_abc": Composition(comp.reduced_formula).alphabetical_formula,
+       "formula_anonymous": comp.anonymized_formula,
+       "chemsys": "-".join(elsyms),
+       "is_ordered": structure.is_ordered,
+       "is_valid": structure.is_valid(),
+   }
+   return meta
 
 def get_fws_and_tasks(workflow, fw_name_constraint=None, task_name_constraint=None):
     """

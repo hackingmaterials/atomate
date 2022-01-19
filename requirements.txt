@@ -1,4 +1,4 @@
-custodian==2021.2.8
+custodian==2022.1.17
 FireWorks==1.9.7
 maggma==0.29.2
 monty==2021.6.10
