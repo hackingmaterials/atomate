@@ -3,8 +3,9 @@ jobs:
   py3test:
     working_directory: ~/atomate
     docker:
-      - image: materialsvirtuallab/circle-ci-pmg-py3:3.7.3
-      - image: circleci/mongo:latest
+      - image: continuumio/miniconda3
+      - image: circleci/mongo
+      - image: gcc
     steps:
       - checkout
       - restore_cache:
@@ -12,7 +13,7 @@ jobs:
       - run:
           command: |
             export PATH=$HOME/miniconda3/bin:$PATH
-            conda create --quiet --yes --name test_env python=3.7
+            conda create --quiet --yes --name test_env python=3.8
             source activate test_env
             conda install --quiet --yes numpy scipy matplotlib sympy pandas
             conda install --quiet --yes -c conda-forge openbabel
@@ -36,8 +37,9 @@ jobs:
   py3devtest:
     working_directory: ~/atomate
     docker:
-      - image: materialsvirtuallab/circle-ci-pmg-py3:3.7.3
-      - image: circleci/mongo:latest
+      - image: continuumio/miniconda3
+      - image: circleci/mongo
+      - image: gcc
     steps:
       - checkout
       - restore_cache:
@@ -45,7 +47,7 @@ jobs:
       - run:
           command: |
             export PATH=$HOME/miniconda3/bin:$PATH
-            conda create --quiet --yes --name test_env python=3.7
+            conda create --quiet --yes --name test_env python=3.8
             source activate test_env
             conda install --quiet --yes numpy scipy matplotlib sympy pandas
             conda install --quiet --yes -c conda-forge openbabel
