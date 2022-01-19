@@ -13,7 +13,7 @@ __author__ = "Jimmy Shen <jmmshn@gmail.com>"
 from atomate.utils.database import CalcDb
 from atomate.utils.utils import get_logger
 
-MODULE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(MODULE_DIR, "..", "..", "common", "test_files")
 
 logger = get_logger(__name__)

@@ -30,7 +30,7 @@ logger = get_logger(__name__)
 
 __hubbard_hund_linresp_wf_version__ = 0.0
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_wf_hubbard_hund_linresp(

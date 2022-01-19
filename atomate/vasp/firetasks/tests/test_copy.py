@@ -7,7 +7,7 @@ from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 __author__ = "Anubhav Jain"
 __email__ = "ajain@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 DEBUG_MODE = False
 

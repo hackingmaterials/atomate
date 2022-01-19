@@ -12,7 +12,7 @@ from atomate.utils.testing import AtomateTest
 __author__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 @unittest.skipIf(not which("critic2"), "critic2 executable not present")

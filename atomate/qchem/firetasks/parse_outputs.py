@@ -46,9 +46,15 @@ class QChemToDb(FiretaskBase):
     """
 
     optional_params = [
-        "calc_dir", "calc_loc", "input_file", "output_file",
-        "additional_fields", "db_file", "fw_spec_field", "multirun",
-        "runs"
+        "calc_dir",
+        "calc_loc",
+        "input_file",
+        "output_file",
+        "additional_fields",
+        "db_file",
+        "fw_spec_field",
+        "multirun",
+        "runs",
     ]
 
     def run_task(self, fw_spec):

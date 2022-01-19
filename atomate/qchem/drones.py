@@ -243,16 +243,30 @@ class QChemDrone(AbstractDrone):
                 else:
                     if len(d["calcs_reversed"]) > 1:
                         first_calc = d["calcs_reversed"][-1]["input"]["rem"]["job_type"]
-                        second_calc = d["calcs_reversed"][-2]["input"]["rem"]["job_type"]
-                        if first_calc in ["freq", "frequency"] and second_calc in ["opt", "optimization", "ts"]:
-                            d["output"]["optimized_molecule"] = d_calc_final["initial_molecule"]
-                            d["output"]["final_energy"] = d["calcs_reversed"][1]["final_energy"]
+                        second_calc = d["calcs_reversed"][-2]["input"]["rem"][
+                            "job_type"
+                        ]
+                        if first_calc in ["freq", "frequency"] and second_calc in [
+                            "opt",
+                            "optimization",
+                            "ts",
+                        ]:
+                            d["output"]["optimized_molecule"] = d_calc_final[
+                                "initial_molecule"
+                            ]
+                            d["output"]["final_energy"] = d["calcs_reversed"][1][
+                                "final_energy"
+                            ]
 
             if d["output"]["job_type"] == "pes_scan":
                 d["output"]["scan_energies"] = d_calc_final.get("scan_energies")
                 d["input"]["scan_variables"] = d_calc_final.get("scan_variables")
-                d["output"]["scan_geometries"] = d_calc_final.get("optimized_geometries")
-                d["output"]["scan_molecules"] = d_calc_final.get("molecules_from_optimized_geometries")
+                d["output"]["scan_geometries"] = d_calc_final.get(
+                    "optimized_geometries"
+                )
+                d["output"]["scan_molecules"] = d_calc_final.get(
+                    "molecules_from_optimized_geometries"
+                )
 
             if d["output"]["job_type"] == "force":
                 d["output"]["gradients"] = d_calc_final["gradients"][0]
@@ -267,8 +281,8 @@ class QChemDrone(AbstractDrone):
             for calc in calcs:
                 job_type = calc["input"]["rem"]["job_type"]
                 if job_type in ["opt", "optimization", "ts"]:
-                    for ii,geom in enumerate(calc["geometries"]):
-                        site_properties = {"Mulliken":calc["Mulliken"][ii]}
+                    for ii, geom in enumerate(calc["geometries"]):
+                        site_properties = {"Mulliken": calc["Mulliken"][ii]}
                         if "RESP" in calc:
                             site_properties["RESP"] = calc["RESP"][ii]
                         mol = Molecule(
@@ -326,12 +340,17 @@ class QChemDrone(AbstractDrone):
 
             d["state"] = "successful" if d_calc_final["completion"] else "unsuccessful"
             if "special_run_type" in d:
-                if d["special_run_type"] in ["frequency_flattener", "ts_frequency_flattener"]:
+                if d["special_run_type"] in [
+                    "frequency_flattener",
+                    "ts_frequency_flattener",
+                ]:
                     if d["state"] == "successful":
                         orig_num_neg_freq = None
                         for calc in d["calcs_reversed"][::-1]:
                             if "frequencies" in calc:
-                                orig_num_neg_freq = sum(1 for freq in calc["frequencies"] if freq < 0)
+                                orig_num_neg_freq = sum(
+                                    1 for freq in calc["frequencies"] if freq < 0
+                                )
                                 break
                         orig_energy = None
                         for calc in d["calcs_reversed"][::-1]:
@@ -339,23 +358,41 @@ class QChemDrone(AbstractDrone):
                                 if calc["final_energy"] is not None:
                                     orig_energy = calc["final_energy"]
                                     break
-                        final_num_neg_freq = sum(1 for freq in d_calc_final["frequencies"] if freq < 0)
+                        final_num_neg_freq = sum(
+                            1 for freq in d_calc_final["frequencies"] if freq < 0
+                        )
                         final_energy = d["calcs_reversed"][1]["final_energy"]
                         if orig_num_neg_freq is None:
                             d["num_frequencies_flattened"] = 0
                         else:
-                            d["num_frequencies_flattened"] = orig_num_neg_freq - final_num_neg_freq
+                            d["num_frequencies_flattened"] = (
+                                orig_num_neg_freq - final_num_neg_freq
+                            )
 
                         if d["special_run_type"] == "frequency_flattener":
-                            if final_num_neg_freq > 0: # If a negative frequency remains,
+                            if (
+                                final_num_neg_freq > 0
+                            ):  # If a negative frequency remains,
                                 # and it's too large to ignore,
-                                if final_num_neg_freq > 1 or abs(d["output"]["frequencies"][0]) >= 15.0:
-                                    d["state"] = "unsuccessful" # then the flattening was unsuccessful
+                                if (
+                                    final_num_neg_freq > 1
+                                    or abs(d["output"]["frequencies"][0]) >= 15.0
+                                ):
+                                    d[
+                                        "state"
+                                    ] = "unsuccessful"  # then the flattening was unsuccessful
                         else:
-                            if final_num_neg_freq > 1: # If a negative frequency remains,
+                            if (
+                                final_num_neg_freq > 1
+                            ):  # If a negative frequency remains,
                                 # and it's too large to ignore,
-                                if final_num_neg_freq > 2 or abs(d["output"]["frequencies"][1]) >= 15.0:
-                                    d["state"] = "unsuccessful" # then the flattening was unsuccessful
+                                if (
+                                    final_num_neg_freq > 2
+                                    or abs(d["output"]["frequencies"][1]) >= 15.0
+                                ):
+                                    d[
+                                        "state"
+                                    ] = "unsuccessful"  # then the flattening was unsuccessful
                         if final_energy > orig_energy:
                             d["warnings"]["energy_increased"] = True
 

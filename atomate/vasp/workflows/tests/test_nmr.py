@@ -10,7 +10,7 @@ from atomate.utils.testing import AtomateTest
 from atomate.vasp.powerups import use_custodian, use_fake_vasp
 from atomate.vasp.workflows.presets.core import wf_nmr
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "..", "..", "test_files", "nmr_wf")
 

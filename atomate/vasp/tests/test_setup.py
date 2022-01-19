@@ -8,7 +8,7 @@ from pymatgen.io.vasp.sets import MPRelaxSet
 __author__ = "Anubhav Jain, Kiran Mathew"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestSetup(unittest.TestCase):

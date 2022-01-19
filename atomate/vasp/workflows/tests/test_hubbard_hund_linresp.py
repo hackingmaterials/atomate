@@ -9,7 +9,7 @@ from atomate.vasp.firetasks.parse_outputs import HubbardHundLinRespToDb
 __author__ = "Guy Moore"
 __email__ = "gmoore@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 ref_dir = os.path.join(module_dir, "..", "..", "test_files", "hubbard_hund_linresp_wf")
 

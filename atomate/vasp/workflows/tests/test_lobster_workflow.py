@@ -15,7 +15,7 @@ from atomate.vasp.workflows.base.lobster import (
     get_wf_lobster_test_basis,
 )
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 DEBUG_MODE = (
     True  # If True, retains the database and output dirs at the end of the test

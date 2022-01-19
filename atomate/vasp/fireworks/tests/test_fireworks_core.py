@@ -20,7 +20,7 @@ from atomate.vasp.fireworks.core import (
 __author__ = "Shyam Dwaraknath"
 __email__ = "shyamd@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "..", "..", "test_files")
 

@@ -15,7 +15,7 @@ from atomate.vasp.workflows.base.magnetism import MagneticOrderingsWF
 __author__ = "Matthew Horton"
 __email__ = "mkhorton@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 ref_dir = os.path.join(module_dir, "..", "..", "test_files", "magnetism_wf")
 

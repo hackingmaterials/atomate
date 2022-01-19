@@ -19,7 +19,7 @@ from atomate.vasp.firetasks.lobster_tasks import (
 )
 
 DB_FILE = os.path.join(DB_DIR, "db.json")
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestWriteLobsterinputfromIO(AtomateTest):
