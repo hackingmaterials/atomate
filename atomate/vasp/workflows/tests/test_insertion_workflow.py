@@ -119,8 +119,10 @@ class TestInsertionWorkflow(AtomateTest):
                 }
             ),
         )
-        formula = self.get_task_collection(coll_name="tasks").distinct("formula_pretty")
-        self.assertEqual(set(formula), {"Y2Mg(PO4)2", "YPO4"})
+        formulas = self.get_task_collection(coll_name="tasks").distinct(
+            "formula_pretty"
+        )
+        self.assertEqual(set(formulas), {"YPO4"})
 
         self.lp.add_wf(self.wf)
         rapidfire(
@@ -133,7 +135,9 @@ class TestInsertionWorkflow(AtomateTest):
             ),
         )
         # Check that all of the inserted pretty formulas are present
-        formula = self.get_task_collection(coll_name="tasks").distinct("formula_pretty")
+        formulas = self.get_task_collection(coll_name="tasks").distinct(
+            "formula_pretty"
+        )
         self.assertEqual(
-            set(formula), {"Y2Mg(PO4)2", "Y2Mg3(PO4)2", "YMg2PO4", "YMgPO4", "YPO4"}
+            set(formulas), {"Y2Mg(PO4)2", "Y2Mg3(PO4)2", "YMg2PO4", "YMgPO4", "YPO4"}
         )
