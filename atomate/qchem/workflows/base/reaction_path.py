@@ -2,7 +2,8 @@
 # and then identifying the reaction path
 
 from fireworks import Workflow
-from atomate.qchem.fireworks.core import (FrequencyFlatteningOptimizeFW)
+
+from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
 from atomate.utils.utils import get_logger
 
 __author__ = "Evan Spotte-Smith"
@@ -17,17 +18,19 @@ __credits__ = "Sam Blau, Alex Epstein, Trevor Seguin"
 logger = get_logger(__name__)
 
 
-def get_wf_reaction_path_with_ts(molecule,
-                                 mode,
-                                 suffix,
-                                 scale=1.0,
-                                 qchem_cmd=">>qchem_cmd<<",
-                                 max_cores=">>max_cores<<",
-                                 multimode=">>multimode<<",
-                                 qchem_input_params=None,
-                                 name="reaction_path_with_ts",
-                                 db_file=">>db_file<<",
-                                 **kwargs):
+def get_wf_reaction_path_with_ts(
+    molecule,
+    mode,
+    suffix,
+    scale=1.0,
+    qchem_cmd=">>qchem_cmd<<",
+    max_cores=">>max_cores<<",
+    multimode=">>multimode<<",
+    qchem_input_params=None,
+    name="reaction_path_with_ts",
+    db_file=">>db_file<<",
+    **kwargs,
+):
     """
     Firework 1: Perturb the given molecule along the given frequency
                 mode in the forwards direction,
@@ -80,7 +83,8 @@ def get_wf_reaction_path_with_ts(molecule,
         scale=1.0 * scale,
         mode=mode,
         linked=True,
-        db_file=db_file)
+        db_file=db_file,
+    )
 
     fw2 = FrequencyFlatteningOptimizeFW(
         molecule=molecule,
@@ -93,7 +97,8 @@ def get_wf_reaction_path_with_ts(molecule,
         scale=-1.0 * scale,
         mode=mode,
         linked=True,
-        db_file=db_file)
+        db_file=db_file,
+    )
 
     fws = [fw1, fw2]
 

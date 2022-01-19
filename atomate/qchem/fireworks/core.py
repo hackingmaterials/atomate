@@ -1,22 +1,17 @@
 # Defines standardized Fireworks that can be chained easily to perform various
 # sequences of QChem calculations.
 
+import copy
 from itertools import chain
-import os
-import copy
-
-import copy
 
 from fireworks import Firework
 
 from atomate.qchem.firetasks.critic2 import ProcessCritic2, RunCritic2
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
+from atomate.qchem.firetasks.geo_transformations import PerturbGeometry
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
-from atomate.qchem.firetasks.fragmenter import FragmentMolecule
-from atomate.qchem.firetasks.critic2 import RunCritic2, ProcessCritic2
-from atomate.qchem.firetasks.geo_transformations import PerturbGeometry
 
 __author__ = "Samuel Blau, Evan Spotte-Smith"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -252,16 +247,18 @@ class OptimizeFW(Firework):
 
 
 class TransitionStateFW(Firework):
-    def __init__(self,
-                 molecule=None,
-                 name="transition state structure optimization",
-                 qchem_cmd=">>qchem_cmd<<",
-                 multimode=">>multimode<<",
-                 max_cores=">>max_cores<<",
-                 qchem_input_params=None,
-                 db_file=None,
-                 parents=None,
-                 **kwargs):
+    def __init__(
+        self,
+        molecule=None,
+        name="transition state structure optimization",
+        qchem_cmd=">>qchem_cmd<<",
+        multimode=">>multimode<<",
+        max_cores=">>max_cores<<",
+        qchem_input_params=None,
+        db_file=None,
+        parents=None,
+        **kwargs
+    ):
         """
         Optimize the given molecule to a saddle point of the potential energy surface (transition
         state).
@@ -303,7 +300,9 @@ class TransitionStateFW(Firework):
                 molecule=molecule,
                 qchem_input_set="TransitionStateSet",
                 input_file=input_file,
-                qchem_input_params=qchem_input_params))
+                qchem_input_params=qchem_input_params,
+            )
+        )
         t.append(
             RunQChemCustodian(
                 qchem_cmd=qchem_cmd,
@@ -311,18 +310,18 @@ class TransitionStateFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
-                job_type="normal"))
+                job_type="normal",
+            )
+        )
         t.append(
             QChemToDb(
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
-                additional_fields={"task_label": name}))
-        super().__init__(
-            t,
-            parents=parents,
-            name=name,
-            **kwargs)
+                additional_fields={"task_label": name},
+            )
+        )
+        super().__init__(t, parents=parents, name=name, **kwargs)
 
 
 class FrequencyFW(Firework):
@@ -404,17 +403,19 @@ class FrequencyFW(Firework):
 
 
 class PESScanFW(Firework):
-    def __init__(self,
-                 molecule=None,
-                 name="potential energy surface scan",
-                 qchem_cmd=">>qchem_cmd<<",
-                 multimode=">>multimode<<",
-                 max_cores=">>max_cores<<",
-                 qchem_input_params=None,
-                 scan_variables=None,
-                 db_file=None,
-                 parents=None,
-                 **kwargs):
+    def __init__(
+        self,
+        molecule=None,
+        name="potential energy surface scan",
+        qchem_cmd=">>qchem_cmd<<",
+        multimode=">>multimode<<",
+        max_cores=">>max_cores<<",
+        qchem_input_params=None,
+        scan_variables=None,
+        db_file=None,
+        parents=None,
+        **kwargs
+    ):
         """
         Perform a potential energy surface scan by varying bond lengths, angles,
         and/or dihedral angles in a molecule.
@@ -446,8 +447,10 @@ class PESScanFW(Firework):
         """
 
         if scan_variables is None:
-            raise ValueError("Some variable input must be given! Provide some "
-                             "bond, angle, or dihedral angle information.")
+            raise ValueError(
+                "Some variable input must be given! Provide some "
+                "bond, angle, or dihedral angle information."
+            )
 
         qchem_input_params = qchem_input_params or dict()
         qchem_input_params["scan_variables"] = scan_variables
@@ -460,7 +463,9 @@ class PESScanFW(Firework):
                 molecule=molecule,
                 qchem_input_set="PESScanSet",
                 input_file=input_file,
-                qchem_input_params=qchem_input_params))
+                qchem_input_params=qchem_input_params,
+            )
+        )
         t.append(
             RunQChemCustodian(
                 qchem_cmd=qchem_cmd,
@@ -468,38 +473,40 @@ class PESScanFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
-                job_type="normal"))
+                job_type="normal",
+            )
+        )
         t.append(
             QChemToDb(
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
-                additional_fields={"task_label": name}))
-        super().__init__(
-            t,
-            parents=parents,
-            name=name,
-            **kwargs)
+                additional_fields={"task_label": name},
+            )
+        )
+        super().__init__(t, parents=parents, name=name, **kwargs)
 
 
 class FrequencyFlatteningOptimizeFW(Firework):
-    def __init__(self,
-                 molecule=None,
-                 name="frequency flattening structure optimization",
-                 qchem_cmd=">>qchem_cmd<<",
-                 multimode=">>multimode<<",
-                 max_cores=">>max_cores<<",
-                 qchem_input_params=None,
-                 max_iterations=10,
-                 max_molecule_perturb_scale=0.3,
-                 linked=True,
-                 freq_before_opt=False,
-                 perturb_geometry=False,
-                 mode=None,
-                 scale=1.0,
-                 db_file=None,
-                 parents=None,
-                 **kwargs):
+    def __init__(
+        self,
+        molecule=None,
+        name="frequency flattening structure optimization",
+        qchem_cmd=">>qchem_cmd<<",
+        multimode=">>multimode<<",
+        max_cores=">>max_cores<<",
+        qchem_input_params=None,
+        max_iterations=10,
+        max_molecule_perturb_scale=0.3,
+        linked=True,
+        freq_before_opt=False,
+        perturb_geometry=False,
+        mode=None,
+        scale=1.0,
+        db_file=None,
+        parents=None,
+        **kwargs
+    ):
         """
         Iteratively optimize the given structure and flatten imaginary frequencies to ensure that
         the resulting structure is a true minima and not a saddle point.
@@ -549,10 +556,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
         t = []
 
         if perturb_geometry:
-            t.append(PerturbGeometry(
-                molecule=molecule,
-                mode=mode,
-                scale=scale))
+            t.append(PerturbGeometry(molecule=molecule, mode=mode, scale=scale))
 
             # Make sure that subsequent firetasks use the perturbed Molecule
             molecule = None
@@ -563,14 +567,18 @@ class FrequencyFlatteningOptimizeFW(Firework):
                     molecule=molecule,
                     qchem_input_set="FreqSet",
                     input_file=input_file,
-                    qchem_input_params=qchem_input_params))
+                    qchem_input_params=qchem_input_params,
+                )
+            )
         else:
             t.append(
                 WriteInputFromIOSet(
                     molecule=molecule,
                     qchem_input_set="OptSet",
                     input_file=input_file,
-                    qchem_input_params=qchem_input_params))
+                    qchem_input_params=qchem_input_params,
+                )
+            )
 
         t.append(
             RunQChemCustodian(
@@ -583,8 +591,9 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 max_iterations=max_iterations,
                 max_molecule_perturb_scale=max_molecule_perturb_scale,
                 linked=linked,
-                freq_before_opt=freq_before_opt
-            ))
+                freq_before_opt=freq_before_opt,
+            )
+        )
         t.append(
             QChemToDb(
                 db_file=db_file,
@@ -601,23 +610,25 @@ class FrequencyFlatteningOptimizeFW(Firework):
 
 
 class FrequencyFlatteningTransitionStateFW(Firework):
-    def __init__(self,
-                 molecule=None,
-                 name="frequency flattening transition state optimization",
-                 qchem_cmd=">>qchem_cmd<<",
-                 multimode=">>multimode<<",
-                 max_cores=">>max_cores<<",
-                 qchem_input_params=None,
-                 max_iterations=3,
-                 max_molecule_perturb_scale=0.3,
-                 linked=True,
-                 freq_before_opt=True,
-                 perturb_geometry=False,
-                 mode=None,
-                 scale=1,
-                 db_file=None,
-                 parents=None,
-                 **kwargs):
+    def __init__(
+        self,
+        molecule=None,
+        name="frequency flattening transition state optimization",
+        qchem_cmd=">>qchem_cmd<<",
+        multimode=">>multimode<<",
+        max_cores=">>max_cores<<",
+        qchem_input_params=None,
+        max_iterations=3,
+        max_molecule_perturb_scale=0.3,
+        linked=True,
+        freq_before_opt=True,
+        perturb_geometry=False,
+        mode=None,
+        scale=1,
+        db_file=None,
+        parents=None,
+        **kwargs
+    ):
         """
         Iteratively optimize the transition state structure and flatten imaginary frequencies to
         ensure that the resulting structure is a true transition state.
@@ -669,18 +680,18 @@ class FrequencyFlatteningTransitionStateFW(Firework):
         qchem_input_params = qchem_input_params or {}
         input_file = "mol.qin"
         output_file = "mol.qout"
-        runs = list(chain.from_iterable([["ts_" + str(ii), "freq_" + str(ii)]
-                                         for ii in range(10)]))
+        runs = list(
+            chain.from_iterable(
+                [["ts_" + str(ii), "freq_" + str(ii)] for ii in range(10)]
+            )
+        )
         if freq_before_opt:
             runs.insert(0, "freq_pre")
 
         t = list()
 
         if perturb_geometry:
-            t.append(PerturbGeometry(
-                molecule=molecule,
-                mode=mode,
-                scale=scale))
+            t.append(PerturbGeometry(molecule=molecule, mode=mode, scale=scale))
 
             # Make sure that subsequent firetasks use the perturbed Molecule
             molecule = None
@@ -691,14 +702,18 @@ class FrequencyFlatteningTransitionStateFW(Firework):
                     molecule=molecule,
                     qchem_input_set="FreqSet",
                     input_file=input_file,
-                    qchem_input_params=qchem_input_params))
+                    qchem_input_params=qchem_input_params,
+                )
+            )
         else:
             t.append(
                 WriteInputFromIOSet(
                     molecule=molecule,
                     qchem_input_set="TransitionStateSet",
                     input_file=input_file,
-                    qchem_input_params=qchem_input_params))
+                    qchem_input_params=qchem_input_params,
+                )
+            )
 
         t.append(
             RunQChemCustodian(
@@ -712,7 +727,9 @@ class FrequencyFlatteningTransitionStateFW(Firework):
                 max_molecule_perturb_scale=max_molecule_perturb_scale,
                 transition_state=True,
                 linked=linked,
-                freq_before_opt=freq_before_opt))
+                freq_before_opt=freq_before_opt,
+            )
+        )
         t.append(
             QChemToDb(
                 db_file=db_file,
@@ -722,14 +739,12 @@ class FrequencyFlatteningTransitionStateFW(Firework):
                 additional_fields={
                     "task_label": name,
                     "special_run_type": "ts_frequency_flattener",
-                    "linked": linked
-                }))
+                    "linked": linked,
+                },
+            )
+        )
 
-        super().__init__(
-            t,
-            parents=parents,
-            name=name,
-            **kwargs)
+        super().__init__(t, parents=parents, name=name, **kwargs)
 
 
 class FragmentFW(Firework):

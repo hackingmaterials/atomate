@@ -91,11 +91,24 @@ class RunQChemCustodian(FiretaskBase):
 
     required_params = ["qchem_cmd"]
     optional_params = [
-        "multimode", "input_file", "output_file", "max_cores", "qclog_file",
-        "suffix", "calc_loc", "save_scratch", "max_errors", "job_type",
-        "handler_group", "gzipped_output", "backup", "linked",
-        "max_iterations", "max_molecule_perturb_scale", "freq_before_opt",
-        "transition_state"
+        "multimode",
+        "input_file",
+        "output_file",
+        "max_cores",
+        "qclog_file",
+        "suffix",
+        "calc_loc",
+        "save_scratch",
+        "max_errors",
+        "job_type",
+        "handler_group",
+        "gzipped_output",
+        "backup",
+        "linked",
+        "max_iterations",
+        "max_molecule_perturb_scale",
+        "freq_before_opt",
+        "transition_state",
     ]
 
     def run_task(self, fw_spec):

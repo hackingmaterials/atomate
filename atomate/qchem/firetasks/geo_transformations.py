@@ -77,7 +77,9 @@ class PerturbGeometry(FiretaskBase):
         elif fw_spec.get("prev_calc_molecule"):
             mol = fw_spec.get("prev_calc_molecule")
         else:
-            raise KeyError("No molecule present; add as an optional param or check fw_spec")
+            raise KeyError(
+                "No molecule present; add as an optional param or check fw_spec"
+            )
 
         if self.get("mode") is not None:
             mode = self.get("mode")
