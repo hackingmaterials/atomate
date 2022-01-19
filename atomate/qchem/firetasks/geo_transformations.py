@@ -1,4 +1,9 @@
-# This module defines firetasks for writing QChem input files
+# coding: utf-8
+
+
+# This module defines firetasks for modifying molecular geometries
+
+import copy
 
 import numpy as np
 from fireworks import FiretaskBase, FWAction, explicit_serialize
@@ -56,5 +61,38 @@ class RotateTorsion(FiretaskBase):
 
         # update the fw_spec with the rotated geometry
         update_spec = {"prev_calc_molecule": rotated_mol}
+
+        return FWAction(update_spec=update_spec)
+
+
+@explicit_serialize
+class PerturbGeometry(FiretaskBase):
+    """
+    Modify a Molecule geometry.
+    """
+
+    required_params = list()
+    optional_params = ["molecule", "mode", "scale"]
+
+    def run_task(self, fw_spec):
+        if self.get("molecule"):
+            mol = self.get("molecule")
+        elif fw_spec.get("prev_calc_molecule"):
+            mol = fw_spec.get("prev_calc_molecule")
+        else:
+            raise KeyError("No molecule present; add as an optional param or check fw_spec")
+
+        if self.get("mode") is not None:
+            mode = self.get("mode")
+        else:
+            raise KeyError("No mode present; add as an optional param or check fw_spec")
+
+        mol_copy = copy.deepcopy(mol)
+
+        for ii in range(len(mol)):
+            vec = np.array(mode[ii])
+            mol_copy.translate_sites(indices=[ii], vector=vec * self.get("scale", 1.0))
+
+        update_spec = {"prev_calc_molecule": mol_copy}
 
         return FWAction(update_spec=update_spec)

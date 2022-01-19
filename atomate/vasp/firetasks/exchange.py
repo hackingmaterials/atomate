@@ -1,5 +1,7 @@
 from fireworks import FiretaskBase, FWAction, explicit_serialize
+
 from monty.serialization import dumpfn, loadfn
+
 from pymatgen.analysis.magnetism.heisenberg import HeisenbergMapper, HeisenbergModel
 from pymatgen.command_line.vampire_caller import VampireCaller
 

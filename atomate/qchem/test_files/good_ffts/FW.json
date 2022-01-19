@@ -1,0 +1,359 @@
+{
+    "spec": {
+        "tags": {
+            "class": "ts_testing",
+            "set": "20210109_co2_evolution"
+        },
+        "_tasks": [
+            {
+                "molecule": {
+                    "@module": "pymatgen.core.structure",
+                    "@class": "Molecule",
+                    "charge": 0,
+                    "spin_multiplicity": 1,
+                    "sites": [
+                        {
+                            "name": "O",
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -1.96485,
+                                2.21558,
+                                -0.013
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -1.47622,
+                                1.04853,
+                                0.00546
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "O",
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -2.19063,
+                                0.01313,
+                                0.0726
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "O",
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -0.15865,
+                                0.97911,
+                                -0.03871
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                0.6177,
+                                -0.89598,
+                                0.00429
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "O",
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                2.65255,
+                                -1.95836,
+                                -0.00771
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                4.016,
+                                -2.05271,
+                                -0.00383
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "C",
+                            "species": [
+                                {
+                                    "element": "C",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                2.1002,
+                                -0.65302,
+                                -0.00327
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "O",
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                4.70868,
+                                -1.01333,
+                                0.01727
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "O",
+                            "species": [
+                                {
+                                    "element": "O",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                4.46437,
+                                -3.22387,
+                                -0.00737
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "Li",
+                            "species": [
+                                {
+                                    "element": "Li",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                -3.67197,
+                                1.28861,
+                                0.06184
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "Li",
+                            "species": [
+                                {
+                                    "element": "Li",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                6.1889,
+                                -2.2976,
+                                -0.01646
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                0.23654,
+                                -1.40588,
+                                -0.88813
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                0.26308,
+                                -1.41793,
+                                0.90289
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                2.40959,
+                                -0.08327,
+                                -0.88717
+                            ],
+                            "properties": {}
+                        },
+                        {
+                            "name": "H",
+                            "species": [
+                                {
+                                    "element": "H",
+                                    "occu": 1
+                                }
+                            ],
+                            "xyz": [
+                                2.41315,
+                                -0.10157,
+                                0.89201
+                            ],
+                            "properties": {}
+                        }
+                    ]
+                },
+                "qchem_input_set": "FreqSet",
+                "input_file": "mol.qin",
+                "qchem_input_params": {
+                    "dft_rung": 4,
+                    "basis_set": "def2-svpd",
+                    "smd_solvent": "custom",
+                    "custom_smd": "18.5,1.415,0.00,0.735,20.2,0.00,0.00",
+                    "overwrite_inputs": {
+                        "rem": {
+                            "thresh": "14",
+                            "scf_algorithm": "diis"
+                        }
+                    }
+                },
+                "_fw_name": "{{atomate.qchem.firetasks.write_inputs.WriteInputFromIOSet}}"
+            },
+            {
+                "qchem_cmd": ">>qchem_cmd<<",
+                "multimode": ">>multimode<<",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "max_cores": ">>max_cores<<",
+                "job_type": "opt_with_frequency_flattener",
+                "max_iterations": 3,
+                "max_molecule_perturb_scale": 0.3,
+                "transition_state": true,
+                "linked": true,
+                "freq_before_opt": true,
+                "_fw_name": "{{atomate.qchem.firetasks.run_calc.RunQChemCustodian}}"
+            },
+            {
+                "db_file": ">>db_file<<",
+                "input_file": "mol.qin",
+                "output_file": "mol.qout",
+                "runs": [
+                    "freq_pre",
+                    "ts_0",
+                    "freq_0",
+                    "ts_1",
+                    "freq_1",
+                    "ts_2",
+                    "freq_2",
+                    "ts_3",
+                    "freq_3",
+                    "ts_4",
+                    "freq_4",
+                    "ts_5",
+                    "freq_5",
+                    "ts_6",
+                    "freq_6",
+                    "ts_7",
+                    "freq_7",
+                    "ts_8",
+                    "freq_8",
+                    "ts_9",
+                    "freq_9"
+                ],
+                "additional_fields": {
+                    "task_label": "ledc_carbonate_loss.xyz: wb97xv/def2-svpd/smd",
+                    "special_run_type": "ts_frequency_flattener",
+                    "linked": true
+                },
+                "_fw_name": "{{atomate.qchem.firetasks.parse_outputs.QChemToDb}}"
+            }
+        ]
+    },
+    "fw_id": 831495,
+    "created_on": "2021-01-10T01:25:49.887435",
+    "updated_on": "2021-01-10T09:25:49.442394",
+    "launches": [
+        {
+            "fworker": {
+                "name": "lr_qchem_dev",
+                "category": "",
+                "query": "{\"spec.tags.class\": {\"$regex\": \"ts_testing\"}}",
+                "env": {
+                    "db_file": "/global/home/users/ewcspottesmith/config/atomate/sam_db.json",
+                    "calc_loc": "/tmp",
+                    "qchem_cmd": "qchem -save",
+                    "max_cores": 40,
+                    "multimode": "openmp"
+                }
+            },
+            "fw_id": 831495,
+            "launch_dir": "/clusterfs/mp/ewcspottesmith/data/ts_testing/20210108_misc_ts/block_2021-01-08-16-49-51-352937/launcher_2021-01-10-01-27-03-584595",
+            "host": "n0234.lr6",
+            "ip": "10.0.41.234",
+            "trackers": [],
+            "action": null,
+            "state": "RUNNING",
+            "state_history": [
+                {
+                    "state": "RUNNING",
+                    "created_on": "2021-01-10T09:25:49.437041",
+                    "updated_on": "2021-01-10T09:25:49.437046"
+                }
+            ],
+            "launch_id": 712361
+        }
+    ],
+    "state": "RUNNING",
+    "name": "ledc_carbonate_loss.xyz: wb97xv/def2-svpd/smd"
+}
