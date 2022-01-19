@@ -10,6 +10,11 @@ jobs:
   test:
     if: github.repository_owner == 'hackingmaterials' # don't run on forks
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
 
     steps:
       - name: Checkout repo
@@ -22,6 +27,7 @@ jobs:
 
       - name: Install OpenBabel
         run: |
+          # underlying C++ lib needed for Python openbabel wrapper installed by `pip install .`
           sudo apt-get install libopenbabel-dev
           # https://github.com/openbabel/openbabel/issues/2408#issuecomment-1014466193
           sudo ln -s /usr/include/openbabel3 /usr/local/include/openbabel3
@@ -36,8 +42,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          which pip
-          pip --version
           pip install -r requirements-ci.txt
           pip install .[complete]
 
