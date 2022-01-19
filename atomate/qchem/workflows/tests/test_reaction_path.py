@@ -1,15 +1,16 @@
+import copy
 import os
 import unittest
-import copy
-import numpy as np
 
+import numpy as np
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
-from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
 from pymatgen.io.qchem.outputs import QCOutput
+
 from atomate.qchem.powerups import use_fake_qchem
 from atomate.qchem.workflows.base.reaction_path import get_wf_reaction_path_with_ts
+from atomate.utils.testing import AtomateTest
 
 __author__ = "Evan Spotte-Smith"
 __copyright__ = "Copyright 2021, The Materials Project"

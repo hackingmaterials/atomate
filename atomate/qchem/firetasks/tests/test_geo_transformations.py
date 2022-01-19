@@ -1,12 +1,12 @@
 import os
 import unittest
 
-from atomate.qchem.firetasks.geo_transformations import RotateTorsion, PerturbGeometry
-from atomate.utils.testing import AtomateTest
+import numpy as np
 from pymatgen.core.structure import Molecule
-import numpy as np
 from pymatgen.io.qchem.outputs import QCOutput
-import numpy as np
+
+from atomate.qchem.firetasks.geo_transformations import PerturbGeometry, RotateTorsion
+from atomate.utils.testing import AtomateTest
 
 __author__ = "Brandon Wood, Evan Spotte-Smith"
 __email__ = "b.wood@berkeley.edu"
