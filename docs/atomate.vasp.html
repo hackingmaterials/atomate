@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>atomate.vasp package &#8212; atomate 1.0.1 documentation</title>
+    <title>atomate.vasp package &#8212; atomate 1.0.2 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.vasp package</a></li> 
       </ul>
     </div>  
@@ -46,6 +46,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="atomate.vasp.analysis.html">atomate.vasp.analysis package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.analysis.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atomate.vasp.analysis.html#module-atomate.vasp.analysis.linear_response">atomate.vasp.analysis.linear_response module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.analysis.html#module-atomate.vasp.analysis.phonopy">atomate.vasp.analysis.phonopy module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="atomate.vasp.analysis.html#module-atomate.vasp.analysis">Module contents</a></li>
 </ul>
@@ -139,6 +140,7 @@
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-exchange-module">atomate.vasp.workflows.base.exchange module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-ferroelectric-module">atomate.vasp.workflows.base.ferroelectric module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-gibbs-module">atomate.vasp.workflows.base.gibbs module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-hubbard-hund-linresp-module">atomate.vasp.workflows.base.hubbard_hund_linresp module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-lobster-module">atomate.vasp.workflows.base.lobster module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-magnetism-module">atomate.vasp.workflows.base.magnetism module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.base.html#atomate-vasp-workflows-base-neb-module">atomate.vasp.workflows.base.neb module</a></li>
@@ -162,6 +164,7 @@
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-elastic-workflow-module">atomate.vasp.workflows.tests.test_elastic_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-exchange-workflow-module">atomate.vasp.workflows.tests.test_exchange_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-ferroelectric-workflow-module">atomate.vasp.workflows.tests.test_ferroelectric_workflow module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-hubbard-hund-linresp-module">atomate.vasp.workflows.tests.test_hubbard_hund_linresp module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-insertion-workflow-module">atomate.vasp.workflows.tests.test_insertion_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-lobster-workflow-module">atomate.vasp.workflows.tests.test_lobster_workflow module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="atomate.vasp.workflows.tests.html#atomate-vasp-workflows-tests-test-magnetism-workflow-module">atomate.vasp.workflows.tests.test_magnetism_workflow module</a></li>
@@ -203,11 +206,11 @@ Please refer to matgendb.creator.VaspToDbTaskDrone documentation.</p>
 <dl class="py method">
 <dt id="atomate.vasp.drones.VaspDrone.__init__">
 <code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">runs</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">parse_dos</span><span class="o">=</span><span class="default_value">'auto'</span></em>, <em class="sig-param"><span class="n">bandstructure_mode</span><span class="o">=</span><span class="default_value">'auto'</span></em>, <em class="sig-param"><span class="n">parse_locpot</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">additional_fields</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">use_full_uri</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">parse_bader</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">parse_chgcar</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">parse_aeccar</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">parse_potcar_file</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">store_volumetric_data</span><span class="o">=</span><span class="default_value">()</span></em>, <em class="sig-param"><span class="n">store_additional_json</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.drones.VaspDrone.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialize a Vasp drone to parse vasp outputs
+<dd><p>Initialize a Vasp drone to parse VASP outputs
 Args:</p>
 <blockquote>
 <div><dl class="simple">
-<dt>runs (list): Naming scheme for multiple calcuations in on folder e.g. [“relax1”,”relax2”].</dt><dd><p>Can be subfolder or extension</p>
+<dt>runs (list): Naming scheme for multiple calculations in on folder e.g. [“relax1”,”relax2”].</dt><dd><p>Can be subfolder or extension</p>
 </dd>
 </dl>
 <p>parse_dos (str or bool): Whether to parse the DOS. Can be “auto”, True or False.
@@ -516,7 +519,7 @@ object during filtering.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.vasp package</a></li> 
       </ul>
     </div>

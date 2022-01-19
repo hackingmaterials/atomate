@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>atomate.qchem.firetasks package &#8212; atomate 1.0.1 documentation</title>
+    <title>atomate.qchem.firetasks package &#8212; atomate 1.0.2 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.qchem.firetasks package</a></li> 
       </ul>
     </div>  
@@ -160,6 +160,48 @@ these multiple resources.</p>
 </div>
 <div class="section" id="module-atomate.qchem.firetasks.geo_transformations">
 <span id="atomate-qchem-firetasks-geo-transformations-module"></span><h2>atomate.qchem.firetasks.geo_transformations module<a class="headerlink" href="#module-atomate.qchem.firetasks.geo_transformations" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="atomate.qchem.firetasks.geo_transformations.PerturbGeometry">
+<em class="property">class </em><code class="sig-prename descclassname">atomate.qchem.firetasks.geo_transformations.</code><code class="sig-name descname">PerturbGeometry</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.geo_transformations.PerturbGeometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
+<p>Modify a Molecule geometry.</p>
+<dl class="py attribute">
+<dt id="atomate.qchem.firetasks.geo_transformations.PerturbGeometry.optional_params">
+<code class="sig-name descname">optional_params</code><em class="property"> = ['molecule', 'mode', 'scale']</em><a class="headerlink" href="#atomate.qchem.firetasks.geo_transformations.PerturbGeometry.optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="atomate.qchem.firetasks.geo_transformations.PerturbGeometry.required_params">
+<code class="sig-name descname">required_params</code><em class="property"> = []</em><a class="headerlink" href="#atomate.qchem.firetasks.geo_transformations.PerturbGeometry.required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="atomate.qchem.firetasks.geo_transformations.PerturbGeometry.run_task">
+<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.geo_transformations.PerturbGeometry.run_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method gets called when the Firetask is run. It can take in a
+Firework spec, perform some task using that data, and then return an
+output in the form of a FWAction.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
+contains the env settings of the FWorker calling this method.
+This provides for abstracting out certain commands or
+settings. For example, “foo” may be named “foo1” in resource
+1 and “foo2” in resource 2. The FWorker env can specify {
+“foo”: “foo1”}, which maps an abstract variable “foo” to the
+relevant “foo1” or “foo2”. You can then write a task that
+uses fw_spec[“_fw_env”][“foo”] that will work across all
+these multiple resources.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>(FWAction)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt id="atomate.qchem.firetasks.geo_transformations.RotateTorsion">
 <em class="property">class </em><code class="sig-prename descclassname">atomate.qchem.firetasks.geo_transformations.</code><code class="sig-name descname">RotateTorsion</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.qchem.firetasks.geo_transformations.RotateTorsion" title="Permalink to this definition">¶</a></dt>
@@ -306,7 +348,7 @@ max_iterations (int): Number of perturbation -&gt; optimization -&gt; frequency 
 </dl>
 <dl class="py attribute">
 <dt id="atomate.qchem.firetasks.run_calc.RunQChemCustodian.optional_params">
-<code class="sig-name descname">optional_params</code><em class="property"> = ['multimode', 'input_file', 'output_file', 'max_cores', 'qclog_file', 'suffix', 'calc_loc', 'save_scratch', 'max_errors', 'job_type', 'handler_group', 'gzipped_output', 'backup', 'linked', 'max_iterations', 'max_molecule_perturb_scale']</em><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemCustodian.optional_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">optional_params</code><em class="property"> = ['multimode', 'input_file', 'output_file', 'max_cores', 'qclog_file', 'suffix', 'calc_loc', 'save_scratch', 'max_errors', 'job_type', 'handler_group', 'gzipped_output', 'backup', 'linked', 'max_iterations', 'max_molecule_perturb_scale', 'freq_before_opt', 'transition_state']</em><a class="headerlink" href="#atomate.qchem.firetasks.run_calc.RunQChemCustodian.optional_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -458,7 +500,7 @@ the default is to write to the current working directory</p>
 </dl>
 <dl class="py attribute">
 <dt id="atomate.qchem.firetasks.write_inputs.WriteCustomInput.optional_params">
-<code class="sig-name descname">optional_params</code><em class="property"> = ['molecule', 'opt', 'pcm', 'solvent', 'input_file', 'write_to_dir']</em><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteCustomInput.optional_params" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">optional_params</code><em class="property"> = ['molecule', 'opt', 'pcm', 'solvent', 'van_der_waals', 'input_file', 'write_to_dir']</em><a class="headerlink" href="#atomate.qchem.firetasks.write_inputs.WriteCustomInput.optional_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -557,24 +599,21 @@ fw_spec qc_input_set must be a string name for the QChem input set. *</strong></
 <dt>optional_params:</dt><dd><p>molecule (Molecule): Molecule that will be subjected to an electronic structure calculation
 qchem_input_params (dict): When using a string name for QChem input set, use this as a dict</p>
 <blockquote>
-<div><p>to specify kwargs for instantiating the input set parameters. This
-setting is ignored if you provide the full object representation of
-a QChemDictSet. Basic uses would be to modify the default inputs of
-the set, such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
-or max_scf_cycles. See pymatgen/io/qchem/sets.py for default values
-of all input parameters. For instance, if a user wanted to use a more
-advanced DFT functional, include a pcm with a dielectric of 30, and
-use a larger basis, the user would set qchem_input_params = {“dft_rung”:
-5, “pcm_dielectric”: 30, “basis_set”: “6-311++g**”}. However, more
-advanced customization of the input is also possible through the
-overwrite_inputs key which allows the user to directly modify the rem,
-pcm, smd, and solvent dictionaries that QChemDictSet passes to inputs.py
-to print an actual input file. For instance, if a user wanted to set the
-sym_ignore flag in the rem section of the input file to true, then they
-would set qchem_input_params = {“overwrite_inputs”: “rem”: {“sym_ignore”:
-“true”}}. Of course, overwrite_inputs could be used in conjuction with
-more typical modifications, as seen in the test_double_FF_opt workflow
-test.</p>
+<div><p>to specify kwargs for instantiating the input set parameters. This setting is
+ignored if you provide the full object representation of a QChemDictSet. Basic uses
+would be to modify the default inputs of the set, such as dft_rung, basis_set,
+pcm_dielectric, scf_algorithm, or max_scf_cycles. See pymatgen/io/qchem/sets.py for
+default values of all input parameters. For instance, if a user wanted to use a
+more advanced DFT functional, include a pcm with a dielectric of 30, and use a
+larger basis, the user would set qchem_input_params = {“dft_rung”: 5,
+“pcm_dielectric”: 30, “basis_set”: “6-311++g**”}. However, more advanced
+customization of the input is also possible through the overwrite_inputs key which
+allows the user to directly modify the rem, pcm, smd, and solvent dictionaries that
+QChemDictSet passes to inputs.py to print an actual input file. For instance, if a
+user wanted to set the sym_ignore flag in the rem section of the input file to
+true, then they would set qchem_input_params = {“overwrite_inputs”: “rem”:
+{“sym_ignore”: “true”}}. Of course, overwrite_inputs could be used in conjunction
+with more typical modifications, as seen in the test_double_FF_opt workflow test.</p>
 </div></blockquote>
 <p>input_file (str): Name of the QChem input file. Defaults to mol.qin
 write_to_dir (str): Path of the directory where the QChem input file will be written,
@@ -677,7 +716,7 @@ these multiple resources.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.2 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.qchem.firetasks package</a></li> 
       </ul>
     </div>
