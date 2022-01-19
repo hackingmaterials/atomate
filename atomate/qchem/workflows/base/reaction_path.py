@@ -1,8 +1,3 @@
-# coding: utf-8
-
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 # This module defines a workflow for optimizing a transition-state geometry
 # and then identifying the reaction path
 
@@ -76,7 +71,7 @@ def get_wf_reaction_path_with_ts(molecule,
 
     fw1 = FrequencyFlatteningOptimizeFW(
         molecule=molecule,
-        name="{}:perturb_forwards{}".format(molecule.composition.alphabetical_formula, suffix),
+        name=f"{molecule.composition.alphabetical_formula}:perturb_forwards{suffix}",
         qchem_cmd=qchem_cmd,
         max_cores=max_cores,
         multimode=multimode,
@@ -89,7 +84,7 @@ def get_wf_reaction_path_with_ts(molecule,
 
     fw2 = FrequencyFlatteningOptimizeFW(
         molecule=molecule,
-        name="{}:perturb_backwards{}".format(molecule.composition.alphabetical_formula, suffix),
+        name=f"{molecule.composition.alphabetical_formula}:perturb_backwards{suffix}",
         qchem_cmd=qchem_cmd,
         max_cores=max_cores,
         multimode=multimode,
@@ -102,6 +97,6 @@ def get_wf_reaction_path_with_ts(molecule,
 
     fws = [fw1, fw2]
 
-    wfname = "{}:{}".format(molecule.composition.alphabetical_formula, name)
+    wfname = f"{molecule.composition.alphabetical_formula}:{name}"
 
     return Workflow(fws, name=wfname, **kwargs)

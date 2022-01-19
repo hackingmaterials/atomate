@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 import os
 import unittest
 import copy
@@ -58,10 +55,10 @@ class TestReactionPath(AtomateTest):
         )
         # use powerup to replace run with fake run
         ref_dirs = {
-            "{}:perturb_forwardsHERE".format(formula): os.path.join(
+            f"{formula}:perturb_forwardsHERE": os.path.join(
                 test_double_FF_files, "block", "launcher_forwards"
             ),
-            "{}:perturb_backwardsHERE".format(formula): os.path.join(
+            f"{formula}:perturb_backwardsHERE": os.path.join(
                 test_double_FF_files, "block", "launcher_backwards"
             ),
         }
@@ -78,12 +75,12 @@ class TestReactionPath(AtomateTest):
         self.assertTrue(all([s == "COMPLETED" for s in wf_test.fw_states.values()]))
 
         forwards = self.get_task_collection().find_one(
-            {"task_label": "{}:perturb_forwardsHERE".format(formula)}
+            {"task_label": f"{formula}:perturb_forwardsHERE"}
         )
         forwards_final_mol = Molecule.from_dict(forwards["input"]["initial_molecule"])
 
         backwards = self.get_task_collection().find_one(
-            {"task_label": "{}:perturb_backwardsHERE".format(formula)}
+            {"task_label": f"{formula}:perturb_backwardsHERE"}
         )
         backwards_final_mol = Molecule.from_dict(backwards["input"]["initial_molecule"])
 

@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 # This module defines firetasks for modifying molecular geometries
 
 import copy

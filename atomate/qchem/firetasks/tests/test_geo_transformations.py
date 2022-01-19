@@ -64,7 +64,7 @@ class TestPerturbGeometry(AtomateTest):
         ).data["frequency_mode_vectors"][0]
 
     def setUp(self, lpad=False):
-        super(TestPerturbGeometry, self).setUp(lpad=False)
+        super().setUp(lpad=False)
 
     def tearDown(self):
         pass

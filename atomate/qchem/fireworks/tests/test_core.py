@@ -48,7 +48,7 @@ class TestCore(AtomateTest):
 
         self.maxDiff = None
 
-        super(TestCore, self).setUp(lpad=False)
+        super().setUp(lpad=False)
 
     def tearDown(self):
         pass

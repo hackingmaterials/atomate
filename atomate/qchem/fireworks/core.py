@@ -173,7 +173,7 @@ class ForceFW(Firework):
                 additional_fields={"task_label": name},
             )
         )
-        super(ForceFW, self).__init__(t, parents=parents, name=name, **kwargs)
+        super().__init__(t, parents=parents, name=name, **kwargs)
 
 
 class OptimizeFW(Firework):
@@ -318,7 +318,7 @@ class TransitionStateFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 additional_fields={"task_label": name}))
-        super(TransitionStateFW, self).__init__(
+        super().__init__(
             t,
             parents=parents,
             name=name,
@@ -475,7 +475,7 @@ class PESScanFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 additional_fields={"task_label": name}))
-        super(PESScanFW, self).__init__(
+        super().__init__(
             t,
             parents=parents,
             name=name,
@@ -725,7 +725,7 @@ class FrequencyFlatteningTransitionStateFW(Firework):
                     "linked": linked
                 }))
 
-        super(FrequencyFlatteningTransitionStateFW, self).__init__(
+        super().__init__(
             t,
             parents=parents,
             name=name,
