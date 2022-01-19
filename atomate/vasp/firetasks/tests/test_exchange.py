@@ -4,10 +4,6 @@ import unittest
 import pandas as pd
 from monty.os.path import which
 from pymatgen.core import Structure
-from pymatgen.core.structure import Structure
-from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
-from pymatgen.io.vasp.sets import MPRelaxSet
-from pymatgen.util.testing import PymatgenTest
 
 from atomate.utils.testing import AtomateTest
 from atomate.vasp.firetasks.exchange import (
