@@ -8,7 +8,7 @@ module_dir = dirname(abspath(__file__))
 if __name__ == "__main__":
     setup(
         name="atomate",
-        version="1.0.1",
+        version="1.0.2",
         description="atomate has implementations of FireWorks workflows for Materials Science",
         long_description=open(join(module_dir, "README.md")).read(),
         url="https://github.com/hackingmaterials/atomate",
@@ -33,6 +33,7 @@ if __name__ == "__main__":
             "pydash>=4.1.0",
             "pymatgen-analysis-diffusion>=2021.4.29",
             "pymatgen>=2020.9.14,<=2022.0.10",
+            "pymongo<4.0.0",
             "pyyaml>=5.1.2",
             "ruamel.yaml",
             "scipy",

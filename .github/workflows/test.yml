@@ -8,7 +8,13 @@ on:
 
 jobs:
   test:
+    if: github.repository_owner == 'hackingmaterials' # don't run on forks
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
 
     steps:
       - name: Checkout repo
@@ -19,23 +25,23 @@ jobs:
         with:
           python-version: 3.7
 
-      - name: Install C++ dependencies
+      - name: Install OpenBabel
         run: |
-          sudo apt-get install openbabel
+          # underlying C++ lib needed for Python openbabel wrapper installed by `pip install .`
+          sudo apt-get install libopenbabel-dev
+          # https://github.com/openbabel/openbabel/issues/2408#issuecomment-1014466193
+          sudo ln -s /usr/include/openbabel3 /usr/local/include/openbabel3
 
       - name: Cache pip
         uses: actions/cache@v2
-        id: pip-cache
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements-ci.txt', 'setup.py') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
       - name: Install dependencies
-        if: steps.pip-cache.outputs.cache-hit != 'true'
         run: |
-          pip install -r requirements.txt
           pip install -r requirements-ci.txt
           pip install .[complete]
 

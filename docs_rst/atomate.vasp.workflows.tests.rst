@@ -52,6 +52,14 @@ atomate.vasp.workflows.tests.test\_ferroelectric\_workflow module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.workflows.tests.test\_hubbard\_hund\_linresp module
+----------------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.tests.test_hubbard_hund_linresp
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.workflows.tests.test\_insertion\_workflow module
 -------------------------------------------------------------
 
