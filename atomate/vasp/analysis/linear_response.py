@@ -1,6 +1,10 @@
 import numpy as np
 from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer
 
+from atomate.utils.utils import get_logger
+
+logger = get_logger(__name__)
+
 
 def procure_response_dict(
     struct_final,
@@ -11,6 +15,7 @@ def procure_response_dict(
     response_dict,
     perturb_dict,
     rkey,
+    # keys,
     ldaul_vals,
     analyzer_gs,
     calcs_skipped,
@@ -23,10 +28,13 @@ def procure_response_dict(
     # perform magnetic ordering analysis
     analyzer_output = CollinearMagneticStructureAnalyzer(struct_final, threshold=0.61)
     magnet_order = analyzer_output.ordering.value
+    # if rkey == keys[0]:  # store ground state ordering
+    #     magnet_order_gs = magnet_order
 
     # check if ordering matches ground state configuration
     if analyzer_gs:
         if not analyzer_gs.matches_ordering(struct_final):
+            # use_calc = False
             calcs_skipped.append(
                 {
                     "ICHARG": incar_dict.get("ICHARG", 0),
@@ -164,6 +172,9 @@ def obtain_response_matrices(
 
                         v = response_dict[keys[ll]][f"site{j}"][v_key][idx]
                         n = response_dict[keys[ll]][f"site{i}"][n_key][idx]
+                        # order = response_dict[keys[ll]]["magnetic order"][l]
+
+                        # if order == magnet_order_gs:
 
                         isolated_response = v != 0.0
 
