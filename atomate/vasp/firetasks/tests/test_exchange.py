@@ -23,7 +23,7 @@ from pymatgen.io.vasp.sets import MPRelaxSet
 __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 test_dir = os.path.join(module_dir, "..", "..", "test_files", "exchange_wf")
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 

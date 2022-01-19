@@ -11,7 +11,7 @@ from pymatgen.io.vasp import Oszicar, Outcar
 from atomate.vasp.drones import VaspDrone
 
 decoder = MontyDecoder()
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 class VaspToDbTaskDroneTest(unittest.TestCase):

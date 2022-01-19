@@ -17,7 +17,7 @@ from atomate.utils.utils import (
 
 __author__ = "Anubhav Jain <ajain@lbl.gov>"
 
-MODULE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 logger = get_logger(__name__)
 

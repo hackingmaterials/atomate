@@ -13,7 +13,7 @@ from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSetFromInterpolat
 __author__ = "Tess Smidt"
 __email__ = "blondegeek@gmail.com"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 DEBUG_MODE = False
 

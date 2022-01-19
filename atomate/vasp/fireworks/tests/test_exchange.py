@@ -10,7 +10,7 @@ from atomate.vasp.fireworks.exchange import HeisenbergModelFW, VampireCallerFW
 __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 test_dir = os.path.join(module_dir, "..", "..", "test_files", "exchange_wf")
 

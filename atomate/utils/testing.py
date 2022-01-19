@@ -11,7 +11,7 @@ __author__ = "Kiran Mathew"
 __credits__ = "Anubhav Jain"
 __email__ = "kmathew@lbl.gov"
 
-MODULE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_DIR = os.path.join(MODULE_DIR, "..", "common", "test_files")
 
 DEBUG_MODE = (

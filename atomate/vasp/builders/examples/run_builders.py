@@ -15,7 +15,7 @@ from atomate.vasp.builders.tasks_materials import TasksMaterialsBuilder
 
 __author__ = "Anubhav Jain <ajain@lbl.gov>"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 if __name__ == "__main__":
 

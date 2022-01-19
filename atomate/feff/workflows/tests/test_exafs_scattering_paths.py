@@ -8,7 +8,7 @@ from atomate.feff.workflows.core import get_wf_exafs_paths
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 

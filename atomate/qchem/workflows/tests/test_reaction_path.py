@@ -23,15 +23,16 @@ __status__ = "Alpha"
 __date__ = "02/04/2021"
 
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 
 class TestReactionPath(AtomateTest):
     def test_reaction_path_with_ts(self):
         # location of test files
-        test_double_FF_files = os.path.join(module_dir, "..", "..",
-                                            "test_files", "reaction_path_wf")
+        test_double_FF_files = os.path.join(
+            module_dir, "..", "..", "test_files", "reaction_path_wf"
+        )
         # define starting molecule and workflow object
         initial_qout = QCOutput(os.path.join(test_double_FF_files, "..", "ts.out"))
         initial_mol = initial_qout.data["initial_molecule"]
@@ -52,36 +53,38 @@ class TestReactionPath(AtomateTest):
                         "scf_algorithm": "diis",
                         "thresh": 14,
                     }
-                }
-            }
+                },
+            },
         )
         # use powerup to replace run with fake run
         ref_dirs = {
-            "{}:perturb_forwardsHERE".format(formula):
-            os.path.join(test_double_FF_files, "block", "launcher_forwards"),
-            "{}:perturb_backwardsHERE".format(formula):
-            os.path.join(test_double_FF_files, "block", "launcher_backwards")
+            "{}:perturb_forwardsHERE".format(formula): os.path.join(
+                test_double_FF_files, "block", "launcher_forwards"
+            ),
+            "{}:perturb_backwardsHERE".format(formula): os.path.join(
+                test_double_FF_files, "block", "launcher_backwards"
+            ),
         }
         fake_wf = use_fake_qchem(real_wf, ref_dirs)
         self.lp.add_wf(fake_wf)
         rapidfire(
             self.lp,
-            fworker=FWorker(env={"max_cores": 32, "db_file": os.path.join(db_dir, "db.json")}))
+            fworker=FWorker(
+                env={"max_cores": 32, "db_file": os.path.join(db_dir, "db.json")}
+            ),
+        )
 
         wf_test = self.lp.get_wf_by_fw_id(1)
-        self.assertTrue(
-            all([s == "COMPLETED" for s in wf_test.fw_states.values()]))
+        self.assertTrue(all([s == "COMPLETED" for s in wf_test.fw_states.values()]))
 
-        forwards = self.get_task_collection().find_one({
-            "task_label":
-            "{}:perturb_forwardsHERE".format(formula)
-        })
+        forwards = self.get_task_collection().find_one(
+            {"task_label": "{}:perturb_forwardsHERE".format(formula)}
+        )
         forwards_final_mol = Molecule.from_dict(forwards["input"]["initial_molecule"])
 
-        backwards = self.get_task_collection().find_one({
-            "task_label":
-            "{}:perturb_backwardsHERE".format(formula)
-        })
+        backwards = self.get_task_collection().find_one(
+            {"task_label": "{}:perturb_backwardsHERE".format(formula)}
+        )
         backwards_final_mol = Molecule.from_dict(backwards["input"]["initial_molecule"])
 
         mol_copy_for = copy.deepcopy(initial_mol)
@@ -96,10 +99,12 @@ class TestReactionPath(AtomateTest):
             mol_copy_back.translate_sites(indices=[ii], vector=vec * -0.6)
 
         np.testing.assert_allclose(
-            mol_copy_for.cart_coords, forwards_final_mol.cart_coords, atol=0.0001)
+            mol_copy_for.cart_coords, forwards_final_mol.cart_coords, atol=0.0001
+        )
 
         np.testing.assert_allclose(
-            mol_copy_back.cart_coords, backwards_final_mol.cart_coords, atol=0.0001)
+            mol_copy_back.cart_coords, backwards_final_mol.cart_coords, atol=0.0001
+        )
 
 
 if __name__ == "__main__":
