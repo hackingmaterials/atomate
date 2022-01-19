@@ -29,7 +29,7 @@ def get_wf_deformations(
     """
     Returns a structure deformation workflow.
 
-    Worfklow consists of: len(deformations) in which the structure is deformed followed
+    Workflow consists of: len(deformations) in which the structure is deformed followed
     by a static calculation.
 
     Args:

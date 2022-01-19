@@ -34,54 +34,46 @@ def get_fragmentation_wf(
     **kwargs,
 ):
     """
-
     Args:
         molecule (Molecule): input molecule to be fragmented.
         depth (int): The number of levels of iterative fragmentation to perform,
-                     where each evel will include fragments obtained by breaking
-                     one bond of a fragment one level up. If set to 0, instead
-                     all possible fragments are generated using an alternative,
-                     non-iterative scheme. Defaults to 1.
+            where each evel will include fragments obtained by breaking one bond of a fragment
+            one level up. If set to 0, instead all possible fragments are generated using an
+            alternative, non-iterative scheme. Defaults to 1.
         open_rings (bool): Whether or not to open any rings encountered during fragmentation.
-                           Defaults to True. If true, any bond that fails to yield disconnected
-                           graphs when broken is instead removed and the entire structure is
-                           optimized with OpenBabel in order to obtain a good initial guess for
-                           an opened geometry that can then be put back into QChem to be
-                           optimized without the ring just reforming.
-        additional_charges (list): List of additional charges besides the defaults described in the
-                                   firetask. For example, if a principle molecule with a +2 charge
-                                   is provided, by default all fragments will be calculated with
-                                   +1 and +2 charges. If the user includes additional_charges=[0]
-                                   then all fragments will be calculated with 0, +1, and +2 charges.
-                                   Additional charge values of 1 or 2 would not cause any new charges
-                                   to be calculated as they are already done. Defaults to [].
+            Defaults to True. If true, any bond that fails to yield disconnected graphs when
+            broken is instead removed and the entire structure is optimized with OpenBabel in
+            order to obtain a good initial guess for an opened geometry that can then be put
+            back into QChem to be optimized without the ring just reforming.
+        additional_charges (list): List of additional charges besides the defaults described in
+            the firetask. For example, if a principle molecule with a +2 charge is provided, by
+            default all fragments will be calculated with +1 and +2 charges. If the user
+            includes additional_charges=[0] then all fragments will be calculated with 0, +1,
+            and +2 charges. Additional charge values of 1 or 2 would not cause any new charges
+            to be calculated as they are already done. Defaults to [].
         do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with
-                            an even number of electrons. Defaults to True.
+            an even number of electrons. Defaults to True.
         pcm_dielectric (float): The PCM dielectric constant.
-        do_optimization (bool): Whether or not to optimize the given molecule
-                                before fragmentation. Defaults to True.
+        do_optimization (bool): Whether or not to optimize the given molecule before fragmentation.
+            Defaults to True.
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
-                                   Basic uses would be to modify the default inputs of the set,
-                                   such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
-                                   or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
-                                   values of all input parameters. For instance, if a user wanted
-                                   to use a more advanced DFT functional, include a pcm with a
-                                   dielectric of 30, and use a larger basis, the user would set
-                                   qchem_input_params = {"dft_rung": 5, "pcm_dielectric": 30,
-                                   "basis_set": "6-311++g**"}. However, more advanced customization
-                                   of the input is also possible through the overwrite_inputs key
-                                   which allows the user to directly modify the rem, pcm, smd, and
-                                   solvent dictionaries that QChemDictSet passes to inputs.py to
-                                   print an actual input file. For instance, if a user wanted to
-                                   set the sym_ignore flag in the rem section of the input file
-                                   to true, then they would set qchem_input_params = {"overwrite_inputs":
-                                   "rem": {"sym_ignore": "true"}}. Of course, overwrite_inputs
-                                   could be used in conjuction with more typical modifications,
-                                   as seen in the test_double_FF_opt workflow test.
+            Basic uses would be to modify the default inputs of the set, such as dft_rung,
+            basis_set, pcm_dielectric, scf_algorithm, or max_scf_cycles. See
+            pymatgen/io/qchem/sets.py for default values of all input parameters. For instance,
+            if a user wanted to use a more advanced DFT functional, include a pcm with a
+            dielectric of 30, and use a larger basis, the user would set qchem_input_params =
+            {"dft_rung": 5, "pcm_dielectric": 30, "basis_set": "6-311++g**"}. However, more
+            advanced customization of the input is also possible through the overwrite_inputs
+            key which allows the user to directly modify the rem, pcm, smd, and solvent
+            dictionaries that QChemDictSet passes to inputs.py to print an actual input file.
+            For instance, if a user wanted to set the sym_ignore flag in the rem section of the
+            input file to true, then they would set qchem_input_params = {"overwrite_inputs":
+            "rem": {"sym_ignore": "true"}}. Of course, overwrite_inputs could be used in
+            conjunction with more typical modifications, as seen in the test_double_FF_opt
+            workflow test.
         db_file (str): path to file containing the database credentials.
         check_db (bool): Whether or not to check the database for equivalent
-                         structures before adding new fragment fireworks.
-                         Defaults to True.
+            structures before adding new fragment fireworks. Defaults to True.
         kwargs (keyword arguments): additional kwargs to be passed to Workflow
 
     Returns:

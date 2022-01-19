@@ -344,8 +344,8 @@ class CopyFiles(FiretaskBase):
                 (e.g., rename 'INCAR' to 'INCAR.precondition')
             continue_on_missing(bool): Whether to continue copying when a file
                 in filenames is missing. Defaults to False.
-            from_path_dict (dict): dict specification of the path. If specified must contain atleast
-                the key "path" that specifies the path to the from_dir.
+            from_path_dict (dict): dict specification of the path. If specified must contain at
+                least the key "path" that specifies the path to the from_dir.
         """
         from_path_dict = from_path_dict or {}
         from_dir = env_chk(from_dir, fw_spec, strict=False) or from_path_dict.get(

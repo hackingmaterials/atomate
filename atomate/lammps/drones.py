@@ -68,7 +68,7 @@ class LammpsDrone(AbstractDrone):
             path (str): path to the run folder
             input_filename (str): just the name of the input file
             log_filename (str): lammps log file name
-            is_forcefield (bool): whether or not ot parse forcefield info
+            is_forcefield (bool): whether or not to parse forcefield info
             data_filename (str): name of the data file
             dump_files ([str]): list of dump file names
 

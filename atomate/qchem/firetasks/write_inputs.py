@@ -33,24 +33,21 @@ class WriteInputFromIOSet(FiretaskBase):
     optional_params:
         molecule (Molecule): Molecule that will be subjected to an electronic structure calculation
         qchem_input_params (dict): When using a string name for QChem input set, use this as a dict
-                                   to specify kwargs for instantiating the input set parameters. This
-                                   setting is ignored if you provide the full object representation of
-                                   a QChemDictSet. Basic uses would be to modify the default inputs of
-                                   the set, such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
-                                   or max_scf_cycles. See pymatgen/io/qchem/sets.py for default values
-                                   of all input parameters. For instance, if a user wanted to use a more
-                                   advanced DFT functional, include a pcm with a dielectric of 30, and
-                                   use a larger basis, the user would set qchem_input_params = {"dft_rung":
-                                   5, "pcm_dielectric": 30, "basis_set": "6-311++g**"}. However, more
-                                   advanced customization of the input is also possible through the
-                                   overwrite_inputs key which allows the user to directly modify the rem,
-                                   pcm, smd, and solvent dictionaries that QChemDictSet passes to inputs.py
-                                   to print an actual input file. For instance, if a user wanted to set the
-                                   sym_ignore flag in the rem section of the input file to true, then they
-                                   would set qchem_input_params = {"overwrite_inputs": "rem": {"sym_ignore":
-                                   "true"}}. Of course, overwrite_inputs could be used in conjuction with
-                                   more typical modifications, as seen in the test_double_FF_opt workflow
-                                   test.
+            to specify kwargs for instantiating the input set parameters. This setting is
+            ignored if you provide the full object representation of a QChemDictSet. Basic uses
+            would be to modify the default inputs of the set, such as dft_rung, basis_set,
+            pcm_dielectric, scf_algorithm, or max_scf_cycles. See pymatgen/io/qchem/sets.py for
+            default values of all input parameters. For instance, if a user wanted to use a
+            more advanced DFT functional, include a pcm with a dielectric of 30, and use a
+            larger basis, the user would set qchem_input_params = {"dft_rung": 5,
+            "pcm_dielectric": 30, "basis_set": "6-311++g**"}. However, more advanced
+            customization of the input is also possible through the overwrite_inputs key which
+            allows the user to directly modify the rem, pcm, smd, and solvent dictionaries that
+            QChemDictSet passes to inputs.py to print an actual input file. For instance, if a
+            user wanted to set the sym_ignore flag in the rem section of the input file to
+            true, then they would set qchem_input_params = {"overwrite_inputs": "rem":
+            {"sym_ignore": "true"}}. Of course, overwrite_inputs could be used in conjunction
+            with more typical modifications, as seen in the test_double_FF_opt workflow test.
         input_file (str): Name of the QChem input file. Defaults to mol.qin
         write_to_dir (str): Path of the directory where the QChem input file will be written,
         the default is to write to the current working directory

@@ -144,9 +144,9 @@ class VaspDrone(AbstractDrone):
         store_additional_json=STORE_ADDITIONAL_JSON,
     ):
         """
-        Initialize a Vasp drone to parse vasp outputs
+        Initialize a Vasp drone to parse VASP outputs
         Args:
-            runs (list): Naming scheme for multiple calcuations in on folder e.g. ["relax1","relax2"].
+            runs (list): Naming scheme for multiple calculations in on folder e.g. ["relax1","relax2"].
              Can be subfolder or extension
             parse_dos (str or bool): Whether to parse the DOS. Can be "auto", True or False.
             "auto" will only parse DOS if NSW = 0, so there are no ionic steps

@@ -63,7 +63,7 @@ class QChemDrone(AbstractDrone):
         """
         Initialize a QChem drone to parse qchem calculations
         Args:
-            runs (list): Naming scheme for multiple calcuations in one folder
+            runs (list): Naming scheme for multiple calculations in one folder
             additional_fields (dict): dictionary of additional fields to add to output document
         """
         self.runs = runs or list(
@@ -151,7 +151,7 @@ class QChemDrone(AbstractDrone):
             d["schema"] = {"code": "atomate", "version": QChemDrone.__version__}
             d["dir_name"] = fullpath
 
-            # If a saved "orig" input file is present, parse it incase the error handler made changes
+            # If a saved "orig" input file is present, parse it in case the error handler made changes
             # to the initial input molecule or rem params, which we might want to filter for later
             if len(qcinput_files) > len(qcoutput_files):
                 orig_input = QCInput.from_file(

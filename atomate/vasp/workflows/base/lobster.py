@@ -49,7 +49,7 @@ def get_wf_lobster(
         delete_all_wavecars: if True, all WAVECARs are deleted
         user_lobsterin_settings (dict): dict to set additional lobsterin settings
         user_incar_settings (dict): dict to set additional things in INCAR, only for LobsterCalc not optimization
-        user_kpoints_settings (dict): dict to set additional things in KPOINTS, only fo LobsterCalc not optimization
+        user_kpoints_settings (dict): dict to set additional things in KPOINTS, only for LobsterCalc not optimization
         user_supplied_basis (dict): dict to supply basis functions for each element type
         isym (int): isym setting during the vasp calculation, currently lobster can only deal with isym=-1
         c (dict): configurations dict which can include "VASP_CMD", "LOBSTER_CMD", "DB_FILE"
@@ -57,7 +57,7 @@ def get_wf_lobster(
             results DB. They will be stored as files in gridfs. Examples are:
             "ICOHPLIST.lobster" or "DOSCAR.lobster". Note that the file name
             should be given with the full name and the correct capitalization.
-        additional_optimization (bool): determines if an optmization is performed
+        additional_optimization (bool): determines if an optimization is performed
         user_incar_settings_optimization (dict): change incar settin with this dict for optimization
         user_kpoints_settings_optimization (dict): change incar settin with this dict for optimization
     Returns: Workflow
@@ -170,19 +170,19 @@ def get_wf_lobster_test_basis(
     Args:
         structure (Structure): structure object that will be used during the run
         calculation_type (str): only "standard" is implemented so far
-        delete_all_wavecars (bool): all wavecars wil be deleted if True
+        delete_all_wavecars (bool): all wavecars will be deleted if True
         c (dict): specifications for wf, e.g. VASP_CMD, LOBSTER_CMD etc.
         address_max_basis (str): address to yaml file including maximum basis set (otherwise predefined file)
         address_min_basis (str): address to yaml file including minimum basis set (otherwise predefined file)
         user_lobsterin_settings (dict): change lobsterin settings here
         user_incar_settings (dict): change incar settings with this dict, only for Lobster calc and not optimization
-        user_kpoints_settings (dict): change kpoint settings with this dict, only for Lobster calc and not optimization
+        user_kpoints_settings (dict): change KPOINT settings with this dict, only for Lobster calc and not optimization
         isym (int): isym setting during the VASP calculation, currently lobster can only deal with isym=-1 and isym=0
         additional_outputs (list): list of additional files to be stored in the
             results DB. They will be stored as files in gridfs. Examples are:
             "ICOHPLIST.lobster" or "DOSCAR.lobster". Note that the file name
             should be given with the full name and the correct capitalization.
-        additional_optimization (bool): determines if an optmization is performed
+        additional_optimization (bool): determines if an optimization is performed
         user_incar_settings_optimization (dict): change incar settin with this dict for optimization
         user_kpoints_settings_optimization (dict): change incar settin with this dict for optimization
     Returns:

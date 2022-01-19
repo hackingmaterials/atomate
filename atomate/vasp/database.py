@@ -199,10 +199,10 @@ class VaspCalcDb(CalcDb):
 
     def insert_object(self, use_gridfs, *args, **kwargs):
         """Insert the object into big object storage, try maggma_store if
-            it is availible, if not try storing directly to girdfs.
+            it is available, if not try storing directly to girdfs.
 
         Args:
-            use_gridfs (bool): Whether to store on gridfs if maggma storage is not availible
+            use_gridfs (bool): Whether to store on gridfs if maggma storage is not available
 
         Returns:
             fs_id: The id of the stored object
@@ -280,7 +280,7 @@ class VaspCalcDb(CalcDb):
             search_keys.append("task_id")
             doc["task_id"] = str(d["task_id"])
 
-        # make sure the store is availible
+        # make sure the store is available
         with self.get_store(collection) as store:
             ping_ = store.index._collection.database.command("ping")
             if ping_.get("ok", 0) != 1.0:

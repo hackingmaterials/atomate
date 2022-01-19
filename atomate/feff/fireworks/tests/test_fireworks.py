@@ -24,14 +24,14 @@ class TestFireworks(AtomateTest):
         fw = EXAFSPathsFW(0, self.struct, [[249, 0], [85, 0]])
         fw_dict = fw.as_dict()
         self.assertEqual(len(fw_dict["spec"]["_tasks"]), 5)
-        ans = [
+        answer = [
             "{{atomate.feff.firetasks.glue_tasks.CopyFeffOutputs}}",
             "{{atomate.feff.firetasks.write_inputs.WriteFeffFromIOSet}}",
             "{{atomate.feff.firetasks.write_inputs.WriteEXAFSPaths}}",
             "{{atomate.feff.firetasks.run_calc.RunFeffDirect}}",
             "{{atomate.feff.firetasks.parse_outputs.AddPathsToFilepadTask}}",
         ]
-        self.assertEqual(ans, [ft["_fw_name"] for ft in fw_dict["spec"]["_tasks"]])
+        self.assertEqual(answer, [ft["_fw_name"] for ft in fw_dict["spec"]["_tasks"]])
 
 
 if __name__ == "__main__":

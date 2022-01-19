@@ -427,7 +427,7 @@ def set_queue_options(
     """
     Modify queue submission parameters of Fireworks in a Workflow.
 
-    This powerup overrides paramters in the qadapter file by setting values in
+    This powerup overrides parameters in the qadapter file by setting values in
     the 'queueadapter' key of a Firework spec. For example, the walltime
     requested from a queue can be modified on a per-workflow basis.
 

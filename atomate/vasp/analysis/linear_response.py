@@ -1,6 +1,10 @@
 import numpy as np
 from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer
 
+from atomate.utils.utils import get_logger
+
+logger = get_logger(__name__)
+
 
 def procure_response_dict(
     struct_final,

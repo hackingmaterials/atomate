@@ -31,7 +31,7 @@ def get_wf_basic(
     Args:
         input_file (str): path to lammps input file.
             Note: It could be a template file too, then the user_settings must be set.
-        user_settings ([dict] or dict): list of settings dict. if the input_file is a tempalte file
+        user_settings ([dict] or dict): list of settings dict. if the input_file is a template file
             then each dict contains the key value pairs for the template file.
         lammps_data (string/LammpsData/LammpsForceFieldData): path to the data file or
             an appropriate object.
@@ -110,7 +110,7 @@ def get_packmol_wf(
 
     Args:
         input_file (str):  path to lammps input(or template) file.
-        user_settings ([dict] or dict): list of settings dict. if the input_file is a tempalte file
+        user_settings ([dict] or dict): list of settings dict. if the input_file is a template file
             then each dict contains the key value pairs for the template file.
         constituent_molecules ([Molecules]): list of pymatgen Molecule objects
         packing_config ([dict]): list of configuration dictionaries, one for each constituent molecule.

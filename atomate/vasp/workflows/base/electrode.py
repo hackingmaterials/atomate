@@ -32,10 +32,10 @@ def get_ion_insertion_wf(
     staticfw_kwargs: dict = None,
 ):
     """
-    Take the output static worflow and iteratively insert working ions based on charge density analysis.
+    Take the output static workflow and iteratively insert working ions based on charge density analysis.
 
     The workflow performs the following tasks.
-    (StaticFW) <- Recieved dat inserted task_id from this workflow
+    (StaticFW) <- Received dat inserted task_id from this workflow
     (AnalyzeChgcar) <- Obtain the set of possible unique insertions using the stored charge density
     (GetInsertionCalcs) <- This task contains the dynamic workflow creation that will keep inserting working ions
 
@@ -110,7 +110,7 @@ def get_ion_insertion_wf(
     )
     analysis_wf.spec["working_ion"] = working_ion
 
-    # Crate the initial workflow
+    # Create the initial workflow
     wf = Workflow([opt_wf, static_wf, analysis_wf], name=wf_name)
 
     # Apply the vasp powerup if present

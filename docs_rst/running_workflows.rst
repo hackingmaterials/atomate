@@ -232,4 +232,3 @@ At this point, you might:
 * Try another example: running a Gibbs free energy workflow: :ref:`running gibbs workflows`.
 * Skip to exploring how to use builders to generate metadata: :ref:`builders`.
 * Skip to learning how to create your own workflows that you can use and distribute: :ref:`creating workflows`.
-

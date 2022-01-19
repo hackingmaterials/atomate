@@ -5,7 +5,6 @@ from collections import defaultdict
 from datetime import datetime
 
 import numpy as np
-import scipy
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from monty.json import MontyEncoder, jsanitize
@@ -1394,7 +1393,7 @@ class MagneticOrderingsToDb(FiretaskBase):
             final_structure = Structure.from_dict(d["output"]["structure"])
 
             # picking a fairly large threshold so that default 0.6 µB magmoms don't
-            # cause problems with analysis, this is obviously not approriate for
+            # cause problems with analysis, this is obviously not appropriate for
             # some magnetic structures with small magnetic moments (e.g. CuO)
             input_analyzer = CollinearMagneticStructureAnalyzer(
                 input_structure, threshold=0.61

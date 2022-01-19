@@ -67,7 +67,7 @@ class HostToDb(FiretaskBase):
             {"task_id": t_id, "approx_neb.calc_type": "host"},
             {"$push": {"approx_neb.wf_uuids": wf_uuid}},
         )
-        if host_tasks_doc == None:
+        if host_tasks_doc is None:
             raise ValueError(f"Error updating approx neb host with task_id: {t_id}")
 
         # Initialize and store select host task doc fields in approx_neb_doc
@@ -675,7 +675,7 @@ class AddSelectiveDynamics(FiretaskBase):
     def get_images_list(self, structure_docs, scheme, fixed_index, fixed_specie):
         """
         Returns a list of structure objects with selective
-        dynamics applied according ot the specified scheme.
+        dynamics applied according to the specified scheme.
 
         Args:
             structure_docs (list): list of structure
@@ -818,7 +818,7 @@ class ImageToDb(FiretaskBase):
                 },
             },
         )
-        if task_doc == None:
+        if task_doc is None:
             raise ValueError(f"Error updating approx neb image with task_id: {t_id}")
 
         # Store info in approx_neb collection for record keeping

@@ -300,7 +300,7 @@ def recursive_update(d, u):
     Recursive updates d with values from u
     Args:
         d (dict): dict to update
-        u (dict): updates to propogate
+        u (dict): updates to propagate
     """
 
     for k, v in u.items():

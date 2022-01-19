@@ -18,8 +18,8 @@ class CopyPackmolOutputs(CopyFiles):
             search for the most recent calc_loc with the matching name.
         calc_dir (str): path to dir that contains VASP output files.
         filesystem (str): remote filesystem. e.g. username@host
-        exclude_files (list): list fo filenames to be excluded when copying.
-            NOte: by default nothing is excluded.
+        exclude_files (list): list of filenames to be excluded when copying.
+            Note: by default nothing is excluded.
     """
 
     optional_params = ["calc_loc", "calc_dir", "filesystem", "exclude_files"]

@@ -58,7 +58,7 @@ def get_wf_ferroelectric(
         nimages: Number of interpolations calculated from polar to nonpolar structures, including the nonpolar.
             For example, nimages = 9 will calculate 8 interpolated structures. 8 interpolations + nonpolar = 9.
         add_analysis_task: Analyze polarization and energy trends as part of workflow. Default False.
-        wfid (string): Unique worfklow id starting with "wfid_". If None this is atomatically generated (recommended).
+        wfid (string): Unique workflow id starting with "wfid_". If None this is automatically generated (recommended).
         tags (list of strings): Additional tags to add such as identifiers for structures.
 
     Returns:
