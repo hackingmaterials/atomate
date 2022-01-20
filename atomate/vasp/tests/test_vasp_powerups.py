@@ -4,7 +4,7 @@ from fireworks import Firework, ScriptTask, Workflow
 from pymatgen.io.vasp.sets import MPRelaxSet
 from pymatgen.util.testing import PymatgenTest
 
-from atomate.common.powerups import powerup_by_kwargs
+from atomate.common.powerups import add_tags, powerup_by_kwargs
 from atomate.utils.utils import get_fws_and_tasks
 from atomate.vasp.powerups import (
     add_modify_incar,
@@ -12,7 +12,6 @@ from atomate.vasp.powerups import (
     add_modify_potcar,
     add_priority,
     add_small_gap_multiply,
-    add_tags,
     add_trackers,
     add_wf_metadata,
     clean_up_files,

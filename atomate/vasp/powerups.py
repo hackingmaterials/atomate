@@ -7,7 +7,6 @@ from atomate.common.powerups import (
 )
 from atomate.common.powerups import add_namefile as common_add_namefile
 from atomate.common.powerups import add_priority as common_add_priority
-from atomate.common.powerups import add_tags as common_add_tags
 from atomate.common.powerups import preserve_fworker as common_preserve_fworker
 from atomate.common.powerups import (
     set_execution_options as common_set_execution_options,
@@ -671,11 +670,6 @@ def add_additional_fields_to_taskdocs(
     return common_add_additional_fields_to_taskdocs(
         original_wf, update_dict=update_dict, task_name_constraint=task_name_constraint
     )
-
-
-@deprecated(replacement=common_add_tags)
-def add_tags(original_wf, tags_list):
-    return common_add_tags(original_wf, tags_list)
 
 
 def add_common_powerups(wf, c=None):

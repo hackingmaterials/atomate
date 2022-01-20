@@ -12,6 +12,7 @@ from pymatgen.analysis.structure_matcher import ElementComparator, StructureMatc
 from pymatgen.core import Lattice, Structure
 from pymatgen.io.vasp.sets import MPRelaxSet
 
+from atomate.common.powerups import add_tags
 from atomate.utils.utils import get_logger
 from atomate.vasp.config import ADD_WF_METADATA, DB_FILE, VASP_CMD
 from atomate.vasp.firetasks.parse_outputs import (
@@ -22,7 +23,6 @@ from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
 from atomate.vasp.powerups import (
     add_additional_fields_to_taskdocs,
     add_common_powerups,
-    add_tags,
     add_wf_metadata,
 )
 from atomate.vasp.workflows.base.core import get_wf
