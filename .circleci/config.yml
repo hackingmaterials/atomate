@@ -1,11 +1,10 @@
-version: 2
+version: 2.1
 jobs:
   test:
     working_directory: ~/atomate
     docker:
       - image: continuumio/miniconda3
       - image: circleci/mongo
-      - image: circleci/buildpack-deps
     steps:
       - checkout
       - restore_cache:
@@ -14,15 +13,16 @@ jobs:
           name: Install dependencies
           command: |
             export PATH=$HOME/miniconda3/bin:$PATH
-            conda create --yes --name test_env python=3.8
+            conda create --name test_env python=3.8
             source activate test_env
-            conda install --yes -c conda-forge openbabel
+            conda install -c conda-forge openbabel pymatgen
             pip install -r requirements-ci.txt
             pip install .
           no_output_timeout: 1h
       - run:
           name: pytest
           command: |
+            source activate test_env
             pytest --ignore=atomate/qchem/test_files --cov=atomate --cov-report html:coverage_reports atomate
           no_output_timeout: 1h
       - store_artifacts:
@@ -32,7 +32,6 @@ jobs:
           path: coverage_reports/
 
 workflows:
-  version: 2
   build_and_test:
     jobs:
       - test
