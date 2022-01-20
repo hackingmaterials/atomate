@@ -5,7 +5,7 @@ from atomate.common.firetasks.glue_tasks import DeleteFiles
 from atomate.common.powerups import (
     add_additional_fields_to_taskdocs as common_add_additional_fields_to_taskdocs,
 )
-from atomate.common.powerups import add_namefile as common_add_namefile
+from atomate.common.powerups import add_namefile
 from atomate.common.powerups import add_priority as common_add_priority
 from atomate.common.powerups import preserve_fworker as common_preserve_fworker
 from atomate.common.powerups import (
@@ -194,11 +194,6 @@ def use_fake_vasp(
                         )
 
     return original_wf
-
-
-@deprecated(replacement=common_add_namefile)
-def add_namefile(original_wf, use_slug=True):
-    return common_add_namefile(original_wf, use_slug=use_slug)
 
 
 def add_trackers(original_wf, tracked_files=None, nlines=25):
@@ -687,7 +682,7 @@ def add_common_powerups(wf, c=None):
     c = c or {}
 
     if c.get("ADD_NAMEFILE", ADD_NAMEFILE):
-        wf = common_add_namefile(wf)
+        wf = add_namefile(wf)
 
     if c.get("SCRATCH_DIR", SCRATCH_DIR):
         wf = use_scratch_dir(wf, c.get("SCRATCH_DIR", SCRATCH_DIR))

@@ -17,12 +17,12 @@ from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
 from pymatgen.util.testing import PymatgenTest
 from pymongo import DESCENDING
 
+from atomate.common.powerups import add_namefile
 from atomate.utils.testing import AtomateTest
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.firetasks.parse_outputs import VaspDrone
 from atomate.vasp.powerups import (
     add_bandgap_check,
-    add_namefile,
     add_trackers,
     use_custodian,
     use_fake_vasp,
