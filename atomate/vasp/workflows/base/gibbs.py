@@ -69,7 +69,7 @@ def get_wf_gibbs_free_energy(
         Workflow
     """
 
-    tag = tag or f"gibbs group: >>{str(uuid4())}<<"
+    tag = tag or f"gibbs group: >>{uuid4()}<<"
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
 

@@ -47,9 +47,7 @@ class FixTasksBuilder(AbstractBuilder):
             {"task_id": 1, "analysis": 1},
         ):
             logger.info(
-                "Converting delta_volume_percent to be on a percentage scale, tid: {}".format(
-                    t["task_id"]
-                )
+                f"Converting delta_volume_percent to be on a percentage scale, tid: {t['task_id']}"
             )
             self._tasks.update_one(
                 {"task_id": t["task_id"]},

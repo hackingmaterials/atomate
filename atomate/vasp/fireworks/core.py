@@ -177,9 +177,8 @@ class ScanOptimizeFW(Firework):
             vasptodb_kwargs["additional_fields"] = {}
         vasptodb_kwargs["additional_fields"]["task_label"] = name
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         has_previous_calc = False
 
@@ -336,9 +335,8 @@ class StaticFW(Firework):
             vasptodb_kwargs["additional_fields"] = {}
         vasptodb_kwargs["additional_fields"]["task_label"] = name
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         if spec_structure_key is not None:
             vasp_input_set = vasp_input_set or MPStaticSet(
@@ -473,9 +471,8 @@ class HSEBSFW(Firework):
         """
         name = name if name else f"hse {mode}"
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         t = []
         if prev_calc_dir:
@@ -544,11 +541,8 @@ class NonSCFFW(Firework):
         """
         input_set_overrides = input_set_overrides or {}
 
-        fw_name = "{}-{} {}".format(
-            structure.composition.reduced_formula if structure else "unknown",
-            name,
-            mode,
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name} {mode}"
         t = []
 
         if prev_calc_dir:
@@ -625,9 +619,8 @@ class DFPTFW(Firework):
         """
         name = "static dielectric" if lepsilon else "phonon"
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         user_incar_settings = user_incar_settings or {}
         t = []
@@ -720,10 +713,9 @@ class RamanFW(Firework):
             user_incar_settings (dict): Parameters in INCAR to override
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        name = f"{name}_{str(mode)}_{str(displacement)}"
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        name = f"{name}_{mode}_{displacement}"
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         user_incar_settings = user_incar_settings or {}
 
@@ -796,9 +788,8 @@ class SOCFW(Firework):
                 FW or list of FWS.
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         t = []
         if prev_calc_dir:
@@ -1057,9 +1048,8 @@ class BoltztrapFW(Firework):
             additional_fields (dict): fields added to the document such as user-defined tags or name, ids, etc
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         additional_fields = additional_fields or {}
 

@@ -503,9 +503,7 @@ class PathfinderToDb(FiretaskBase):
             else:
                 raise ValueError("NEBPathfinder requires exactly two end points")
         except Exception:
-            raise ValueError(
-                f"{str(end_points_combo)} end_points_combo input is incorrect"
-            )
+            raise ValueError(f"{end_points_combo} end_points_combo input is incorrect")
 
         # get the database connection
         db_file = env_chk(self["db_file"], fw_spec)

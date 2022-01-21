@@ -55,7 +55,7 @@ def get_wf_bulk_modulus(
         Workflow
     """
 
-    tag = tag or f"bulk_modulus group: >>{str(uuid4())}<<"
+    tag = tag or f"bulk_modulus group: >>{uuid4()}<<"
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
 

@@ -477,7 +477,7 @@ def wf_gibbs_free_energy(structure, c=None):
     deformations = c.get("DEFORMATIONS", defos)
     user_kpoints_settings = {"grid_density": 7000}
 
-    tag = f"gibbs group: >>{str(uuid4())}<<"
+    tag = f"gibbs group: >>{uuid4()}<<"
 
     # input set for structure optimization
     vis_relax = MPRelaxSet(structure, force_gamma=True)
@@ -584,7 +584,7 @@ def wf_bulk_modulus(structure, c=None):
         (np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.05, 0.05, 6)
     ]
 
-    tag = f"bulk_modulus group: >>{str(uuid4())}<<"
+    tag = f"bulk_modulus group: >>{uuid4()}<<"
 
     # input set for structure optimization
     vis_relax = MPRelaxSet(structure, force_gamma=True)
@@ -667,7 +667,7 @@ def wf_thermal_expansion(structure, c=None):
         (np.identity(3) * (1 + x)).tolist() for x in np.linspace(-0.1, 0.1, 10)
     ]
 
-    tag = f"thermal_expansion group: >>{str(uuid4())}<<"
+    tag = f"thermal_expansion group: >>{uuid4()}<<"
 
     # input set for structure optimization
     vis_relax = MPRelaxSet(structure, force_gamma=True)
