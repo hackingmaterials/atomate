@@ -49,7 +49,7 @@ class TagsBuilder(AbstractBuilder):
         pbar = tqdm(tasks)
         for t in pbar:
             try:
-                pbar.set_description("Processing task_id: {}".format(t["task_id"]))
+                pbar.set_description(f"Processing task_id: {t['task_id']}")
 
                 # get the corresponding materials id
                 m = self._materials.find_one(
@@ -85,7 +85,7 @@ class TagsBuilder(AbstractBuilder):
 
                 logger.exception("<---")
                 logger.exception(
-                    "There was an error processing task_id: {}".format(t["task_id"])
+                    f"There was an error processing task_id: {t['task_id']}"
                 )
                 logger.exception(traceback.format_exc())
                 logger.exception("--->")

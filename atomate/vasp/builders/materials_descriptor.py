@@ -35,7 +35,7 @@ class MaterialsDescriptorBuilder(AbstractBuilder):
 
         pbar = tqdm(mats)
         for m in pbar:
-            pbar.set_description("Processing materials_id: {}".format(m["material_id"]))
+            pbar.set_description(f"Processing materials_id: {m['material_id']}")
             struct = Structure.from_dict(m["structure"])
             d = {"descriptors": {}}
             d["descriptors"]["dimensionality"] = get_dimensionality(struct)

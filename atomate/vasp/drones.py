@@ -560,9 +560,7 @@ class VaspDrone(AbstractDrone):
                         d[file] = data.as_dict()
                     except Exception:
                         raise ValueError(
-                            "Failed to parse {} at {}.".format(
-                                file, d["output_file_paths"][file]
-                            )
+                            f"Failed to parse {file} at {d['output_file_paths'][file]}."
                         )
 
         # parse force constants

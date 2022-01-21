@@ -62,9 +62,7 @@ def get_wf_FFopt_and_critic(
     # FFopt
     fw1 = FrequencyFlatteningOptimizeFW(
         molecule=molecule,
-        name="{}:{}".format(
-            molecule.composition.alphabetical_formula, "FFopt_" + suffix
-        ),
+        name=f"{molecule.composition.alphabetical_formula}:{'FFopt_' + suffix}",
         qchem_cmd=">>qchem_cmd<<",
         max_cores=">>max_cores<<",
         qchem_input_params=qchem_input_params,
@@ -74,7 +72,7 @@ def get_wf_FFopt_and_critic(
 
     # Critic
     fw2 = CubeAndCritic2FW(
-        name="{}:{}".format(molecule.composition.alphabetical_formula, "CC2_" + suffix),
+        name=f"{molecule.composition.alphabetical_formula}:{'CC2_' + suffix}",
         qchem_cmd=">>qchem_cmd<<",
         max_cores=">>max_cores<<",
         qchem_input_params=qchem_input_params,
@@ -83,8 +81,6 @@ def get_wf_FFopt_and_critic(
     )
     fws = [fw1, fw2]
 
-    wfname = "{}:{}".format(
-        molecule.composition.alphabetical_formula, "FFopt_CC2_WF_" + suffix
-    )
+    wfname = f"{molecule.composition.alphabetical_formula}:{'FFopt_CC2_WF_' + suffix}"
 
     return Workflow(fws, name=wfname, **kwargs)

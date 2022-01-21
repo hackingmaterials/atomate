@@ -314,15 +314,9 @@ class TasksMaterialsBuilder(AbstractBuilder):
                         # figure out where the property data lives in the materials doc and
                         # in the task doc
                         materials_key = (
-                            "{}.{}".format(x["materials_key"], p)
-                            if x.get("materials_key")
-                            else p
+                            f"{x['materials_key']}.{p}" if x.get("materials_key") else p
                         )
-                        tasks_key = (
-                            "{}.{}".format(x["tasks_key"], p)
-                            if x.get("tasks_key")
-                            else p
-                        )
+                        tasks_key = f"{x['tasks_key']}.{p}" if x.get("tasks_key") else p
 
                         # insert property data AND metadata about this task
                         self._materials.update_one(

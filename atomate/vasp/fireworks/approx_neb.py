@@ -73,7 +73,7 @@ class HostFW(Firework):
         """
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
-        fw_name = "{} {}".format(structure.composition.reduced_formula, "host")
+        fw_name = f"{structure.composition.reduced_formula} host"
         fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "host", "relaxation"]}
         task_doc_additional_fields = {
             "approx_neb": {

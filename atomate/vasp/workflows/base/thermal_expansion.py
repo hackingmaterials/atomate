@@ -105,8 +105,6 @@ def get_wf_thermal_expansion(
 
     wf_alpha.append_wf(Workflow.from_Firework(fw_analysis), wf_alpha.leaf_fw_ids)
 
-    wf_alpha.name = "{}:{}".format(
-        structure.composition.reduced_formula, "thermal expansion"
-    )
+    wf_alpha.name = f"{structure.composition.reduced_formula}:thermal expansion"
 
     return wf_alpha

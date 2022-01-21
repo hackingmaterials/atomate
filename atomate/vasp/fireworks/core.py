@@ -471,7 +471,7 @@ class HSEBSFW(Firework):
             db_file (str): Path to file specifying db credentials.
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        name = name if name else "{} {}".format("hse", mode)
+        name = name if name else f"hse {mode}"
 
         fw_name = "{}-{}".format(
             structure.composition.reduced_formula if structure else "unknown", name
