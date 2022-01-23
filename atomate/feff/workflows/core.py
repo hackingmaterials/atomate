@@ -87,9 +87,8 @@ def get_wf_xas(
 
     wf_metadata = dict(metadata) if metadata else {}
     wf_metadata["absorbing_atom_indices"] = list(ab_atom_indices)
-    wfname = "{}:{}:{} edge".format(
-        structure.composition.reduced_formula, f"{spectrum_type} spectroscopy", edge
-    )
+    formula = structure.composition.reduced_formula
+    wfname = f"{formula}:{spectrum_type} spectroscopy:{edge} edge"
 
     return Workflow(fws, name=wfname, metadata=wf_metadata)
 
@@ -257,9 +256,8 @@ def get_wf_eels(
             )
         )
 
-    wfname = "{}:{}:{} edge".format(
-        structure.composition.reduced_formula, f"{spectrum_type} spectroscopy", edge
-    )
+    formula = structure.composition.reduced_formula
+    wfname = f"{formula}:{spectrum_type} spectroscopy:{edge} edge"
     wf_metadata = dict(metadata) if metadata else {}
     wf_metadata["absorbing_atom_indices"] = list(ab_atom_indices)
 

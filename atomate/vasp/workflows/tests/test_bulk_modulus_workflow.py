@@ -158,9 +158,7 @@ class TestBulkModulusWorkflow(AtomateTest):
 
             elif not os.path.exists(os.path.join(reference_dir, str(i), "inputs")):
                 raise OSError(
-                    "neither {} nor {} are present in {}".format(
-                        "inputs", self.task_file, os.path.join(reference_dir, str(i))
-                    )
+                    f"neither inputs nor {self.task_file} are present in {os.path.join(reference_dir, str(i))}"
                 )
 
     def write_task_docs(self):

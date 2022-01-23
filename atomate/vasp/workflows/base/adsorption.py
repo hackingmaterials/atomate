@@ -254,8 +254,8 @@ def get_wf_slab(
         )
         for n, ads_slab in enumerate(ads_slabs):
             # Create adsorbate fw
-            ads_name = "{}-{} adsorbate optimization {}".format(
-                adsorbate.composition.formula, name, n
+            ads_name = (
+                f"{adsorbate.composition.formula}-{name} adsorbate optimization {n}"
             )
             adsorbate_fw = get_slab_fw(
                 ads_slab,
@@ -268,8 +268,8 @@ def get_wf_slab(
             fws.append(adsorbate_fw)
 
     if isinstance(slab, Slab):
-        name = "{}_{} slab workflow".format(
-            slab.composition.reduced_composition, slab.miller_index
+        name = (
+            f"{slab.composition.reduced_composition}_{slab.miller_index} slab workflow"
         )
     else:
         name = f"{slab.composition.reduced_composition} slab workflow"

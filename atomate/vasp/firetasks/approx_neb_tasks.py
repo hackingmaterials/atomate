@@ -733,9 +733,7 @@ class AddSelectiveDynamics(FiretaskBase):
 
         if structure[fixed_index].specie != Element(fixed_specie):
             raise ValueError(
-                "The chosen fixed atom at index {} is not a {} atom".format(
-                    fixed_index, fixed_specie
-                )
+                f"The chosen fixed atom at index {fixed_index} is not a {fixed_specie} atom"
             )
 
         # removes site properties to avoid error

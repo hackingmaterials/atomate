@@ -273,11 +273,9 @@ class MagneticOrderingsWF:
             ordered_structure_origins = self.ordered_structure_origins[
                 0:num_orderings_hard_limit
             ]
+            n_removed = len(self.ordered_structures) - len(ordered_structures)
             logger.warning(
-                "Number of ordered structures exceeds hard limit, "
-                "removing last {} structures.".format(
-                    len(self.ordered_structures) - len(ordered_structures)
-                )
+                f"Number of ordered structures exceeds hard limit, removing last {n_removed} structures."
             )
             # always make sure input structure is included
             if self.input_index and self.input_index > num_orderings_hard_limit:

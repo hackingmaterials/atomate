@@ -699,10 +699,8 @@ class VaspDrone(AbstractDrone):
                     desired_force_convergence = np.inf
                 if max_drift > desired_force_convergence:
                     warning_msgs.append(
-                        "Drift ({}) > desired force convergence ({}), "
-                        "structure likely not converged to desired accuracy.".format(
-                            drift, desired_force_convergence
-                        )
+                        f"Drift ({drift}) > desired force convergence ({desired_force_convergence}), "
+                        "structure likely not converged to desired accuracy."
                     )
 
             s = Structure.from_dict(d["output"]["structure"])

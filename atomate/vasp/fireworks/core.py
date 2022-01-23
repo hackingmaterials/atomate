@@ -99,9 +99,7 @@ class OptimizeFW(Firework):
             and job_type == "double_relaxation"
         ):
             warnings.warn(
-                "A double relaxation run might not be appropriate with ISIF {}".format(
-                    vasp_input_set.incar["ISIF"]
-                )
+                f"A double relaxation run might not be appropriate with ISIF {vasp_input_set.incar['ISIF']}"
             )
 
         t = []
@@ -1082,7 +1080,7 @@ class NEBRelaxationFW(Firework):
     Task 1) Read in a structure with "st_label" ("rlx", "ep0" or "ep1") and generates input sets.
     Task 2) Run VASP using Custodian
     Task 3) Update structure to spec
-    Task 4) Pass CalcLocs named "{}_dir".format(st_label)
+    Task 4) Pass CalcLocs named f"{st_label}_dir"
     """
 
     def __init__(
@@ -1163,7 +1161,7 @@ class NEBFW(Firework):
             The group of structures are labeled with neb_label (1, 2...)
     Task 2) Run NEB VASP using Custodian
     Task 3) Update structure to spec
-    Task 4) Pass CalcLocs named "neb_{}".format(neb_label)
+    Task 4) Pass CalcLocs named f"neb_{neb_label}"
     """
 
     def __init__(

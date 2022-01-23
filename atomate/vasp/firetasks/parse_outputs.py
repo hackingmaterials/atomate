@@ -1354,8 +1354,7 @@ class MagneticOrderingsToDb(FiretaskBase):
         ground_state_task_id = docs[idx]["task_id"]
         if energies.count(ground_state_energy) > 1:
             logger.warning(
-                "Multiple identical energies exist, "
-                "duplicate calculations for {}?".format(formula)
+                f"Multiple identical energies exist, duplicate calculations for {formula}?"
             )
 
         # get results for different orderings
