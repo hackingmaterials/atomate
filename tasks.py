@@ -1,5 +1,8 @@
-# Copyright (c) Pymatgen Development Team.
-# Distributed under the terms of the MIT License.
+"""
+Deployment file to facilitate releases.
+Copyright (c) Pymatgen Development Team.
+Distributed under the terms of the MIT License.
+"""
 
 import json
 import os
@@ -10,10 +13,6 @@ from invoke import task
 from monty.os import cd
 
 from atomate import __version__
-
-"""
-Deployment file to facilitate releases.
-"""
 
 __author__ = "Shyue Ping Ong, Anubhav Jain"
 __email__ = "ongsp@ucsd.edu"

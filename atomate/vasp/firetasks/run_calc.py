@@ -1,8 +1,3 @@
-from monty.os.path import zpath
-from monty.serialization import loadfn
-
-from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
-
 """
 This module defines tasks that support running vasp in various ways.
 """
@@ -33,12 +28,14 @@ from custodian.vasp.handlers import (
 from custodian.vasp.jobs import VaspJob, VaspNEBJob
 from custodian.vasp.validators import VaspFilesValidator, VasprunXMLValidator
 from fireworks import FiretaskBase, FWAction, explicit_serialize
+from monty.os.path import zpath
+from monty.serialization import loadfn
 from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
 from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 
 from atomate.utils.utils import env_chk, get_logger
-from atomate.vasp.config import CUSTODIAN_MAX_ERRORS
+from atomate.vasp.config import CUSTODIAN_MAX_ERRORS, HALF_KPOINTS_FIRST_RELAX
 
 __author__ = "Anubhav Jain <ajain@lbl.gov>"
 __credits__ = "Shyue Ping Ong <ong.sp>"
