@@ -337,9 +337,7 @@ class VaspCalcDb(CalcDb):
         elif obj_dict["@class"] == "BandStructureSymmLine":
             return BandStructureSymmLine.from_dict(obj_dict)
         else:
-            raise ValueError(
-                "Unknown class for band structure! {}".format(obj_dict["@class"])
-            )
+            raise ValueError(f"Unknown class for band structure! {obj_dict['@class']}")
 
     def get_dos(self, task_id):
         """

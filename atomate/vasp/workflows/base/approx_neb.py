@@ -13,15 +13,11 @@ from custodian.vasp.handlers import (
 )
 from fireworks import Workflow
 
-from atomate.common.powerups import powerup_by_kwargs
+from atomate.common.powerups import add_tags, powerup_by_kwargs
 from atomate.vasp.config import DB_FILE, VASP_CMD
 from atomate.vasp.fireworks.approx_neb import EndPointFW, HostFW
 from atomate.vasp.fireworks.approx_neb_dynamic import EvaluatePathFW
-from atomate.vasp.powerups import (
-    add_additional_fields_to_taskdocs,
-    add_tags,
-    use_custodian,
-)
+from atomate.vasp.powerups import add_additional_fields_to_taskdocs, use_custodian
 
 __author__ = "Ann Rutt"
 __email__ = "acrutt@lbl.gov"

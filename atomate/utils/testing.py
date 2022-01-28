@@ -85,7 +85,7 @@ class AtomateTest(unittest.TestCase):
             if hasattr(self, "lp"):
                 self.lp.reset("", require_password=False)
                 db = self.get_task_database()
-                for coll in db.collection_names():
+                for coll in db.list_collection_names():
                     if coll != "system.indexes":
                         db[coll].drop()
             shutil.rmtree(self.scratch_dir)

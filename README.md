@@ -8,7 +8,7 @@ atomate is a software for computational materials science that contains pre-buil
 
 If you find atomate useful, please encourage its development by citing the following paper in your research output:
 
-```
+```txt
 Mathew, K., Montoya, J. H., Faghaninia, A., Dwarakanath, S., Aykol,
 M., Tang, H., Chu, I., Smidt, T., Bocklund, B., Horton, M., Dagdelen,
 J., Wood, B., Liu, Z.-K., Neaton, J., Ong, S. P., Persson, K., Jain,

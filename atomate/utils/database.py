@@ -145,21 +145,17 @@ class CalcDb(metaclass=ABCMeta):
                         {"$inc": {"c": 1}},
                         return_document=ReturnDocument.AFTER,
                     )["c"]
-                logger.info(
-                    "Inserting {} with taskid = {}".format(d["dir_name"], d["task_id"])
-                )
+                logger.info(f"Inserting {d['dir_name']} with taskid = {d['task_id']}")
             elif update_duplicates:
                 d["task_id"] = result["task_id"]
-                logger.info(
-                    "Updating {} with taskid = {}".format(d["dir_name"], d["task_id"])
-                )
+                logger.info(f"Updating {d['dir_name']} with taskid = {d['task_id']}")
             d = jsanitize(d, allow_bson=True)
             self.collection.update_one(
                 {"dir_name": d["dir_name"]}, {"$set": d}, upsert=True
             )
             return d["task_id"]
         else:
-            logger.info("Skipping duplicate {}".format(d["dir_name"]))
+            logger.info(f"Skipping duplicate {d['dir_name']}")
             return None
 
     @abstractmethod

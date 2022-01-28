@@ -20,7 +20,7 @@ class NMRFW(Firework):
         copy_vasp_outputs=True,
         db_file=None,
         parents=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Firework for NMR tensor calculations
@@ -41,9 +41,8 @@ class NMRFW(Firework):
                 FW or list of FWS.
             kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         isotopes = isotopes.split() if isinstance(isotopes, str) else isotopes
         t = []

@@ -5,9 +5,8 @@ from atomate.common.firetasks.glue_tasks import DeleteFiles
 from atomate.common.powerups import (
     add_additional_fields_to_taskdocs as common_add_additional_fields_to_taskdocs,
 )
-from atomate.common.powerups import add_namefile as common_add_namefile
+from atomate.common.powerups import add_namefile
 from atomate.common.powerups import add_priority as common_add_priority
-from atomate.common.powerups import add_tags as common_add_tags
 from atomate.common.powerups import preserve_fworker as common_preserve_fworker
 from atomate.common.powerups import (
     set_execution_options as common_set_execution_options,
@@ -195,11 +194,6 @@ def use_fake_vasp(
                         )
 
     return original_wf
-
-
-@deprecated(replacement=common_add_namefile)
-def add_namefile(original_wf, use_slug=True):
-    return common_add_namefile(original_wf, use_slug=use_slug)
 
 
 def add_trackers(original_wf, tracked_files=None, nlines=25):
@@ -673,11 +667,6 @@ def add_additional_fields_to_taskdocs(
     )
 
 
-@deprecated(replacement=common_add_tags)
-def add_tags(original_wf, tags_list):
-    return common_add_tags(original_wf, tags_list)
-
-
 def add_common_powerups(wf, c=None):
     """
     Apply the common powerups such as add_namefile, use_scratch_dir etc. from
@@ -693,7 +682,7 @@ def add_common_powerups(wf, c=None):
     c = c or {}
 
     if c.get("ADD_NAMEFILE", ADD_NAMEFILE):
-        wf = common_add_namefile(wf)
+        wf = add_namefile(wf)
 
     if c.get("SCRATCH_DIR", SCRATCH_DIR):
         wf = use_scratch_dir(wf, c.get("SCRATCH_DIR", SCRATCH_DIR))

@@ -503,9 +503,7 @@ class PathfinderToDb(FiretaskBase):
             else:
                 raise ValueError("NEBPathfinder requires exactly two end points")
         except Exception:
-            raise ValueError(
-                f"{str(end_points_combo)} end_points_combo input is incorrect"
-            )
+            raise ValueError(f"{end_points_combo} end_points_combo input is incorrect")
 
         # get the database connection
         db_file = env_chk(self["db_file"], fw_spec)
@@ -735,9 +733,7 @@ class AddSelectiveDynamics(FiretaskBase):
 
         if structure[fixed_index].specie != Element(fixed_specie):
             raise ValueError(
-                "The chosen fixed atom at index {} is not a {} atom".format(
-                    fixed_index, fixed_specie
-                )
+                f"The chosen fixed atom at index {fixed_index} is not a {fixed_specie} atom"
             )
 
         # removes site properties to avoid error

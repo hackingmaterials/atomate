@@ -22,7 +22,7 @@ class FixTasksBuilder(AbstractBuilder):
         for t in self._tasks.find(
             {"output.spacegroup.number": {"$type": 2}}, {"task_id": 1, "output": 1}
         ):
-            logger.info("Fixing string spacegroup, tid: {}".format(t["task_id"]))
+            logger.info(f"Fixing string spacegroup, tid: {t['task_id']}")
             sg = int(t["output"]["spacegroup"]["number"])
             self._tasks.update_one(
                 {"task_id": t["task_id"]}, {"$set": {"output.spacegroup.number": sg}}
@@ -33,7 +33,7 @@ class FixTasksBuilder(AbstractBuilder):
             {"tags": {"$exists": True}, "tags.0": {"$exists": False}},
             {"task_id": 1, "tags": 1},
         ):
-            logger.info("Fixing tag (converting to list), tid: {}".format(t["task_id"]))
+            logger.info(f"Fixing tag (converting to list), tid: {t['task_id']}")
             self._tasks.update_one(
                 {"task_id": t["task_id"]}, {"$set": {"tags": [t["tags"]]}}
             )
@@ -47,9 +47,7 @@ class FixTasksBuilder(AbstractBuilder):
             {"task_id": 1, "analysis": 1},
         ):
             logger.info(
-                "Converting delta_volume_percent to be on a percentage scale, tid: {}".format(
-                    t["task_id"]
-                )
+                f"Converting delta_volume_percent to be on a percentage scale, tid: {t['task_id']}"
             )
             self._tasks.update_one(
                 {"task_id": t["task_id"]},
@@ -71,7 +69,7 @@ class FixTasksBuilder(AbstractBuilder):
             },
             {"task_id": 1},
         ):
-            logger.info("Removing delta_volume_percent, tid: {}".format(t["task_id"]))
+            logger.info(f"Removing delta_volume_percent, tid: {t['task_id']}")
             self._tasks.update_one(
                 {"task_id": t["task_id"]},
                 {"$unset": {"analysis.delta_volume_percent": 1}},

@@ -68,7 +68,7 @@ def get_wf_thermal_expansion(
             "'phonopy' package NOT installed. Required for the final analysis step."
         )
 
-    tag = tag or f"thermal_expansion group: >>{str(uuid4())}<<"
+    tag = tag or f"thermal_expansion group: >>{uuid4()}<<"
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
 
@@ -105,8 +105,6 @@ def get_wf_thermal_expansion(
 
     wf_alpha.append_wf(Workflow.from_Firework(fw_analysis), wf_alpha.leaf_fw_ids)
 
-    wf_alpha.name = "{}:{}".format(
-        structure.composition.reduced_formula, "thermal expansion"
-    )
+    wf_alpha.name = f"{structure.composition.reduced_formula}:thermal expansion"
 
     return wf_alpha

@@ -94,13 +94,11 @@ def get_ion_insertion_wf(
         db_file=db_file,
         parents=[opt_wf],
         spec_structure_key="prev_calc_structure",
-        **staticfw_kwargs
+        **staticfw_kwargs,
     )
 
-    wf_name = "{}-{}".format(
-        structure.composition.reduced_formula if structure else "unknown",
-        "insertion",
-    )
+    formula = structure.composition.reduced_formula if structure else "unknown"
+    wf_name = f"{formula}-insertion"
 
     # Configure the analysis FW
     analysis_wf = Firework(

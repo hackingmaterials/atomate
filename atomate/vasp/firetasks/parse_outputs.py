@@ -161,8 +161,7 @@ class VaspToDb(FiretaskBase):
                 )
             else:
                 raise RuntimeError(
-                    "Unknown option for defuse_unsuccessful: "
-                    "{}".format(defuse_unsuccessful)
+                    f"Unknown option for defuse_unsuccessful: {defuse_unsuccessful}"
                 )
 
         task_fields_to_push = self.get("task_fields_to_push", None)
@@ -1355,8 +1354,7 @@ class MagneticOrderingsToDb(FiretaskBase):
         ground_state_task_id = docs[idx]["task_id"]
         if energies.count(ground_state_energy) > 1:
             logger.warning(
-                "Multiple identical energies exist, "
-                "duplicate calculations for {}?".format(formula)
+                f"Multiple identical energies exist, duplicate calculations for {formula}?"
             )
 
         # get results for different orderings

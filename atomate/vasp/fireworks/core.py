@@ -99,9 +99,7 @@ class OptimizeFW(Firework):
             and job_type == "double_relaxation"
         ):
             warnings.warn(
-                "A double relaxation run might not be appropriate with ISIF {}".format(
-                    vasp_input_set.incar["ISIF"]
-                )
+                f"A double relaxation run might not be appropriate with ISIF {vasp_input_set.incar['ISIF']}"
             )
 
         t = []
@@ -177,9 +175,8 @@ class ScanOptimizeFW(Firework):
             vasptodb_kwargs["additional_fields"] = {}
         vasptodb_kwargs["additional_fields"]["task_label"] = name
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         has_previous_calc = False
 
@@ -336,9 +333,8 @@ class StaticFW(Firework):
             vasptodb_kwargs["additional_fields"] = {}
         vasptodb_kwargs["additional_fields"]["task_label"] = name
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         if spec_structure_key is not None:
             vasp_input_set = vasp_input_set or MPStaticSet(
@@ -471,11 +467,10 @@ class HSEBSFW(Firework):
             db_file (str): Path to file specifying db credentials.
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        name = name if name else "{} {}".format("hse", mode)
+        name = name if name else f"hse {mode}"
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         t = []
         if prev_calc_dir:
@@ -544,11 +539,8 @@ class NonSCFFW(Firework):
         """
         input_set_overrides = input_set_overrides or {}
 
-        fw_name = "{}-{} {}".format(
-            structure.composition.reduced_formula if structure else "unknown",
-            name,
-            mode,
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name} {mode}"
         t = []
 
         if prev_calc_dir:
@@ -625,9 +617,8 @@ class DFPTFW(Firework):
         """
         name = "static dielectric" if lepsilon else "phonon"
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         user_incar_settings = user_incar_settings or {}
         t = []
@@ -720,10 +711,9 @@ class RamanFW(Firework):
             user_incar_settings (dict): Parameters in INCAR to override
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        name = f"{name}_{str(mode)}_{str(displacement)}"
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        name = f"{name}_{mode}_{displacement}"
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         user_incar_settings = user_incar_settings or {}
 
@@ -796,9 +786,8 @@ class SOCFW(Firework):
                 FW or list of FWS.
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         t = []
         if prev_calc_dir:
@@ -1057,9 +1046,8 @@ class BoltztrapFW(Firework):
             additional_fields (dict): fields added to the document such as user-defined tags or name, ids, etc
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         additional_fields = additional_fields or {}
 
@@ -1092,7 +1080,7 @@ class NEBRelaxationFW(Firework):
     Task 1) Read in a structure with "st_label" ("rlx", "ep0" or "ep1") and generates input sets.
     Task 2) Run VASP using Custodian
     Task 3) Update structure to spec
-    Task 4) Pass CalcLocs named "{}_dir".format(st_label)
+    Task 4) Pass CalcLocs named f"{st_label}_dir"
     """
 
     def __init__(
@@ -1173,7 +1161,7 @@ class NEBFW(Firework):
             The group of structures are labeled with neb_label (1, 2...)
     Task 2) Run NEB VASP using Custodian
     Task 3) Update structure to spec
-    Task 4) Pass CalcLocs named "neb_{}".format(neb_label)
+    Task 4) Pass CalcLocs named f"neb_{neb_label}"
     """
 
     def __init__(

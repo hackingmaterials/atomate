@@ -273,7 +273,7 @@ def get_wf_from_spec_dict(structure, wfspec, common_param_updates=None):
         fws.append(cls_(structure=structure, **params))
 
     wfname = (
-        "{}:{}".format(structure.composition.reduced_formula, wfspec["name"])
+        f"{structure.composition.reduced_formula}:{wfspec['name']}"
         if wfspec.get("name")
         else structure.composition.reduced_formula
     )

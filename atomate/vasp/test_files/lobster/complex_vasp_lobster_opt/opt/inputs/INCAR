@@ -17,3 +17,5 @@ NPAR = 4
 NSW = 99
 PREC = Accurate
 SIGMA = 0.05
+LASPH = True
+LMAXMIX = 4

@@ -12,6 +12,7 @@ from pymatgen.analysis.structure_matcher import ElementComparator, StructureMatc
 from pymatgen.core import Lattice, Structure
 from pymatgen.io.vasp.sets import MPRelaxSet
 
+from atomate.common.powerups import add_tags
 from atomate.utils.utils import get_logger
 from atomate.vasp.config import ADD_WF_METADATA, DB_FILE, VASP_CMD
 from atomate.vasp.firetasks.parse_outputs import (
@@ -22,7 +23,6 @@ from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
 from atomate.vasp.powerups import (
     add_additional_fields_to_taskdocs,
     add_common_powerups,
-    add_tags,
     add_wf_metadata,
 )
 from atomate.vasp.workflows.base.core import get_wf
@@ -273,11 +273,9 @@ class MagneticOrderingsWF:
             ordered_structure_origins = self.ordered_structure_origins[
                 0:num_orderings_hard_limit
             ]
+            n_removed = len(self.ordered_structures) - len(ordered_structures)
             logger.warning(
-                "Number of ordered structures exceeds hard limit, "
-                "removing last {} structures.".format(
-                    len(self.ordered_structures) - len(ordered_structures)
-                )
+                f"Number of ordered structures exceeds hard limit, removing last {n_removed} structures."
             )
             # always make sure input structure is included
             if self.input_index and self.input_index > num_orderings_hard_limit:

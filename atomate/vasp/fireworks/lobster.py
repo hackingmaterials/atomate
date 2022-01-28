@@ -53,7 +53,7 @@ class LobsterFW(Firework):
         lobsterin_key_dict: dict = None,
         lobstertodb_kwargs: dict = None,
         additional_outputs: List[str] = None,
-        **kwargs
+        **kwargs,
     ):
         """
 
@@ -86,10 +86,8 @@ class LobsterFW(Firework):
         """
 
         # TODO: make this lobster firework more flexible to allow for FATBAND and other types of calculations
-
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         t = []
         # copies all files from previous VASP calculation;

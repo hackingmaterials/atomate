@@ -4,11 +4,11 @@ This module defines the ferroelectric workflow
 
 from fireworks import Firework, Workflow
 
+from atomate.common.powerups import add_tags
 from atomate.utils.utils import get_a_unique_id, get_logger
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDb
 from atomate.vasp.fireworks.core import HSEBSFW, OptimizeFW
 from atomate.vasp.fireworks.polarization import LcalcpolFW
-from atomate.vasp.powerups import add_tags
 
 __author__ = "Tess Smidt"
 __email__ = "tsmidt@berkeley.edu"
@@ -131,8 +131,8 @@ def get_wf_ferroelectric(
         interpolation.append(
             LcalcpolFW(
                 structure=polar_structure,
-                name=f"_interpolation_{str(i)}_polarization",
-                static_name=f"_interpolation_{str(i)}_static",
+                name=f"_interpolation_{i}_polarization",
+                static_name=f"_interpolation_{i}_static",
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
                 vasp_input_set=vasp_input_set_polar,

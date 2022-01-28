@@ -141,7 +141,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
         db_write = get_database(db_file, admin=True)
         try:
             db_read = get_database(db_file, admin=False)
-            db_read.collection_names()  # throw error if auth failed
+            db_read.list_collection_names()  # throw error if auth failed
         except Exception:
             logger.warning(
                 "Warning: could not get read-only database; using write creds"
@@ -314,15 +314,9 @@ class TasksMaterialsBuilder(AbstractBuilder):
                         # figure out where the property data lives in the materials doc and
                         # in the task doc
                         materials_key = (
-                            "{}.{}".format(x["materials_key"], p)
-                            if x.get("materials_key")
-                            else p
+                            f"{x['materials_key']}.{p}" if x.get("materials_key") else p
                         )
-                        tasks_key = (
-                            "{}.{}".format(x["tasks_key"], p)
-                            if x.get("tasks_key")
-                            else p
-                        )
+                        tasks_key = f"{x['tasks_key']}.{p}" if x.get("tasks_key") else p
 
                         # insert property data AND metadata about this task
                         self._materials.update_one(

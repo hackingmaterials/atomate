@@ -98,13 +98,8 @@ def get_wf_torsion_potential(
         rot_task = RotateTorsion(atom_indexes=atom_indexes, angle=angle)
         rot_opt_fw.tasks.insert(0, rot_task)
         # define opt section
-        opt_line = "tors {a} {b} {c} {d} {ang}".format(
-            a=atom_indexes[0],
-            b=atom_indexes[1],
-            c=atom_indexes[2],
-            d=atom_indexes[3],
-            ang=angle,
-        )
+        a, b, c, d = atom_indexes
+        opt_line = f"tors {a} {b} {c} {d} {angle}"
         opt = {"CONSTRAINT": [opt_line]}
         for idx_t, t in enumerate(rot_opt_fw.tasks):
             if "WriteInputFromIOSet" in str(t):

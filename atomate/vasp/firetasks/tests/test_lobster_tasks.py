@@ -97,7 +97,7 @@ class TestLobsterRunToDb(AtomateTest):
         # remove the collections if needed and if possible
         try:
             db = self.get_task_database()
-            for coll in db.collection_names():
+            for coll in db.list_collection_names():
                 if coll != "system.indexes":
                     db[coll].drop()
         except Exception:

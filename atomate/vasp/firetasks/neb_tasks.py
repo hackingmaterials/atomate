@@ -195,8 +195,7 @@ class RunNEBVaspFake(FiretaskBase):
         # Check sub-folders consistence.
         if len(user_sdir) != len(ref_sdir_input):
             raise ValueError(
-                "Sub-folder numbers are inconsistent! "
-                "Paths are:\n{}\n{}".format(self.user_dir, self.ref_dir_input)
+                f"Sub-folder numbers are inconsistent! Paths are:\n{self.user_dir}\n{self.ref_dir_input}"
             )
         self.user_sdir = user_sdir
         self.ref_sdir_input = ref_sdir_input
@@ -223,9 +222,7 @@ class RunNEBVaspFake(FiretaskBase):
         ):
             raise ValueError(
                 "KPOINT files are inconsistent! "
-                "Paths are:\n{}\n{} with kpts = {} {}".format(
-                    self.user_dir, self.ref_dir_input, user_kpoints, ref_kpoints
-                )
+                f"Paths are:\n{self.user_dir}\n{self.ref_dir_input} with kpts = {user_kpoints} {ref_kpoints}"
             )
 
         # Check POTCAR
@@ -234,7 +231,7 @@ class RunNEBVaspFake(FiretaskBase):
         if user_potcar.symbols != ref_potcar.symbols:
             raise ValueError(
                 "POTCAR files are inconsistent! "
-                "Paths are:\n{}\n{}".format(self.user_dir, self.ref_dir_input)
+                f"Paths are:\n{self.user_dir}\n{self.ref_dir_input}"
             )
 
         # Check POSCARs

@@ -145,9 +145,7 @@ def get_wf_elastic_constant(
             Workflow.from_Firework(fw_analysis), wf_elastic.leaf_fw_ids
         )
 
-    wf_elastic.name = "{}:{}".format(
-        structure.composition.reduced_formula, "elastic constants"
-    )
+    wf_elastic.name = f"{structure.composition.reduced_formula}:elastic constants"
 
     return wf_elastic
 

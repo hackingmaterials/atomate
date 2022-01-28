@@ -55,7 +55,7 @@ def get_wf_bulk_modulus(
         Workflow
     """
 
-    tag = tag or f"bulk_modulus group: >>{str(uuid4())}<<"
+    tag = tag or f"bulk_modulus group: >>{uuid4()}<<"
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
 
@@ -84,6 +84,6 @@ def get_wf_bulk_modulus(
     wf_bulk_modulus.append_wf(wf_analysis, wf_bulk_modulus.leaf_fw_ids)
 
     formula = structure.composition.reduced_formula
-    wf_bulk_modulus.name = "{}:{}".format(formula, "Bulk modulus")
+    wf_bulk_modulus.name = f"{formula}:Bulk modulus"
 
     return wf_bulk_modulus
