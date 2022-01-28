@@ -11,7 +11,6 @@ import os
 import re
 import traceback
 import warnings
-from collections import OrderedDict
 from fnmatch import fnmatch
 
 import numpy as np
@@ -235,10 +234,10 @@ class VaspDrone(AbstractDrone):
             file_pattern (string): files to be searched for
 
         Returns:
-            OrderedDict of the names of the files to be processed further.
-            The key is set from list of run types: self.runs
+            dict: names of the files to be processed further. The key is set from list
+                of run types: self.runs
         """
-        processed_files = OrderedDict()
+        processed_files = {}
         files = os.listdir(path)
         for r in self.runs:
             # try subfolder schema

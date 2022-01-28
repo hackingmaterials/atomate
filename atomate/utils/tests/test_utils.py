@@ -123,5 +123,6 @@ class UtilsTests(AtomateTest):
 
         db = get_database(os.path.join(MODULE_DIR, "db.json"))
         self.assertTrue(isinstance(db, Database))
-        self.assertEqual(db.client.address[0], "localhost")
         self.assertEqual(db.name, "atomate_unittest")
+        db.client.start_session()  # needed to start the connection and populate db.client.address
+        self.assertEqual(db.client.address, ("localhost", 27017))

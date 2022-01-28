@@ -7,20 +7,8 @@ __author__ = "Anubhav Jain <ajain@lbl.gov>, Kiran Mathew <kmathew@lbl.gov>"
 
 class SubmissionFilter(AbstractStructureFilter):
     NO_POTCARS = [
-        "Po",
-        "At",
-        "Rn",
-        "Fr",
-        "Ra",
-        "Am",
-        "Cm",
-        "Bk",
-        "Cf",
-        "Es",
-        "Fm",
-        "Md",
-        "No",
-        "Lr",
+        *["Po", "At", "Rn", "Fr", "Ra", "Am", "Cm"],
+        *["Bk", "Cf", "Es", "Fm", "Md", "No", "Lr"],
     ]
 
     def __init__(

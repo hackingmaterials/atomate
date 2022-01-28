@@ -33,7 +33,7 @@ if __name__ == "__main__":
             "pydash>=4.1.0",
             "pymatgen-analysis-diffusion",
             "pymatgen",
-            "pymongo<4.0.0",
+            "pymongo",
             "pyyaml>=5.1.2",
             "ruamel.yaml",
             "scipy",
