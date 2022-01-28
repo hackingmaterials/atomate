@@ -79,21 +79,22 @@ class RunVaspCustodian(FiretaskBase):
         vasp_cmd (str): the name of the full executable for running VASP. Supports env_chk.
 
     Optional params:
-        job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive
+        jobs (list[VaspJob]): VaspJobs to run.
+        job_type (str): choose from "normal" (default), "double_relaxation_run" (two consecutive
             jobs), "full_opt_run" (multiple optimizations), and "neb"
         handler_group: (str | list[ErrorHandler]) - group of handlers to use. See handler_groups dict in the code or
             the groups and complete list of handlers in each group. Alternatively, you can
             specify a list of ErrorHandler objects.
         max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for
             nscf runs.
-        scratch_dir: (str) - if specified, uses this directory as the root scratch dir.
+        scratch_dir (str): if specified, uses this directory as the root scratch dir.
             Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
         max_errors: (int) - maximum # of errors to fix before giving up (default=5)
         ediffg: (float) shortcut for setting EDIFFG in special custodian jobs
         auto_npar: (bool) - use auto_npar (default=F). Recommended set to T
             for single-node jobs only. Supports env_chk.
-        gamma_vasp_cmd: (str) - cmd for Gamma-optimized VASP compilation.
+        gamma_vasp_cmd (str): cmd for Gamma-optimized VASP compilation.
             Supports env_chk.
         wall_time (int): Total wall time in seconds. Activates WalltimeHandler if set.
         half_kpts_first_relax (bool): Use half the k-points for the first relaxation
@@ -101,6 +102,7 @@ class RunVaspCustodian(FiretaskBase):
 
     required_params = ["vasp_cmd"]
     optional_params = [
+        "jobs",
         "job_type",
         "handler_group",
         "max_force_threshold",
@@ -167,7 +169,8 @@ class RunVaspCustodian(FiretaskBase):
             vasp_cmd = shlex.split(vasp_cmd)
 
         # initialize variables
-        job_type = self.get("job_type", "normal")
+        jobs = self.get("jobs", [])
+        job_type = self.get("job_type", "normal" if jobs == [] else None)
         scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
         gzip_output = self.get("gzip_output", True)
         max_errors = self.get("max_errors", CUSTODIAN_MAX_ERRORS)
