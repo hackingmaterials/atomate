@@ -1,4 +1,4 @@
-# <img alt="atomate" src="docs_rst/_static/atomate_logo_small.png" width="250">
+# <img alt="atomate" src="https://raw.githubusercontent.com/hackingmaterials/atomate/main/docs_rst/_static/atomate_logo_small.png" width="250">
 
 [![Tests](https://github.com/hackingmaterials/atomate/actions/workflows/test.yml/badge.svg)](https://github.com/hackingmaterials/atomate/actions/workflows/test.yml)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/atomate?label=PyPI%20Downloads)](https://pypi.org/project/atomate)
