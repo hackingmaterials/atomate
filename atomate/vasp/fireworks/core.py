@@ -3,6 +3,7 @@ Defines standardized Fireworks that can be chained easily to perform various
 sequences of VASP calculations.
 """
 import warnings
+from typing import Any, Dict, List, Union
 
 from fireworks import Firework
 from pymatgen.core import Structure
@@ -583,20 +584,20 @@ class NonSCFFW(Firework):
 class DFPTFW(Firework):
     def __init__(
         self,
-        structure=None,
-        prev_calc_dir=None,
-        name="static dielectric",
-        vasp_cmd=VASP_CMD,
-        copy_vasp_outputs=True,
-        lepsilon=True,
-        db_file=DB_FILE,
-        parents=None,
-        user_incar_settings=None,
-        pass_nm_results=False,
+        structure: Structure = None,
+        prev_calc_dir: str = None,
+        name: str = "static dielectric",
+        vasp_cmd: str = VASP_CMD,
+        copy_vasp_outputs: bool = True,
+        lepsilon: bool = True,
+        db_file: str = DB_FILE,
+        parents: Union[Firework, List[Firework]] = None,
+        user_incar_settings: Dict[str, Any] = None,
+        pass_nm_results: bool = False,
         **kwargs,
     ):
         """
-         Static DFPT calculation Firework
+        Static DFPT calculation Firework
 
         Args:
             structure (Structure): Input structure. If copy_vasp_outputs, used only to set the
