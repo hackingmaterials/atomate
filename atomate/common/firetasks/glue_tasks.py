@@ -142,11 +142,11 @@ class CopyFilesFromCalcLoc(FiretaskBase):
 
         for f in files_to_copy:
             prev_path_full = os.path.join(calc_dir, f)
-            dest_fname = self.get("name_prepend", "") + f + self.get("name_append", "")
+            f, ext = os.path.splitext(f)
+            dest_fname = self.get("name_prepend", "") + f + self.get("name_append", "") + ext
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
             fileclient.copy(prev_path_full, dest_path)
-
 
 @explicit_serialize
 class DeleteFiles(FiretaskBase):
