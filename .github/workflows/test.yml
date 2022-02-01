@@ -28,7 +28,7 @@ jobs:
       - name: using PR 726 adsorption 
         uses: actions/setup-python@v2
         with:
-          ref: pull/${{ github.event.pull_request.726 }}/head
+          ref: pull/${{ github.event.pull_request.#726 }}/head
 
       - name: Install OpenBabel
         run: |
