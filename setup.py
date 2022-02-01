@@ -8,7 +8,7 @@ module_dir = dirname(abspath(__file__))
 if __name__ == "__main__":
     setup(
         name="atomate",
-        version="1.0.2",
+        version="1.0.3",
         description="atomate has implementations of FireWorks workflows for Materials Science",
         long_description=open(join(module_dir, "README.md")).read(),
         url="https://github.com/hackingmaterials/atomate",
