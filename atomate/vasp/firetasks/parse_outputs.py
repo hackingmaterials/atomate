@@ -1281,7 +1281,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
         summaries.append(summary)
 
         mmdb.collection = mmdb.db["hubbard_hund_linresp"]
-        mmdb.collection.insert(summaries)
+        mmdb.collection.insert_many(summaries)
 
         logger.info("Hubbard-Hund linear response analysis is complete.")
 
@@ -1507,7 +1507,7 @@ class MagneticOrderingsToDb(FiretaskBase):
             summaries.append(summary)
 
         mmdb.collection = mmdb.db["magnetic_orderings"]
-        mmdb.collection.insert(summaries)
+        mmdb.collection.insert_many(summaries)
 
         logger.info("Magnetic orderings calculation complete.")
 

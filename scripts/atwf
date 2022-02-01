@@ -14,8 +14,8 @@ from pymatgen.core import Lattice, Structure
 from pymatgen.ext.matproj import MPRester
 from pymatgen.util.testing import PymatgenTest
 
+from atomate.common.powerups import add_namefile, add_tags
 from atomate.utils.utils import get_wf_from_spec_dict, load_class
-from atomate.vasp.powerups import add_namefile, add_tags
 from atomate.vasp.workflows.presets import core
 
 default_yaml = """fireworks:

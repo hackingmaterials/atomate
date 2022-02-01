@@ -34,9 +34,9 @@ class TestFerroelectricWorkflow(AtomateTest):
 
         coll = bson.decode_all(coll_raw)
 
-        db = self.get_task_collection()
+        task_coll = self.get_task_collection()
         for c in coll:
-            db.insert(c)
+            task_coll.insert_one(c)
 
         new_fw_spec = {
             "_fw_env": {"db_file": os.path.join(db_dir, "db.json")},
