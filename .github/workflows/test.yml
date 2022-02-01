@@ -17,18 +17,15 @@ jobs:
           - 27017:27017
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repo 726
         uses: actions/checkout@v2
+        with:
+          ref: pull/726/head
 
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
-          
-      - name: using PR 726 adsorption 
-        uses: actions/checkout@v2
-        with:
-          ref: pull/726/head
 
       - name: Install OpenBabel
         run: |
