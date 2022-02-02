@@ -17,10 +17,8 @@ jobs:
           - 27017:27017
 
     steps:
-      - name: Checkout repo 726
+      - name: Checkout repo
         uses: actions/checkout@v2
-        with:
-          ref: pull/726/head
 
       - name: Setup Python
         uses: actions/setup-python@v2
