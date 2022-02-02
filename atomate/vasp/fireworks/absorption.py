@@ -159,7 +159,6 @@ class AbsorptionFW(Firework):
                           "SIGMA": 0.01,
                           "LREAL": False,
                           "GGA": "PE",
-                          "LCHARG": False,
                           "LELF": False,
                           "LAECHG": False,
                           "LASPH": False,
