@@ -419,6 +419,11 @@ class VaspDrone(AbstractDrone):
                 for k in ["optical_absorption_coeff", "dielectric"]:
                     d["output"][k] = d_calc_final["output"][k]
 
+            # store optical data, overwrites the LOPTICS data
+            if d["input"]["incar"].get("ALGO") == 'CHI':
+                for k in ["optical_absorption_coeff", "dielectric"]:
+                    d["output"][k] = d_calc_final["output"][k]
+
             d["state"] = (
                 "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
             )
@@ -576,6 +581,14 @@ class VaspDrone(AbstractDrone):
 
         # parse output from loptics
         if vrun.incar.get("LOPTICS", False):
+            dielectric = vrun.dielectric
+            d["output"]["dielectric"] = dict(
+                energy=dielectric[0], real=dielectric[1], imag=dielectric[2]
+            )
+            d["output"]["optical_absorption_coeff"] = vrun.optical_absorption_coeff
+
+        # parse output from response function
+        if vrun.incar.get("ALGO") == 'CHI':
             dielectric = vrun.dielectric
             d["output"]["dielectric"] = dict(
                 energy=dielectric[0], real=dielectric[1], imag=dielectric[2]
