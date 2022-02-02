@@ -582,6 +582,15 @@ class VaspDrone(AbstractDrone):
             )
             d["output"]["optical_absorption_coeff"] = vrun.optical_absorption_coeff
 
+            # parse output from response function
+        if vrun.incar.get("ALGO") == 'CHI':
+            dielectric = vrun.dielectric
+            d["output"]["dielectric"] = dict(
+                energy=dielectric[0], real=dielectric[1], imag=dielectric[2]
+            )
+            d["output"]["optical_absorption_coeff"] = vrun.optical_absorption_coeff
+
+
         return d
 
     def process_bandstructure(self, vrun):
