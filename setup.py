@@ -11,6 +11,7 @@ if __name__ == "__main__":
         version="1.0.3",
         description="atomate has implementations of FireWorks workflows for Materials Science",
         long_description=open(join(module_dir, "README.md")).read(),
+        long_description_content_type="text/markdown",
         url="https://github.com/hackingmaterials/atomate",
         author="Anubhav Jain, Kiran Mathew",
         author_email="anubhavster@gmail.com, kmathew@lbl.gov",
