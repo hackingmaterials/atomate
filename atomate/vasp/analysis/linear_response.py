@@ -269,7 +269,7 @@ def inverse_matrix_uncertainty(matrix, matrix_covar):
                         kk, ll = k - 1 if k > j else k, l - 1 if l > i else l
                         minor_p = (-1) ** (i + j) * det_deriv(mji, kk, ll)
 
-                    j_matrix[k, l] = (minor_p * det - minor * det_p) / det ** 2
+                    j_matrix[k, l] = (minor_p * det - minor * det_p) / det**2
 
             jacobians[i].append(j_matrix)
 
@@ -312,7 +312,7 @@ def chi_inverse(chi, chi_err, method="full"):
         )
 
     # Assume cross-covariances are zero
-    chi_covar = np.diag(np.reshape(chi_err_block ** 2, [n_response * n_response]))
+    chi_covar = np.diag(np.reshape(chi_err_block**2, [n_response * n_response]))
 
     (chi_inv, chi_inv_var, chi_inv_jacobs) = inverse_matrix_uncertainty(
         chi_block, chi_covar
@@ -359,12 +359,12 @@ def compute_uj_simple_two_by_two(
     umat_err = f_matrix_err[2 * i : 2 * (i + 1), 2 * i : 2 * (i + 1)]
 
     uval = 0.25 * np.sum(umat)
-    uval_err = 0.25 * np.sqrt(np.sum(umat_err ** 2))
+    uval_err = 0.25 * np.sqrt(np.sum(umat_err**2))
 
     jmat = np.array([[-1, 1], [1, -1]]) * umat.copy()
     jmat_err = umat_err.copy()
     jval = 0.25 * np.sum(jmat)
-    jval_err = 0.25 * np.sqrt(np.sum(jmat_err ** 2))
+    jval_err = 0.25 * np.sqrt(np.sum(jmat_err**2))
 
     return uval, uval_err, jval, jval_err
 
@@ -439,7 +439,7 @@ def compute_uj_scaled_two_by_two(
     uval_err = uval_err + np.sum(
         np.dot(
             np.transpose(jacob_vec),
-            np.dot(np.diag(np.reshape(chi_sub_scf_err ** 2, [4])), jacob_vec),
+            np.dot(np.diag(np.reshape(chi_sub_scf_err**2, [4])), jacob_vec),
         )
     )
     # nscf component
@@ -460,7 +460,7 @@ def compute_uj_scaled_two_by_two(
     uval_err = uval_err + np.sum(
         np.dot(
             np.transpose(jacob_vec),
-            np.dot(np.diag(np.reshape(chi_sub_nscf_err ** 2, [4])), jacob_vec),
+            np.dot(np.diag(np.reshape(chi_sub_nscf_err**2, [4])), jacob_vec),
         )
     )
     # compute std
@@ -501,7 +501,7 @@ def compute_uj_scaled_two_by_two(
     jval_err = jval_err + np.sum(
         np.dot(
             np.transpose(jacob_vec),
-            np.dot(np.diag(np.reshape(chi_sub_scf_err ** 2, [4])), jacob_vec),
+            np.dot(np.diag(np.reshape(chi_sub_scf_err**2, [4])), jacob_vec),
         )
     )
     # nscf component
@@ -522,7 +522,7 @@ def compute_uj_scaled_two_by_two(
     jval_err = jval_err + np.sum(
         np.dot(
             np.transpose(jacob_vec),
-            np.dot(np.diag(np.reshape(chi_sub_nscf_err ** 2, [4])), jacob_vec),
+            np.dot(np.diag(np.reshape(chi_sub_nscf_err**2, [4])), jacob_vec),
         )
     )
     # compute std

@@ -44,8 +44,8 @@ def lorentzian(w, wj, delta_w=4.0):
     return (
         4.0
         / np.pi
-        * (w ** 2 * delta_w)
-        / ((w ** 2 - wj ** 2) ** 2 + 4 * delta_w ** 2 * w ** 2)
+        * (w**2 * delta_w)
+        / ((w**2 - wj**2) ** 2 + 4 * delta_w**2 * w**2)
     )
     # wolfram
     # return 1./np.pi * (delta_w/2)/ ( (w - wj)**2 + (delta_w/2)**2 )
