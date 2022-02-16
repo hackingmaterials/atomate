@@ -54,6 +54,7 @@ class TestWriteLobsterinputfromIO(AtomateTest):
             potcar_path="POTCAR.gz",
             incar_path="INCAR.gz",
             option="standard",
+            user_lobsterin_settings={"COHPEndEnergy": 5.0, "COHPStartEnergy": -15.0},
         )
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
@@ -69,7 +70,7 @@ class TestWriteLobsterinputfromIO(AtomateTest):
             potcar_path="POTCAR.gz",
             incar_path="INCAR.gz",
             option="standard",
-            user_lobsterin_settings={"COHPEndEnergy": 10.0},
+            user_lobsterin_settings={"COHPEndEnergy": 10.0, "COHPStartEnergy": -15.0},
         )
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
