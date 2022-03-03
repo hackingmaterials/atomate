@@ -12,5 +12,5 @@ pymatgen
 pymongo
 pyyaml==5.4.1
 ruamel.yaml==0.17.9
-scipy==1.7.0
+scipy==1.7.2
 tqdm==4.61.1

@@ -22,9 +22,8 @@ wf_dir = ref_dir / "insertion_wf"
 class TestInsertionWorkflow(AtomateTest):
     def setUp(self):
         super().setUp()
-        input_output_dirs = ref_dir / "insertion_wf"
-        names = os.walk(input_output_dirs).__next__()[1]
-        calc_dirs = {n_: input_output_dirs / n_ for n_ in names}
+        names = os.walk(wf_dir).__next__()[1]
+        calc_dirs = {n_: wf_dir / n_ for n_ in names}
         base_struct = Structure.from_file(wf_dir / "YPO4-static/inputs/POSCAR")
         sm = StructureMatcher(ltol=0.6, stol=0.6, angle_tol=9)
 
