@@ -78,7 +78,7 @@ def _get_wf(args, structure):
         return func(structure)
 
     else:
-        d = yaml.load(default_yaml)
+        d = yaml.safe_load(default_yaml)
         return get_wf_from_spec_dict(structure, d, args.common_param_updates)
 
 
