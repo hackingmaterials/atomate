@@ -25,7 +25,7 @@ if __name__ == "__main__":
         install_requires=[
             "custodian>=2019.8.24",
             "FireWorks>=1.4.0",
-            "maggma>=0.39.0",
+            "maggma>=0.44.0",
             "monty>=2.0.6",
             "networkx",
             "numpy",
