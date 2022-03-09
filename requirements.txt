@@ -1,6 +1,6 @@
 custodian==2022.1.17
 FireWorks==1.9.7
-maggma==0.39.0
+maggma==0.44.0
 monty==2021.6.10
 networkx==2.5.1
 numpy
