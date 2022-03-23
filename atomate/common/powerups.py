@@ -61,14 +61,18 @@ def add_tags(original_wf, tags_list):
 
     # WF metadata
     if "tags" in original_wf.metadata:
-        original_wf.metadata["tags"].extend(tags_list)
+        for t in tags_list:
+            if t not in original_wf.metadata["tags"]:
+                original_wf.metadata["tags"].append(t)
     else:
         original_wf.metadata["tags"] = tags_list
 
     # FW metadata
     for idx_fw in range(len(original_wf.fws)):
         if "tags" in original_wf.fws[idx_fw].spec:
-            original_wf.fws[idx_fw].spec["tags"].extend(tags_list)
+            for t in tags_list:
+                if t not in original_wf.fws[idx_fw].spec["tags"]:
+                    original_wf.fws[idx_fw].spec["tags"].append(t)
         else:
             original_wf.fws[idx_fw].spec["tags"] = tags_list
 
@@ -77,9 +81,16 @@ def add_tags(original_wf, tags_list):
     for idx_fw, idx_t in idxs:
         if "additional_fields" in original_wf.fws[idx_fw].tasks[idx_t].optional_params:
             if "tags" in original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"]:
-                original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
-                    "tags"
-                ].extend(tags_list)
+                for t in tags_list:
+                    if (
+                        t
+                        not in original_wf.fws[idx_fw].tasks[idx_t][
+                            "additional_fields"
+                        ]["tags"]
+                    ):
+                        original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
+                            "tags"
+                        ].append(t)
             else:
                 original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
                     "tags"
