@@ -83,7 +83,7 @@ class LammpsDrone(AbstractDrone):
         dump_files = [dump_files] if isinstance(dump_files, str) else dump_files
 
         # input set
-        lmps_input = LammpsInputSet.from_file(
+        lmps_input = LammpsInputSet.from_file(  # noqa: F821
             "lammps", input_file, {}, data_file, data_filename
         )
 
@@ -94,7 +94,7 @@ class LammpsDrone(AbstractDrone):
                 dumps.append((df, LammpsDump.from_file(os.path.join(path, df))))
 
         # log
-        log = LammpsLog(log_file=log_file)
+        log = LammpsLog(log_file=log_file)  # noqa: F821
 
         logger.info(f"Getting task doc for base dir :{path}")
         d = self.generate_doc(path, lmps_input, log, dumps)
@@ -162,9 +162,6 @@ class LammpsDrone(AbstractDrone):
                 "Error in " + os.path.abspath(dir_name) + ".\n" + traceback.format_exc()
             )
             return None
-
-    def get_valid_paths(self, path):
-        return [path]
 
     def as_dict(self):
         init_args = {
