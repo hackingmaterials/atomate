@@ -15,13 +15,7 @@ new_durations = previous_durations.copy()
 
 for path in split_paths:
     durations = json.loads(path.read_text())
-    new_durations.update(
-        {
-            key: duration
-            for key, duration in durations.items()
-            if previous_durations[key] != duration
-        }
-    )
+    new_durations.update(durations)
 
 durations_path.parent.mkdir(parents=True, exist_ok=True)
 durations_path.write_text(json.dumps(new_durations))
