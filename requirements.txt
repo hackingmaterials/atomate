@@ -5,7 +5,7 @@ monty==2021.6.10
 networkx==2.5.1
 numpy
 pandas==1.2.5
-paramiko==2.7.2
+paramiko==2.10.1
 pydash==5.0.0
 pymatgen-analysis-diffusion
 pymatgen
