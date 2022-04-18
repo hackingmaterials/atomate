@@ -21,6 +21,9 @@ class TestDrone(AbstractDrone):
     def assimilate(self, path):
         return {"drone": "Test Drone", "dir_name": "/test", "state": "successful"}
 
+    def get_valid_paths(self, path):
+        return path
+
 
 class TestToDbTask(AtomateTest):
     def test_ToDbTask(self):

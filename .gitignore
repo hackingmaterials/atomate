@@ -31,7 +31,7 @@ pip-log.txt
 # Unit test / coverage reports
 .coverage
 .tox
-.test_durations
+nosetests.xml
 *.mypy_cache/*
 
 # Translations

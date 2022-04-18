@@ -420,7 +420,7 @@ class VaspDrone(AbstractDrone):
                     d["output"][k] = d_calc_final["output"][k]
 
             # store optical data, overwrites the LOPTICS data
-            if d["input"]["incar"].get("ALGO") == "CHI":
+            if d["input"]["incar"].get("ALGO") == 'CHI':
                 for k in ["optical_absorption_coeff", "dielectric"]:
                     d["output"][k] = d_calc_final["output"][k]
 
@@ -486,12 +486,12 @@ class VaspDrone(AbstractDrone):
             d["output"][k] = d["output"].pop(v)
 
         # Process bandstructure and DOS
-        if self.bandstructure_mode is not False:
+        if self.bandstructure_mode is not False:  # noqa
             bs = self.process_bandstructure(vrun)
             if bs:
                 d["bandstructure"] = bs
 
-        if self.parse_dos is not False:
+        if self.parse_dos is not False:  # noqa
             dos = self.process_dos(vrun)
             if dos:
                 d["dos"] = dos
@@ -588,7 +588,7 @@ class VaspDrone(AbstractDrone):
             d["output"]["optical_absorption_coeff"] = vrun.optical_absorption_coeff
 
         # parse output from response function
-        if vrun.incar.get("ALGO") == "CHI":
+        if vrun.incar.get("ALGO") == 'CHI':
             dielectric = vrun.dielectric
             d["output"]["dielectric"] = dict(
                 energy=dielectric[0], real=dielectric[1], imag=dielectric[2]

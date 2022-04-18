@@ -503,3 +503,7 @@ class QChemDrone(AbstractDrone):
             diff = v.difference(set(d.get(k, d).keys()))
             if diff:
                 logger.warning(f"The keys {diff} in {k} not set")
+
+    @staticmethod
+    def get_valid_paths(self, path):
+        return [path]

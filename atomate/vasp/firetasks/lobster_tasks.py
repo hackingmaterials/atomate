@@ -231,8 +231,7 @@ class LobsterRunToDb(FiretaskBase):
                         f"Check that you did not misspell it."
                     )
 
-    @staticmethod
-    def _find_gz_file(filename):
+    def _find_gz_file(self, filename):
         gz_filename = filename + ".gz"
         if os.path.exists(gz_filename):
             return gz_filename

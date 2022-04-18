@@ -3,4 +3,3 @@ coverage==5.5
 moto==2.0.10
 pytest-cov==2.12.1
 pytest==6.2.4
-pytest-split

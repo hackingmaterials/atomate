@@ -10,10 +10,6 @@ jobs:
   test:
     if: github.repository_owner == 'hackingmaterials' # don't run on forks
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # pytest-split groups for automatically equally split concurrent test runners
-        group: [1, 2, 3, 4, 5]
     services:
       mongodb:
         image: mongo
@@ -21,17 +17,13 @@ jobs:
           - 27017:27017
 
     steps:
-      - name: Check out repo
-        uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v2
 
-      - name: Set up python
-        uses: actions/setup-python@v3
+      - name: Setup Python
+        uses: actions/setup-python@v2
         with:
           python-version: 3.8
-          cache: pip
-          cache-dependency-path: |
-            setup.py
-            requirements-ci.txt
 
       - name: Install OpenBabel
         run: |
@@ -40,54 +32,19 @@ jobs:
           # https://github.com/openbabel/openbabel/issues/2408#issuecomment-1014466193
           sudo ln -s /usr/include/openbabel3 /usr/local/include/openbabel3
 
+      - name: Cache pip
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements-ci.txt', 'setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: |
           pip install -r requirements-ci.txt
           pip install .[complete]
 
-      - name: Get durations from cache
-        uses: actions/cache@v2
-        with:
-          path: test_durations
-          # the key must never match, even when restarting workflows, as that
-          # will cause durations to get out of sync between groups, the
-          # combined durations will be loaded if available
-          key: test-durations-split-${{ github.run_id }}-${{ github.run_number}}-${{ matrix.group }}
-          restore-keys: |
-            test-durations-combined-${{ github.sha }}
-            test-durations-combined
-
-      - name: Run tests
+      - name: pytest
         run: |
-          pytest --splits 5 --group ${{ matrix.group }} --store-durations \
-            --cov=atomate --cov-report html:coverage_reports atomate
-
-      - name: Upload partial durations
-        uses: actions/upload-artifact@v2
-        with:
-          name: split-${{ matrix.group }}
-          path: .test_durations
-
-  update_durations:
-    name: Combine and update test durations
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Check out repo
-        uses: actions/checkout@v2
-
-      - name: Get durations from cache
-        uses: actions/cache@v2
-        with:
-          path: .test_durations
-          # key won't match during the first run for the given commit, but
-          # restore-key will if there's a previous stored durations file,
-          # so cache will both be loaded and stored
-          key: test-durations-combined-${{ github.sha }}
-          restore-keys: test-durations-combined
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v2
-
-      - name: Combine test durations
-        run: python3 .github/workflows/combine_durations.py
+          pytest --ignore=atomate/qchem/test_files --cov=atomate --cov-report html:coverage_reports atomate
