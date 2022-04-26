@@ -179,6 +179,6 @@ def get_phonopy_thermal_expansion(
 
     # thermal expansion coefficient and temperature
     max_t_index = phonopy_qha._qha._len
-    alpha = phonopy_qha.get_thermal_expansion()[: max_t_index]
+    alpha = phonopy_qha.get_thermal_expansion()[:max_t_index]
     T = phonopy_qha._qha._temperatures[:max_t_index]
     return alpha, T
