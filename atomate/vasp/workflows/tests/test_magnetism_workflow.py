@@ -1,8 +1,8 @@
 import os
 import unittest
 from json import load
+from shutil import which
 
-from monty.os.path import which
 from pymatgen.core import Structure
 
 from atomate.utils.testing import DB_DIR, AtomateTest

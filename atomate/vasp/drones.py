@@ -12,11 +12,11 @@ import re
 import traceback
 import warnings
 from fnmatch import fnmatch
+from shutil import which
 
 import numpy as np
 from monty.io import zopen
 from monty.json import jsanitize
-from monty.os.path import which
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
 from pymatgen.core.composition import Composition
