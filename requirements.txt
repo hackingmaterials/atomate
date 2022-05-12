@@ -1,5 +1,4 @@
-git+git://github.com/samblau/pymatgen@qchem#egg=pymatgen
-git+git://github.com/samblau/custodian@qchem#egg=custodian
+custodian==2022.1.17
 FireWorks==1.9.7
 maggma==0.44.0
 monty==2021.6.10
@@ -9,6 +8,7 @@ pandas==1.2.5
 paramiko==2.10.1
 pydash==5.0.0
 pymatgen-analysis-diffusion
+pymatgen
 pymongo
 pyyaml==5.4.1
 ruamel.yaml==0.17.9

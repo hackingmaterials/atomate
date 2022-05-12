@@ -1,3 +1,5 @@
+git+git://github.com/samblau/pymatgen@qchem#egg=pymatgen
+git+git://github.com/samblau/custodian@qchem#egg=custodian
 boto3==1.17.97
 coverage==5.5
 moto==2.0.10
