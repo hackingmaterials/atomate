@@ -1,16 +1,14 @@
 import tarfile
-
 from pathlib import Path
-
-from pymatgen.core import Structure
 
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from pymatgen.core import Structure
 
 from atomate.utils.testing import AtomateTest
+from atomate.utils.utils import get_a_unique_id
 from atomate.vasp.powerups import use_fake_vasp, use_potcar_spec
 from atomate.vasp.workflows.base.ferroelectric import get_wf_ferroelectric
-from atomate.utils.utils import get_a_unique_id
 
 __author__ = "Tess Smidt, Alex Ganose"
 __email__ = "blondegeek@gmail.com"

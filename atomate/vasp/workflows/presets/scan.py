@@ -1,5 +1,4 @@
 from atomate.vasp.config import ADD_WF_METADATA
-
 from atomate.vasp.powerups import add_common_powerups, add_wf_metadata
 from atomate.vasp.workflows.base.core import get_wf
 
@@ -11,7 +10,7 @@ def wf_r2scan_opt(structure, c=None):
     """
     Structure optimization using the R2SCAN metaGGA functional.
 
-    This workflow performs a 2-step optmization. The first step
+    This workflow performs a 2-step optimization. The first step
     is a GGA structure optimization using the PBESol functional that serves to
     precondition the geometry and charge density. The second step is a
     R2SCAN structure optimization.
@@ -53,7 +52,7 @@ def wf_scan_opt(structure, c=None):
     """
     Structure optimization using the SCAN metaGGA functional.
 
-    This workflow performs a 2-step optmization. The first step
+    This workflow performs a 2-step optimization. The first step
     is a GGA structure optimization using the PBESol functional that serves to
     precondition the geometry and charge density. The second step is a
     SCAN structure optimization.

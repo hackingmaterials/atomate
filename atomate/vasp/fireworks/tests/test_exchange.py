@@ -1,7 +1,7 @@
 import os
 import unittest
-import pandas as pd
 
+import pandas as pd
 from pymatgen.core.structure import Structure
 
 from atomate.utils.testing import AtomateTest
@@ -10,7 +10,7 @@ from atomate.vasp.fireworks.exchange import HeisenbergModelFW, VampireCallerFW
 __author__ = "Nathan C. Frey"
 __email__ = "ncfrey@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 test_dir = os.path.join(module_dir, "..", "..", "test_files", "exchange_wf")
 
@@ -28,8 +28,6 @@ class TestExchangeFireworks(AtomateTest):
         ]
         cls.heisenberg_settings = {"cutoff": 3.0, "tol": 0.04}
         cls.db_file = os.path.join(db_dir, "db.json")
-
-        new_fw_spec = {"_fw_env": {"db_file": os.path.join(db_dir, "db.json")}}
 
     def test_EFWs(self):
         hmfw = HeisenbergModelFW(

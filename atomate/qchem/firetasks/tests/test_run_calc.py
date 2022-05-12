@@ -1,25 +1,28 @@
 import os
-import unittest
 import shutil
+import unittest
 
 try:
     from unittest.mock import patch
 except ImportError:
     from unittest.mock import patch
 
-from atomate.qchem.firetasks.run_calc import RunQChemCustodian
-from atomate.qchem.firetasks.run_calc import RunQChemDirect
-from atomate.qchem.firetasks.run_calc import RunQChemFake
-from atomate.utils.testing import AtomateTest
+import numpy as np
 from custodian.qchem.handlers import QChemErrorHandler
 from custodian.qchem.jobs import QCJob
 from pymatgen.io.qchem.outputs import QCOutput
-import numpy as np
+
+from atomate.qchem.firetasks.run_calc import (
+    RunQChemCustodian,
+    RunQChemDirect,
+    RunQChemFake,
+)
+from atomate.utils.testing import AtomateTest
 
 __author__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestRunCalcQChem(AtomateTest):
@@ -252,31 +255,6 @@ class TestRunCalcQChem(AtomateTest):
                 firetask.run_task(fw_spec={})
                 custodian_patch.assert_called_once()
                 self.assertEqual(
-                    custodian_patch.call_args[0][0][0].as_dict(),
-                    QChemErrorHandler(
-                        input_file=os.path.join(
-                            module_dir,
-                            "..",
-                            "..",
-                            "test_files",
-                            "FF_before_run",
-                            "test.qin",
-                        ),
-                        output_file=os.path.join(
-                            module_dir,
-                            "..",
-                            "..",
-                            "test_files",
-                            "FF_before_run",
-                            "test.qout",
-                        ),
-                    ).as_dict(),
-                )
-                self.assertEqual(
-                    custodian_patch.call_args[1],
-                    {"max_errors": 5, "gzipped_output": True},
-                )
-                self.assertEqual(
                     FF_patch.call_args[1],
                     {
                         "qchem_command": "qchem",
@@ -303,6 +281,8 @@ class TestRunCalcQChem(AtomateTest):
                         "save_final_scratch": False,
                         "max_cores": 32,
                         "calc_loc": None,
+                        "freq_before_opt": False,
+                        "transition_state": False,
                         "nboexe": None,
                     },
                 )
@@ -346,31 +326,6 @@ class TestRunCalcQChem(AtomateTest):
                 )
                 custodian_patch.assert_called_once()
                 self.assertEqual(
-                    custodian_patch.call_args[0][0][0].as_dict(),
-                    QChemErrorHandler(
-                        input_file=os.path.join(
-                            module_dir,
-                            "..",
-                            "..",
-                            "test_files",
-                            "FF_before_run",
-                            "test.qin",
-                        ),
-                        output_file=os.path.join(
-                            module_dir,
-                            "..",
-                            "..",
-                            "test_files",
-                            "FF_before_run",
-                            "test.qout",
-                        ),
-                    ).as_dict(),
-                )
-                self.assertEqual(
-                    custodian_patch.call_args[1],
-                    {"max_errors": 5, "gzipped_output": True},
-                )
-                self.assertEqual(
                     FF_patch.call_args[1],
                     {
                         "qchem_command": "qchem -slurm",
@@ -397,6 +352,8 @@ class TestRunCalcQChem(AtomateTest):
                         "calc_loc": "/this/is/a/test",
                         "save_final_scratch": False,
                         "max_cores": 32,
+                        "freq_before_opt": False,
+                        "transition_state": False,
                         "nboexe": None,
                     },
                 )
@@ -438,14 +395,12 @@ class TestRunCalcQChem(AtomateTest):
                     max_iterations=1029,
                     max_molecule_perturb_scale=0.5,
                     multimode="mpi",
+                    transition_state=True,
+                    freq_before_opt=True,
                 )
                 firetask.run_task(fw_spec={})
                 custodian_patch.assert_called_once()
                 self.assertEqual(custodian_patch.call_args[0][0], [])
-                self.assertEqual(
-                    custodian_patch.call_args[1],
-                    {"max_errors": 137, "gzipped_output": False},
-                )
                 self.assertEqual(
                     FF_patch.call_args[1],
                     {
@@ -475,6 +430,8 @@ class TestRunCalcQChem(AtomateTest):
                         "nboexe": "/path/to/nbo7.i4.exe",
                         "save_final_scratch": True,
                         "max_cores": 4,
+                        "freq_before_opt": True,
+                        "transition_state": True,
                     },
                 )
 
@@ -513,6 +470,8 @@ class TestRunCalcQChem(AtomateTest):
                     max_iterations=1029,
                     max_molecule_perturb_scale=0.5,
                     multimode=">>multimode<<",
+                    transition_state=True,
+                    freq_before_opt=True,
                 )
                 firetask.run_task(
                     fw_spec={
@@ -526,10 +485,6 @@ class TestRunCalcQChem(AtomateTest):
                 )
                 custodian_patch.assert_called_once()
                 self.assertEqual(custodian_patch.call_args[0][0], [])
-                self.assertEqual(
-                    custodian_patch.call_args[1],
-                    {"max_errors": 137, "gzipped_output": False},
-                )
                 self.assertEqual(
                     FF_patch.call_args[1],
                     {
@@ -559,6 +514,8 @@ class TestRunCalcQChem(AtomateTest):
                         "nboexe": None,
                         "save_final_scratch": True,
                         "max_cores": 4,
+                        "freq_before_opt": True,
+                        "transition_state": True,
                     },
                 )
 

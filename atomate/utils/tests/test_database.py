@@ -8,13 +8,12 @@ import boto3
 from maggma.stores import MemoryStore
 from moto import mock_s3
 
-
 __author__ = "Jimmy Shen <jmmshn@gmail.com>"
 
 from atomate.utils.database import CalcDb
 from atomate.utils.utils import get_logger
 
-MODULE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(MODULE_DIR, "..", "..", "common", "test_files")
 
 logger = get_logger(__name__)
@@ -39,7 +38,7 @@ class DatabaseTests(unittest.TestCase):
 
     def test_s3_valid(self):
         with mock_s3():
-            conn = boto3.client("s3")
+            conn = boto3.resource('s3', region_name='us-east-1')
             conn.create_bucket(Bucket="test_bucket")
             index_store = MemoryStore()
             store = self.testdb.get_store("test")
@@ -52,7 +51,7 @@ class DatabaseTests(unittest.TestCase):
 
     def test_s3_not_valid(self):
         with mock_s3():
-            conn = boto3.client("s3")
+            conn = boto3.resource('s3', region_name='us-east-1')
             conn.create_bucket(Bucket="test_bucket_2")
             index_store = MemoryStore()
             store = self.testdb.get_store("test2")
@@ -63,7 +62,7 @@ class DatabaseTests(unittest.TestCase):
 
     def test_maggma_store_names(self):
         with mock_s3():
-            conn = boto3.client("s3")
+            conn = boto3.resource('s3', region_name='us-east-1')
             conn.create_bucket(Bucket="test_bucket")
             index_store = MemoryStore()
             store = self.testdb.get_store("test")
@@ -86,7 +85,7 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(calc_db.collection.find_one()["data"], "12345")
 
         with mock_s3():
-            conn = boto3.client("s3")
+            conn = boto3.resource('s3', region_name='us-east-1')
             conn.create_bucket(Bucket="test_bucket")
             uri_db = TestToDb.from_db_file(db_dir + "/db_aws_uri.json")
             store = uri_db.get_store("test")

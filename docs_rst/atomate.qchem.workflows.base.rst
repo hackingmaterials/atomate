@@ -28,6 +28,14 @@ atomate.qchem.workflows.base.fragmentation module
    :undoc-members:
    :show-inheritance:
 
+atomate.qchem.workflows.base.reaction\_path module
+--------------------------------------------------
+
+.. automodule:: atomate.qchem.workflows.base.reaction_path
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.qchem.workflows.base.torsion\_potential module
 ------------------------------------------------------
 

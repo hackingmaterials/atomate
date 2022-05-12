@@ -1,27 +1,14 @@
-from monty.json import MSONable, MontyDecoder
-
-from pymatgen.ext.matproj import MPRester
+from monty.json import MontyDecoder, MSONable
 from pymatgen.alchemy.filters import AbstractStructureFilter
+from pymatgen.ext.matproj import MPRester
 
 __author__ = "Anubhav Jain <ajain@lbl.gov>, Kiran Mathew <kmathew@lbl.gov>"
 
 
 class SubmissionFilter(AbstractStructureFilter):
     NO_POTCARS = [
-        "Po",
-        "At",
-        "Rn",
-        "Fr",
-        "Ra",
-        "Am",
-        "Cm",
-        "Bk",
-        "Cf",
-        "Es",
-        "Fm",
-        "Md",
-        "No",
-        "Lr",
+        *["Po", "At", "Rn", "Fr", "Ra", "Am", "Cm"],
+        *["Bk", "Cf", "Es", "Fm", "Md", "No", "Lr"],
     ]
 
     def __init__(
@@ -84,10 +71,10 @@ class SubmissionFilter(AbstractStructureFilter):
                             bs = mpr.get_bandstructure_by_material_id(mpid)
                             if bs:
                                 failures.append(f"NOT_IN_MP=False ({mpid})")
-                        except:
+                        except Exception:
                             pass
                 else:
-                    failures.append("NOT_IN_MP=False ({})".format(mpids[0]))
+                    failures.append(f"NOT_IN_MP=False ({mpids[0]})")
         return True if not failures else False
 
     def as_dict(self):

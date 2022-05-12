@@ -4,12 +4,13 @@ This module defines the bulk modulus workflow.
 
 from uuid import uuid4
 
-from atomate.utils.utils import get_logger
-from atomate.vasp.firetasks.parse_outputs import FitEOSToDb
-from atomate.vasp.workflows.base.deformations import get_wf_deformations
 from fireworks import Firework, Workflow
 from pymatgen.analysis.elasticity.strain import Deformation
 from pymatgen.io.vasp.sets import MPStaticSet
+
+from atomate.utils.utils import get_logger
+from atomate.vasp.firetasks.parse_outputs import FitEOSToDb
+from atomate.vasp.workflows.base.deformations import get_wf_deformations
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
@@ -54,7 +55,7 @@ def get_wf_bulk_modulus(
         Workflow
     """
 
-    tag = tag or "bulk_modulus group: >>{}<<".format(str(uuid4()))
+    tag = tag or f"bulk_modulus group: >>{uuid4()}<<"
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
 
@@ -83,6 +84,6 @@ def get_wf_bulk_modulus(
     wf_bulk_modulus.append_wf(wf_analysis, wf_bulk_modulus.leaf_fw_ids)
 
     formula = structure.composition.reduced_formula
-    wf_bulk_modulus.name = "{}:{}".format(formula, "Bulk modulus")
+    wf_bulk_modulus.name = f"{formula}:Bulk modulus"
 
     return wf_bulk_modulus

@@ -1,13 +1,15 @@
 import os
 import unittest
-from monty.serialization import loadfn
+
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
-from atomate.utils.testing import AtomateTest
+from monty.serialization import loadfn
 from pymatgen.core import Molecule
 from pymatgen.io.qchem.inputs import QCInput
+
 from atomate.qchem.powerups import use_fake_qchem
 from atomate.qchem.workflows.base.FF_and_critic import get_wf_FFopt_and_critic
+from atomate.utils.testing import AtomateTest
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2019, The Materials Project"
@@ -18,7 +20,7 @@ __status__ = "Alpha"
 __date__ = "11/20/19"
 
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 
@@ -47,13 +49,10 @@ class TestFFOptandCritic(AtomateTest):
             },
         )
         # use powerup to replace run with fake run
+        alph_formula = initial_mol.composition.alphabetical_formula
         ref_dirs = {
-            "{}:{}".format(
-                initial_mol.composition.alphabetical_formula, "FFopt_testing"
-            ): os.path.join(test_files, "FFopt"),
-            "{}:{}".format(
-                initial_mol.composition.alphabetical_formula, "CC2_testing"
-            ): os.path.join(test_files, "critic_example"),
+            f"{alph_formula}:FFopt_testing": os.path.join(test_files, "FFopt"),
+            f"{alph_formula}:CC2_testing": os.path.join(test_files, "critic_example"),
         }
         fake_wf = use_fake_qchem(real_wf, ref_dirs)
         self.lp.add_wf(fake_wf)
@@ -68,22 +67,14 @@ class TestFFOptandCritic(AtomateTest):
         self.assertTrue(all([s == "COMPLETED" for s in wf_test.fw_states.values()]))
 
         FFopt = self.get_task_collection().find_one(
-            {
-                "task_label": "{}:{}".format(
-                    initial_mol.composition.alphabetical_formula, "FFopt_testing"
-                )
-            }
+            {"task_label": f"{alph_formula}:FFopt_testing"}
         )
         self.assertEqual(FFopt["calcs_reversed"][0]["input"]["smx"]["solvent"], "other")
         self.assertEqual(FFopt["num_frequencies_flattened"], 0)
         FFopt_final_mol = Molecule.from_dict(FFopt["output"]["optimized_molecule"])
 
         CC2 = self.get_task_collection().find_one(
-            {
-                "task_label": "{}:{}".format(
-                    initial_mol.composition.alphabetical_formula, "CC2_testing"
-                )
-            }
+            {"task_label": f"{alph_formula}:CC2_testing"}
         )
         CC2_initial_mol = Molecule.from_dict(CC2["input"]["initial_molecule"])
 

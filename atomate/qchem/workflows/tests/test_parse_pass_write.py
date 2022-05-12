@@ -1,22 +1,23 @@
 import os
-import unittest
 import shutil
+import unittest
+
+import numpy as np
+from fireworks import Firework, FWorker, Workflow
+from fireworks.core.rocket_launcher import rapidfire
+from pymatgen.core import Molecule
+from pymatgen.io.qchem.inputs import QCInput
+from pymatgen.io.qchem.outputs import QCOutput
 
 from atomate.qchem.firetasks.geo_transformations import RotateTorsion
-from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
-from fireworks import Firework, Workflow, FWorker
-from fireworks.core.rocket_launcher import rapidfire
+from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.utils.testing import AtomateTest
-from pymatgen.core import Molecule
-from pymatgen.io.qchem.outputs import QCOutput
-from pymatgen.io.qchem.inputs import QCInput
-import numpy as np
 
 __author__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 

@@ -1,22 +1,20 @@
 # This module defines tasks that support running QChem in various ways.
 
 
-import shutil
 import os
+import shutil
 import subprocess
 
-from pymatgen.io.qchem.inputs import QCInput
-
+import numpy as np
 from custodian import Custodian
 from custodian.qchem.handlers import QChemErrorHandler
 from custodian.qchem.jobs import QCJob
-
-from fireworks import explicit_serialize, FiretaskBase
+from fireworks import FiretaskBase, explicit_serialize
+from pymatgen.io.qchem.inputs import QCInput
 
 from atomate.utils.utils import env_chk, get_logger
-import numpy as np
 
-__author__ = "Samuel Blau"
+__author__ = "Samuel Blau, Evan Spotte-Smith"
 __copyright__ = "Copyright 2018, The Materials Project"
 __version__ = "0.1"
 __maintainer__ = "Samuel Blau"
@@ -47,7 +45,7 @@ class RunQChemDirect(FiretaskBase):
 
         logger.info(f"Running command: {cmd}")
         return_code = subprocess.call(cmd, shell=True)
-        logger.info("Command {} finished running with return code: {}".format(cmd, return_code))
+        logger.info(f"Command {cmd} finished running with return code: {return_code}")
 
 
 @explicit_serialize
@@ -111,6 +109,8 @@ class RunQChemCustodian(FiretaskBase):
         "linked",
         "max_iterations",
         "max_molecule_perturb_scale",
+        "freq_before_opt",
+        "transition_state",
     ]
 
     def run_task(self, fw_spec):
@@ -118,7 +118,7 @@ class RunQChemCustodian(FiretaskBase):
         # initialize variables
         qchem_cmd = env_chk(self["qchem_cmd"], fw_spec)
         multimode = env_chk(self.get("multimode"), fw_spec)
-        if multimode == None:
+        if multimode is None:
             multimode = "openmp"
         """
         Note that I'm considering hardcoding openmp in the future
@@ -140,6 +140,8 @@ class RunQChemCustodian(FiretaskBase):
         max_molecule_perturb_scale = self.get("max_molecule_perturb_scale", 0.3)
         job_type = self.get("job_type", "normal")
         gzipped_output = self.get("gzipped_output", True)
+        transition_state = self.get("transition_state", False)
+        freq_before_opt = self.get("freq_before_opt", False)
 
         handler_groups = {
             "default": [QChemErrorHandler(input_file=input_file, output_file=output_file)],
@@ -173,6 +175,8 @@ class RunQChemCustodian(FiretaskBase):
                     qclog_file=qclog_file,
                     max_iterations=max_iterations,
                     linked=linked,
+                    freq_before_opt=freq_before_opt,
+                    transition_state=transition_state,
                     save_final_scratch=save_scratch,
                     max_cores=max_cores,
                     calc_loc=calc_loc,
@@ -188,6 +192,8 @@ class RunQChemCustodian(FiretaskBase):
                     max_iterations=max_iterations,
                     max_molecule_perturb_scale=max_molecule_perturb_scale,
                     linked=linked,
+                    freq_before_opt=freq_before_opt,
+                    transition_state=transition_state,
                     save_final_scratch=save_scratch,
                     max_cores=max_cores,
                     calc_loc=calc_loc,

@@ -1,12 +1,14 @@
 """
 This module defines general powerups that can be used for all workflows
 """
+
 from importlib import import_module
 from typing import List
 
-from atomate.utils.utils import get_fws_and_tasks
-from fireworks import Workflow, FileWriteTask
+from fireworks import FileWriteTask, Workflow
 from fireworks.utilities.fw_utilities import get_slug
+
+from atomate.utils.utils import get_fws_and_tasks
 
 __author__ = "Janine George, Guido Petretto, Ryan Kingsbury"
 __email__ = (
@@ -59,14 +61,18 @@ def add_tags(original_wf, tags_list):
 
     # WF metadata
     if "tags" in original_wf.metadata:
-        original_wf.metadata["tags"].extend(tags_list)
+        for t in tags_list:
+            if t not in original_wf.metadata["tags"]:
+                original_wf.metadata["tags"].append(t)
     else:
         original_wf.metadata["tags"] = tags_list
 
     # FW metadata
     for idx_fw in range(len(original_wf.fws)):
         if "tags" in original_wf.fws[idx_fw].spec:
-            original_wf.fws[idx_fw].spec["tags"].extend(tags_list)
+            for t in tags_list:
+                if t not in original_wf.fws[idx_fw].spec["tags"]:
+                    original_wf.fws[idx_fw].spec["tags"].append(t)
         else:
             original_wf.fws[idx_fw].spec["tags"] = tags_list
 
@@ -75,9 +81,16 @@ def add_tags(original_wf, tags_list):
     for idx_fw, idx_t in idxs:
         if "additional_fields" in original_wf.fws[idx_fw].tasks[idx_t].optional_params:
             if "tags" in original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"]:
-                original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
-                    "tags"
-                ].extend(tags_list)
+                for t in tags_list:
+                    if (
+                        t
+                        not in original_wf.fws[idx_fw].tasks[idx_t][
+                            "additional_fields"
+                        ]["tags"]
+                    ):
+                        original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
+                            "tags"
+                        ].append(t)
             else:
                 original_wf.fws[idx_fw].tasks[idx_t]["additional_fields"][
                     "tags"
@@ -86,21 +99,23 @@ def add_tags(original_wf, tags_list):
     return original_wf
 
 
-def add_namefile(original_wf, use_slug=True):
+def add_namefile(original_wf: Workflow, use_slug: bool = True) -> Workflow:
     """
     Every FireWork begins by writing an empty file with the name
-    "FW--<fw.name>". This makes it easy to figure out what jobs are in what
-    launcher directories, e.g. "ls -l launch*/FW--*" from within a "block" dir.
+    "FW--<fw.name>-<fw.fw_id>". This makes it easy to figure out what jobs are
+    in what launcher directories, e.g. "ls -l launch*/FW--*" from within a
+    "block" dir.
 
     Args:
         original_wf (Workflow)
-        use_slug (bool): whether to replace whitespace-type chars with a slug
+        use_slug (bool): whether to replace whitespace-type chars with a slug.
+            Defaults to True.
 
     Returns:
        Workflow
     """
     for idx, fw in enumerate(original_wf.fws):
-        fname = f"FW--{fw.name}"
+        fname = f"FW--{fw.name}-{fw.fw_id}"
         if use_slug:
             fname = get_slug(fname)
 

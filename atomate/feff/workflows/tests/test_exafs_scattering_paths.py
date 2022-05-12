@@ -8,7 +8,7 @@ from atomate.feff.workflows.core import get_wf_exafs_paths
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 
@@ -29,8 +29,8 @@ class TestEXAFSPaths(unittest.TestCase):
 
     def test_wflow_composition(self):
         self.assertEqual(len(self.wf_dict["fws"]), 2)
-        ans = sorted(["FeO-EXAFS-K-0", "FeO-EXAFS Paths"])
-        self.assertEqual(ans, sorted([ft["name"] for ft in self.wf_dict["fws"]]))
+        answer = sorted(["FeO-EXAFS-K-0", "FeO-EXAFS Paths"])
+        self.assertEqual(answer, sorted(ft["name"] for ft in self.wf_dict["fws"]))
 
     def test_feff_input_sets(self):
         ans_fis_fw1 = {

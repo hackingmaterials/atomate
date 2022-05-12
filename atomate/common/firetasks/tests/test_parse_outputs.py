@@ -3,7 +3,6 @@ import unittest
 
 from fireworks import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
-
 from pymatgen.apps.borg.hive import AbstractDrone
 
 from atomate.common.firetasks.parse_outputs import ToDbTask
@@ -11,7 +10,7 @@ from atomate.utils.testing import AtomateTest
 
 __author__ = "Shyam Dwaraknath <shyamd@lbl.gov>"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "test_files")
 
 

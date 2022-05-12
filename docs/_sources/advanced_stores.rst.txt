@@ -6,7 +6,7 @@
 Advanced Storage Stratagies
 ==================
 
-Storing data greater than 16 Mb 
+Storing data greater than 16 Mb
 ============
 
 Introduction
@@ -56,7 +56,7 @@ Note, this AWS profile needs to be available anywhere the ``VaspCalcDb.insert_ta
 Usage
 -----------
 
-Example: store the charge density 
+Example: store the charge density
 
 To parse a completed calculation directory.  We need to instantiate the ``drone`` with the ``parse_aeccar`` or ``parse_chgcar`` flag.
 
@@ -72,7 +72,7 @@ Some workflows like the ``StaticWF`` will pass the parsing flags like ``parse_ch
 To access the data using the task_id we can call
 
 .. code-block:: python
-    
+
     chgcar = mmdb.get_chgcar(task_id)
 
 Similar functionalities exist for the band structure and DOS.

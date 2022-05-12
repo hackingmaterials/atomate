@@ -5,9 +5,8 @@ This module defines firetasks for running lammps
 import os
 import shutil
 
-# from pymatgen.io.lammps.utils import PackmolRunner, LammpsRunner
-
-from fireworks import explicit_serialize, FiretaskBase, FWAction
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from pymatgen.io.lammps.utils import LammpsRunner, PackmolRunner
 
 from atomate.utils.utils import get_logger
 
@@ -96,7 +95,7 @@ class RunPackmol(FiretaskBase):
             output_file=self.get("output_file", "packed_mol.xyz"),
             bin=self["packmol_cmd"],
         )
-        logger.info("Running {}".format(self["packmol_cmd"]))
+        logger.info(f"Running {self['packmol_cmd']}")
         packed_mol = pmr.run(site_property=self.get("site_property", None))
         logger.info("Packmol finished running.")
         return FWAction(mod_spec=[{"_set": {"packed_mol": packed_mol}}])

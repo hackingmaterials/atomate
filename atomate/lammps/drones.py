@@ -6,13 +6,13 @@ import os
 from datetime import datetime
 
 from pymatgen.apps.borg.hive import AbstractDrone
+from pymatgen.io.lammps.inputs import LammpsRun
+from pymatgen.io.lammps.outputs import LammpsDump
 
-# from pymatgen.io.lammps.output import LammpsLog, LammpsDump, LammpsRun
-# from pymatgen.io.lammps.sets import LammpsInputSet
+from atomate.utils.utils import get_logger, get_uri
 
-from atomate.utils.utils import get_uri
+# from pymatgen.io.lammps.output import LammpsLog, LammpsDump
 
-from atomate.utils.utils import get_logger
 
 __author__ = "Brandon Wood, Kiran Mathew"
 __email__ = "b.wood@berkeley.edu"
@@ -68,7 +68,7 @@ class LammpsDrone(AbstractDrone):
             path (str): path to the run folder
             input_filename (str): just the name of the input file
             log_filename (str): lammps log file name
-            is_forcefield (bool): whether or not ot parse forcefield info
+            is_forcefield (bool): whether or not to parse forcefield info
             data_filename (str): name of the data file
             dump_files ([str]): list of dump file names
 
@@ -154,7 +154,7 @@ class LammpsDrone(AbstractDrone):
             }
             return d
 
-        except:
+        except Exception:
             import traceback
 
             logger.error(traceback.format_exc())

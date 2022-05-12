@@ -1,18 +1,18 @@
-# Copyright (c) Pymatgen Development Team.
-# Distributed under the terms of the MIT License.
-
-import os
-import json
-import webbrowser
-import requests
-from invoke import task
-from atomate import __version__
-from monty.os import cd
-
-
 """
 Deployment file to facilitate releases.
+Copyright (c) Pymatgen Development Team.
+Distributed under the terms of the MIT License.
 """
+
+import json
+import os
+import webbrowser
+
+import requests
+from invoke import task
+from monty.os import cd
+
+from atomate import __version__
 
 __author__ = "Shyue Ping Ong, Anubhav Jain"
 __email__ = "ongsp@ucsd.edu"

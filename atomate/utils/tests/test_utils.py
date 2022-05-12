@@ -1,25 +1,23 @@
 import os
 from collections import defaultdict
 
+from fireworks import FiretaskBase, Firework, FWAction, explicit_serialize
 from pymongo.database import Database
 
-from fireworks import FWAction, FiretaskBase, Firework, explicit_serialize
-
+from atomate.utils.testing import AtomateTest
 from atomate.utils.utils import (
     env_chk,
+    get_database,
     get_logger,
     get_mongolike,
+    get_uri,
     recursive_get_result,
     recursive_update,
-    get_database,
-    get_uri,
 )
-
-from atomate.utils.testing import AtomateTest
 
 __author__ = "Anubhav Jain <ajain@lbl.gov>"
 
-MODULE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 logger = get_logger(__name__)
 
@@ -125,5 +123,6 @@ class UtilsTests(AtomateTest):
 
         db = get_database(os.path.join(MODULE_DIR, "db.json"))
         self.assertTrue(isinstance(db, Database))
-        self.assertEqual(db.client.address[0], "localhost")
         self.assertEqual(db.name, "atomate_unittest")
+        db.client.start_session()  # needed to start the connection and populate db.client.address
+        self.assertEqual(db.client.address, ("localhost", 27017))

@@ -2,28 +2,25 @@
 This module defines the database classes.
 """
 
+import json
+import zlib
 from typing import Any
 
-from monty.json import MontyEncoder
-from pymatgen.io.vasp import Chgcar
-
-import zlib
-import json
+import gridfs
 from bson import ObjectId
-
+from maggma.stores.aws import S3Store
+from monty.dev import deprecated
+from monty.json import MontyEncoder
 from pymatgen.electronic_structure.bandstructure import (
     BandStructure,
     BandStructureSymmLine,
 )
 from pymatgen.electronic_structure.dos import CompleteDos
-
-import gridfs
+from pymatgen.io.vasp import Chgcar
 from pymongo import ASCENDING, DESCENDING
 
 from atomate.utils.database import CalcDb
 from atomate.utils.utils import get_logger
-from maggma.stores.aws import S3Store
-from monty.dev import deprecated
 
 __author__ = "Kiran Mathew"
 __credits__ = "Anubhav Jain"
@@ -202,10 +199,10 @@ class VaspCalcDb(CalcDb):
 
     def insert_object(self, use_gridfs, *args, **kwargs):
         """Insert the object into big object storage, try maggma_store if
-            it is availible, if not try storing directly to girdfs.
+            it is available, if not try storing directly to girdfs.
 
         Args:
-            use_gridfs (bool): Whether to store on gridfs if maggma storage is not availible
+            use_gridfs (bool): Whether to store on gridfs if maggma storage is not available
 
         Returns:
             fs_id: The id of the stored object
@@ -283,7 +280,7 @@ class VaspCalcDb(CalcDb):
             search_keys.append("task_id")
             doc["task_id"] = str(d["task_id"])
 
-        # make sure the store is availible
+        # make sure the store is available
         with self.get_store(collection) as store:
             ping_ = store.index._collection.database.command("ping")
             if ping_.get("ok", 0) != 1.0:
@@ -340,9 +337,7 @@ class VaspCalcDb(CalcDb):
         elif obj_dict["@class"] == "BandStructureSymmLine":
             return BandStructureSymmLine.from_dict(obj_dict)
         else:
-            raise ValueError(
-                "Unknown class for band structure! {}".format(obj_dict["@class"])
-            )
+            raise ValueError(f"Unknown class for band structure! {obj_dict['@class']}")
 
     def get_dos(self, task_id):
         """

@@ -2,20 +2,18 @@ import os
 import unittest
 
 import numpy as np
-
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from pymatgen.util.testing import PymatgenTest
 
+from atomate.utils.testing import AtomateTest
 from atomate.vasp.powerups import use_fake_vasp
 from atomate.vasp.workflows.presets.core import wf_raman_spectra
-from atomate.utils.testing import AtomateTest
-
-from pymatgen.util.testing import PymatgenTest
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 ref_dir = os.path.join(module_dir, "..", "..", "test_files")
 

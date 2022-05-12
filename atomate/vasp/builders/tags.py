@@ -1,10 +1,8 @@
 from tqdm import tqdm
 
-from atomate.vasp.builders.utils import dbid_to_int, dbid_to_str
-from atomate.utils.utils import get_database
-
-from atomate.utils.utils import get_logger
+from atomate.utils.utils import get_database, get_logger
 from atomate.vasp.builders.base import AbstractBuilder
+from atomate.vasp.builders.utils import dbid_to_int, dbid_to_str
 
 logger = get_logger(__name__)
 
@@ -51,7 +49,7 @@ class TagsBuilder(AbstractBuilder):
         pbar = tqdm(tasks)
         for t in pbar:
             try:
-                pbar.set_description("Processing task_id: {}".format(t["task_id"]))
+                pbar.set_description(f"Processing task_id: {t['task_id']}")
 
                 # get the corresponding materials id
                 m = self._materials.find_one(
@@ -82,12 +80,12 @@ class TagsBuilder(AbstractBuilder):
                         },
                     )
 
-            except:
+            except Exception:
                 import traceback
 
                 logger.exception("<---")
                 logger.exception(
-                    "There was an error processing task_id: {}".format(t["task_id"])
+                    f"There was an error processing task_id: {t['task_id']}"
                 )
                 logger.exception(traceback.format_exc())
                 logger.exception("--->")
@@ -116,8 +114,8 @@ class TagsBuilder(AbstractBuilder):
         db_write = get_database(db_file, admin=True)
         try:
             db_read = get_database(db_file, admin=False)
-            db_read.collection_names()  # throw error if auth failed
-        except:
+            db_read.list_collection_names()  # throw error if auth failed
+        except Exception:
             print("Warning: could not get read-only database; using write creds")
             db_read = get_database(db_file, admin=True)
         return cls(db_write[m], db_read[t], **kwargs)

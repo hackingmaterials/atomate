@@ -2,9 +2,8 @@
 This module defines tasks for writing FEFF input sets.
 """
 
-from pymatgen.io.feff.inputs import Paths
-
 from fireworks import FiretaskBase, explicit_serialize
+from pymatgen.io.feff.inputs import Paths
 
 from atomate.utils.utils import load_class
 

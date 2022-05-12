@@ -1,38 +1,34 @@
-import glob
-import warnings
-
-from pymatgen.io.vasp import Vasprun
-from monty.os.path import zpath
-
 """
 This module defines tasks that acts as a glue between other vasp Firetasks to allow communication
 between different Firetasks and Fireworks. This module also contains tasks that affect the control
 flow of the workflow, e.g. tasks to check stability or the gap is within a certain range.
 """
-
-import shutil
+import glob
 import gzip
 import os
 import re
+import shutil
+import warnings
 
-from pymatgen.ext.matproj import MPRester
-from pymatgen.io.vasp.sets import get_vasprun_outcar
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from monty.os.path import zpath
 from pymatgen.core.structure import Structure
+from pymatgen.ext.matproj import MPRester
+from pymatgen.io.vasp import Vasprun
+from pymatgen.io.vasp.sets import get_vasprun_outcar
 
-from fireworks import explicit_serialize, FiretaskBase, FWAction
-
-from atomate.utils.utils import env_chk, get_logger
 from atomate.common.firetasks.glue_tasks import (
-    get_calc_loc,
-    PassResult,
     CopyFiles,
     CopyFilesFromCalcLoc,
+    PassResult,
+    get_calc_loc,
 )
-
-logger = get_logger(__name__)
+from atomate.utils.utils import env_chk, get_logger
 
 __author__ = "Anubhav Jain, Kiran Mathew"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
+
+logger = get_logger(__name__)
 
 
 @explicit_serialize
@@ -242,9 +238,7 @@ class CheckBandgap(FiretaskBase):
         vr = Vasprun(vr_path, parse_potcar_file=False)
         gap = vr.get_band_structure().get_band_gap()["energy"]
         stored_data = {"band_gap": gap}
-        logger.info(
-            "The gap is: {}. Min gap: {}. Max gap: {}".format(gap, min_gap, max_gap)
-        )
+        logger.info(f"The gap is: {gap}. Min gap: {min_gap}. Max gap: {max_gap}")
 
         if (min_gap and gap < min_gap) or (max_gap and gap > max_gap):
             logger.info("CheckBandgap: failed test!")
@@ -296,15 +290,17 @@ class GetInterpolatedPOSCAR(FiretaskBase):
         # use CopyFilesFromCalcLoc to get files from previous locations.
         CopyFilesFromCalcLoc(
             calc_loc=self["start"],
-            filenames=["CONTCAR"],
+            filenames=["CONTCAR","CONTCAR.gz"],
             name_prepend=interpolate_folder + os.sep,
             name_append="_0",
+            decompress=True,
         ).run_task(fw_spec=fw_spec)
         CopyFilesFromCalcLoc(
             calc_loc=self["end"],
-            filenames=["CONTCAR"],
+            filenames=["CONTCAR","CONTCAR.gz"],
             name_prepend=interpolate_folder + os.sep,
             name_append="_1",
+            decompress=True,
         ).run_task(fw_spec=fw_spec)
 
         # assuming first calc_dir is polar structure for ferroelectric search

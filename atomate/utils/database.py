@@ -5,8 +5,7 @@ This module defines a base class for derived database classes that store calcula
 import datetime
 from abc import ABCMeta, abstractmethod
 
-from maggma.stores import MongoStore
-from maggma.stores import S3Store, MongoURIStore
+from maggma.stores import MongoStore, MongoURIStore, S3Store
 from monty.json import jsanitize
 from monty.serialization import loadfn
 from pymongo import MongoClient, ReturnDocument
@@ -108,18 +107,11 @@ class CalcDb(metaclass=ABCMeta):
             except Exception:
                 logger.error("Mongodb connection failed")
                 raise Exception
-            try:
-                if self.user:
-                    self.db.authenticate(
-                        self.user, self.password, source=kwargs.get("authsource", None)
-                    )
-            except Exception:
-                logger.error("Mongodb authentication failed")
-                raise ValueError
+
         self.collection = self.db[collection]
 
         # set counter collection
-        if self.db.counter.find({"_id": "taskid"}).count() == 0:
+        if self.db.counter.count_documents({"_id": "taskid"}) == 0:
             self.db.counter.insert_one({"_id": "taskid", "c": 0})
             self.build_indexes()
 
@@ -135,7 +127,7 @@ class CalcDb(metaclass=ABCMeta):
 
     def insert(self, d, update_duplicates=True):
         """
-        Insert the task document ot the database collection.
+        Insert the task document to the database collection.
 
         Args:
             d (dict): task document
@@ -153,21 +145,17 @@ class CalcDb(metaclass=ABCMeta):
                         {"$inc": {"c": 1}},
                         return_document=ReturnDocument.AFTER,
                     )["c"]
-                logger.info(
-                    "Inserting {} with taskid = {}".format(d["dir_name"], d["task_id"])
-                )
+                logger.info(f"Inserting {d['dir_name']} with taskid = {d['task_id']}")
             elif update_duplicates:
                 d["task_id"] = result["task_id"]
-                logger.info(
-                    "Updating {} with taskid = {}".format(d["dir_name"], d["task_id"])
-                )
+                logger.info(f"Updating {d['dir_name']} with taskid = {d['task_id']}")
             d = jsanitize(d, allow_bson=True)
             self.collection.update_one(
                 {"dir_name": d["dir_name"]}, {"$set": d}, upsert=True
             )
             return d["task_id"]
         else:
-            logger.info("Skipping duplicate {}".format(d["dir_name"]))
+            logger.info(f"Skipping duplicate {d['dir_name']}")
             return None
 
     @abstractmethod

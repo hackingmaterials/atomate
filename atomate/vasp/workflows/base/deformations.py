@@ -2,10 +2,11 @@
 This module defines the deformation workflow.
 """
 
-from atomate.utils.utils import get_logger
-from atomate.vasp.fireworks.core import TransmuterFW
 from fireworks import Workflow
 from pymatgen.io.vasp.sets import MPStaticSet
+
+from atomate.utils.utils import get_logger
+from atomate.vasp.fireworks.core import TransmuterFW
 
 __author__ = "Kiran Mathew"
 __credits__ = "Joseph Montoya"
@@ -28,7 +29,7 @@ def get_wf_deformations(
     """
     Returns a structure deformation workflow.
 
-    Worfklow consists of: len(deformations) in which the structure is deformed followed
+    Workflow consists of: len(deformations) in which the structure is deformed followed
     by a static calculation.
 
     Args:

@@ -1,19 +1,18 @@
 from pathlib import Path
 
 from fireworks.utilities.fw_serializers import load_object
+from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
+from pymatgen.io.vasp.sets import MPRelaxSet
+from pymatgen.util.testing import PymatgenTest
 
+from atomate.utils.testing import AtomateTest
 from atomate.vasp.firetasks.write_inputs import (
-    WriteVaspFromIOSet,
-    WriteVaspFromPMGObjects,
-    ModifyPotcar,
     ModifyIncar,
     ModifyKpoints,
+    ModifyPotcar,
+    WriteVaspFromIOSet,
+    WriteVaspFromPMGObjects,
 )
-from atomate.utils.testing import AtomateTest
-
-from pymatgen.util.testing import PymatgenTest
-from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
-from pymatgen.io.vasp.sets import MPRelaxSet
 
 __author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"

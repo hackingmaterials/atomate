@@ -8,4 +8,3 @@ is intended to be simple and easy to modify.
 # What is the format of the workflows?
 
 The overall format is YAML. See the online atomate docs for more information.
-

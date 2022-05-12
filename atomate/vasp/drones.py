@@ -4,38 +4,37 @@ Some of the changes are documented in this thread:
 https://groups.google.com/forum/#!topic/pymatgen/pQ-emBpeV5U
 """
 
+import datetime
+import glob
+import json
 import os
 import re
-import datetime
-from fnmatch import fnmatch
-from collections import OrderedDict
-import json
-import glob
 import traceback
 import warnings
+from fnmatch import fnmatch
 
+import numpy as np
 from monty.io import zopen
 from monty.json import jsanitize
 from monty.os.path import which
-
-import numpy as np
-
-from pymatgen.core.composition import Composition
-from pymatgen.core.structure import Structure
-from pymatgen.core.operations import SymmOp
-from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from pymatgen.io.vasp import BSVasprun, Vasprun, Outcar, Locpot
-from pymatgen.io.vasp.inputs import Poscar, Potcar, Incar, Kpoints
-from pymatgen.io.vasp.outputs import Chgcar
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
+from pymatgen.core.composition import Composition
+from pymatgen.core.operations import SymmOp
+from pymatgen.core.structure import Structure
+from pymatgen.electronic_structure.bandstructure import BandStructureSymmLine
+from pymatgen.io.vasp import BSVasprun, Locpot, Outcar, Vasprun
+from pymatgen.io.vasp.inputs import Incar, Kpoints, Poscar, Potcar
+from pymatgen.io.vasp.outputs import Chgcar
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
-from atomate.utils.utils import get_uri
-
-from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
-from atomate.vasp.config import STORE_VOLUMETRIC_DATA, STORE_ADDITIONAL_JSON, STORE_BADER
+from atomate.utils.utils import get_logger, get_uri
+from atomate.vasp.config import (
+    STORE_ADDITIONAL_JSON,
+    STORE_BADER,
+    STORE_VOLUMETRIC_DATA,
+)
 
 __author__ = "Kiran Mathew, Shyue Ping Ong, Shyam Dwaraknath, Anubhav Jain"
 __email__ = "kmathew@lbl.gov"
@@ -44,9 +43,8 @@ __version__ = "0.1.0"
 
 logger = get_logger(__name__)
 
-BADER_EXE_EXISTS = (which("bader") or which("bader.exe"))
+BADER_EXE_EXISTS = which("bader") or which("bader.exe")
 STORE_BADER = STORE_BADER and BADER_EXE_EXISTS
-
 
 
 class VaspDrone(AbstractDrone):
@@ -145,9 +143,9 @@ class VaspDrone(AbstractDrone):
         store_additional_json=STORE_ADDITIONAL_JSON,
     ):
         """
-        Initialize a Vasp drone to parse vasp outputs
+        Initialize a Vasp drone to parse VASP outputs
         Args:
-            runs (list): Naming scheme for multiple calcuations in on folder e.g. ["relax1","relax2"].
+            runs (list): Naming scheme for multiple calculations in on folder e.g. ["relax1","relax2"].
              Can be subfolder or extension
             parse_dos (str or bool): Whether to parse the DOS. Can be "auto", True or False.
             "auto" will only parse DOS if NSW = 0, so there are no ionic steps
@@ -236,10 +234,10 @@ class VaspDrone(AbstractDrone):
             file_pattern (string): files to be searched for
 
         Returns:
-            OrderedDict of the names of the files to be processed further.
-            The key is set from list of run types: self.runs
+            dict: names of the files to be processed further. The key is set from list
+                of run types: self.runs
         """
-        processed_files = OrderedDict()
+        processed_files = {}
         files = os.listdir(path)
         for r in self.runs:
             # try subfolder schema
@@ -292,7 +290,7 @@ class VaspDrone(AbstractDrone):
                     "System time (sec)",
                     "Elapsed time (sec)",
                 ]:
-                    overall_run_stats[key] = sum([v[key] for v in run_stats.values()])
+                    overall_run_stats[key] = sum(v[key] for v in run_stats.values())
                 run_stats["overall"] = overall_run_stats
             except Exception:
                 logger.error(f"Bad run stats for {fullpath}.")
@@ -421,6 +419,11 @@ class VaspDrone(AbstractDrone):
                 for k in ["optical_absorption_coeff", "dielectric"]:
                     d["output"][k] = d_calc_final["output"][k]
 
+            # store optical data, overwrites the LOPTICS data
+            if d["input"]["incar"].get("ALGO") == 'CHI':
+                for k in ["optical_absorption_coeff", "dielectric"]:
+                    d["output"][k] = d_calc_final["output"][k]
+
             d["state"] = (
                 "successful" if d_calc["has_vasp_completed"] else "unsuccessful"
             )
@@ -483,12 +486,12 @@ class VaspDrone(AbstractDrone):
             d["output"][k] = d["output"].pop(v)
 
         # Process bandstructure and DOS
-        if self.bandstructure_mode != False:  # noqa
+        if self.bandstructure_mode is not False:  # noqa
             bs = self.process_bandstructure(vrun)
             if bs:
                 d["bandstructure"] = bs
 
-        if self.parse_dos != False:  # noqa
+        if self.parse_dos is not False:  # noqa
             dos = self.process_dos(vrun)
             if dos:
                 d["dos"] = dos
@@ -561,9 +564,7 @@ class VaspDrone(AbstractDrone):
                         d[file] = data.as_dict()
                     except Exception:
                         raise ValueError(
-                            "Failed to parse {} at {}.".format(
-                                file, d["output_file_paths"][file]
-                            )
+                            f"Failed to parse {file} at {d['output_file_paths'][file]}."
                         )
 
         # parse force constants
@@ -580,6 +581,14 @@ class VaspDrone(AbstractDrone):
 
         # parse output from loptics
         if vrun.incar.get("LOPTICS", False):
+            dielectric = vrun.dielectric
+            d["output"]["dielectric"] = dict(
+                energy=dielectric[0], real=dielectric[1], imag=dielectric[2]
+            )
+            d["output"]["optical_absorption_coeff"] = vrun.optical_absorption_coeff
+
+        # parse output from response function
+        if vrun.incar.get("ALGO") == 'CHI':
             dielectric = vrun.dielectric
             d["output"]["dielectric"] = dict(
                 energy=dielectric[0], real=dielectric[1], imag=dielectric[2]
@@ -674,9 +683,7 @@ class VaspDrone(AbstractDrone):
 
         # delta volume checks
         if abs(percent_delta_vol) > volume_change_threshold:
-            warning_msgs.append(
-                "Volume change > {}%".format(volume_change_threshold * 100)
-            )
+            warning_msgs.append(f"Volume change > {volume_change_threshold * 100}%")
 
         # max force and valid structure checks
         max_force = None
@@ -696,7 +703,7 @@ class VaspDrone(AbstractDrone):
             if calc["input"]["parameters"].get("NSW", 0) > 0:
 
                 drift = calc["output"]["outcar"].get("drift", [[0, 0, 0]])
-                max_drift = max([np.linalg.norm(d) for d in drift])
+                max_drift = max(np.linalg.norm(d) for d in drift)
                 ediffg = calc["input"]["parameters"].get("EDIFFG", None)
                 if ediffg and float(ediffg) < 0:
                     desired_force_convergence = -float(ediffg)
@@ -704,10 +711,8 @@ class VaspDrone(AbstractDrone):
                     desired_force_convergence = np.inf
                 if max_drift > desired_force_convergence:
                     warning_msgs.append(
-                        "Drift ({}) > desired force convergence ({}), "
-                        "structure likely not converged to desired accuracy.".format(
-                            drift, desired_force_convergence
-                        )
+                        f"Drift ({drift}) > desired force convergence ({desired_force_convergence}), "
+                        "structure likely not converged to desired accuracy."
                     )
 
             s = Structure.from_dict(d["output"]["structure"])

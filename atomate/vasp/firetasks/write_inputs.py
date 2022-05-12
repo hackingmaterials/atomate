@@ -6,26 +6,22 @@ import os
 from importlib import import_module
 
 import numpy as np
-
-from monty.serialization import dumpfn
-
 from fireworks import FiretaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
-
-from pymatgen.core.structure import Structure
+from monty.serialization import dumpfn
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
-from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle, Kpoints
+from pymatgen.core.structure import Structure
+from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar, PotcarSingle
+from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.sets import (
-    MPStaticSet,
-    MPNonSCFSet,
-    MPSOCSet,
     MPHSEBSSet,
     MPNMRSet,
+    MPNonSCFSet,
     MPScanRelaxSet,
+    MPSOCSet,
+    MPStaticSet,
 )
-
-from pymatgen.io.vasp.outputs import Vasprun
 
 from atomate.utils.utils import env_chk, load_class
 from atomate.vasp.firetasks.glue_tasks import GetInterpolatedPOSCAR
@@ -80,7 +76,7 @@ class WriteVaspFromIOSet(FiretaskBase):
             fw_struct = fw_spec.get(spec_structure_key)
             dd = vis.as_dict()
             dd["structure"] = fw_struct
-            vis.from_dict(dd)
+            vis = vis.from_dict(dd)
 
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -265,8 +261,8 @@ class ModifyPotcar(FiretaskBase):
 
     Optional params:
         functional (dict): functional to use, e.g. PBE, PBE_52, LDA_US, PW91
-        input_filename (str): Input filename (if not "INCAR")
-        output_filename (str): Output filename (if not "INCAR")
+        input_filename (str): Input filename (if not "POTCAR")
+        output_filename (str): Output filename (if not "POTCAR")
     """
 
     required_params = ["potcar_symbols"]

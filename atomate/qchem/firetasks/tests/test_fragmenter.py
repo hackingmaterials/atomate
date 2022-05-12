@@ -1,6 +1,7 @@
+import json
 import os
 import unittest
-import json
+
 from monty.serialization import loadfn  # , dumpfn
 
 try:
@@ -8,20 +9,19 @@ try:
 except ImportError:
     from unittest.mock import patch
 
-from pymatgen.core.structure import Molecule
 from pymatgen.analysis.graphs import MoleculeGraph
+from pymatgen.core.structure import Molecule
 from pymatgen.io.qchem.outputs import QCOutput
 
+from atomate.qchem.database import QChemCalcDb
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
 from atomate.qchem.firetasks.parse_outputs import QChemToDb
-from atomate.qchem.database import QChemCalcDb
 from atomate.utils.testing import AtomateTest
-
 
 __author__ = "Samuel Blau"
 __email__ = "samblau1@gmail.com"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 

@@ -1,26 +1,23 @@
-from fireworks import Workflow
 from copy import deepcopy
-from atomate.vasp.config import VASP_CMD, DB_FILE
-from atomate.vasp.powerups import (
-    use_custodian,
-    add_tags,
-    add_additional_fields_to_taskdocs,
-)
-from atomate.common.powerups import powerup_by_kwargs
-from custodian.vasp.handlers import (
-    VaspErrorHandler,
-    MeshSymmetryErrorHandler,
-    PotimErrorHandler,
-    FrozenJobErrorHandler,
-    NonConvergingErrorHandler,
-    PositiveEnergyErrorHandler,
-    StdErrHandler,
-    WalltimeHandler,
-)
 from uuid import uuid4
 
-from atomate.vasp.fireworks.approx_neb import HostFW, EndPointFW
+from custodian.vasp.handlers import (
+    FrozenJobErrorHandler,
+    MeshSymmetryErrorHandler,
+    NonConvergingErrorHandler,
+    PositiveEnergyErrorHandler,
+    PotimErrorHandler,
+    StdErrHandler,
+    VaspErrorHandler,
+    WalltimeHandler,
+)
+from fireworks import Workflow
+
+from atomate.common.powerups import add_tags, powerup_by_kwargs
+from atomate.vasp.config import DB_FILE, VASP_CMD
+from atomate.vasp.fireworks.approx_neb import EndPointFW, HostFW
 from atomate.vasp.fireworks.approx_neb_dynamic import EvaluatePathFW
+from atomate.vasp.powerups import add_additional_fields_to_taskdocs, use_custodian
 
 __author__ = "Ann Rutt"
 __email__ = "acrutt@lbl.gov"

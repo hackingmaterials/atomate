@@ -4,15 +4,14 @@ import shutil
 import unittest
 
 from fireworks import LaunchPad
-from pymongo import MongoClient
-
 from pymatgen.core import SETTINGS
+from pymongo import MongoClient
 
 __author__ = "Kiran Mathew"
 __credits__ = "Anubhav Jain"
 __email__ = "kmathew@lbl.gov"
 
-MODULE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_DIR = os.path.join(MODULE_DIR, "..", "common", "test_files")
 
 DEBUG_MODE = (
@@ -47,14 +46,14 @@ class AtomateTest(unittest.TestCase):
             try:
                 self.lp = LaunchPad.from_file(os.path.join(DB_DIR, "my_launchpad.yaml"))
                 self.lp.reset("", require_password=False)
-            except:
+            except Exception:
                 raise unittest.SkipTest(
                     "Cannot connect to MongoDB! Is the database server running? "
                     "Are the credentials correct?"
                 )
 
     # Note: the functions in matgendb.util, get_database and get_collection require db authentication
-    # but the db.json config file used for atomate testing purpose doesnt require db authentication.
+    # but the db.json config file used for atomate testing purpose doesn't require db authentication.
     # Hence the following 2 methods.
     def get_task_database(self):
         """
@@ -86,7 +85,7 @@ class AtomateTest(unittest.TestCase):
             if hasattr(self, "lp"):
                 self.lp.reset("", require_password=False)
                 db = self.get_task_database()
-                for coll in db.collection_names():
+                for coll in db.list_collection_names():
                     if coll != "system.indexes":
                         db[coll].drop()
             shutil.rmtree(self.scratch_dir)

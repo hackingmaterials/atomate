@@ -1,24 +1,23 @@
-import os
-import datetime
-from fnmatch import fnmatch
-from collections import OrderedDict
-import json
-import glob
-import traceback
-from itertools import chain
 import copy
+import datetime
+import glob
+import json
+import os
+import traceback
+from fnmatch import fnmatch
+from itertools import chain
 
 from monty.io import zopen
 from monty.json import jsanitize
-from pymatgen.core import Molecule
-from pymatgen.io.qchem.outputs import QCOutput
-from pymatgen.io.qchem.inputs import QCInput
 from pymatgen.apps.borg.hive import AbstractDrone
+from pymatgen.core import Molecule
 from pymatgen.io.babel import BabelMolAdaptor
+from pymatgen.io.qchem.inputs import QCInput
+from pymatgen.io.qchem.outputs import QCOutput
 from pymatgen.symmetry.analyzer import PointGroupAnalyzer
 
-from atomate.utils.utils import get_logger
 from atomate import __version__ as atomate_version
+from atomate.utils.utils import get_logger
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -63,7 +62,7 @@ class QChemDrone(AbstractDrone):
         """
         Initialize a QChem drone to parse qchem calculations
         Args:
-            runs (list): Naming scheme for multiple calcuations in one folder
+            runs (list): Naming scheme for multiple calculations in one folder
             additional_fields (dict): dictionary of additional fields to add to output document
         """
         self.runs = runs or list(
@@ -95,7 +94,8 @@ class QChemDrone(AbstractDrone):
             if len(qcinput_files) > len(qcoutput_files):
                 if list(qcinput_files.items())[0][0] != "orig":
                     raise AssertionError(
-                        "Can only have inequal number of input and output files when there is a saved copy of the original input!"
+                        "Can only have unequal number of input and output files when there is a saved copy "
+                        "of the original input!"
                     )
             else:
                 raise AssertionError("Inequal number of input and output files!")
@@ -118,10 +118,10 @@ class QChemDrone(AbstractDrone):
             file_pattern (string): base files to be searched for
 
         Returns:
-            OrderedDict of the names of the files to be processed further.
-            The key is set from list of run types: self.runs
+            dict: names of the files to be processed further. The key is set from list
+                of run types: self.runs
         """
-        processed_files = OrderedDict()
+        processed_files = {}
         files = os.listdir(path)
         for r in self.runs:
             # try subfolder schema
@@ -150,7 +150,7 @@ class QChemDrone(AbstractDrone):
             d["schema"] = {"code": "atomate", "version": QChemDrone.__version__}
             d["dir_name"] = fullpath
 
-            # If a saved "orig" input file is present, parse it incase the error handler made changes
+            # If a saved "orig" input file is present, parse it in case the error handler made changes
             # to the initial input molecule or rem params, which we might want to filter for later
             if len(qcinput_files) > len(qcoutput_files):
                 orig_input = QCInput.from_file(
@@ -164,6 +164,8 @@ class QChemDrone(AbstractDrone):
                 d["orig"]["pcm"] = orig_input.pcm
                 d["orig"]["solvent"] = orig_input.solvent
                 d["orig"]["smx"] = orig_input.smx
+                d["orig"]["vdw_mode"] = orig_input.vdw_mode
+                d["orig"]["van_der_waals"] = orig_input.van_der_waals
 
             if multirun:
                 d["calcs_reversed"] = self.process_qchem_multirun(
@@ -214,10 +216,8 @@ class QChemDrone(AbstractDrone):
 
             if "nbo_data" in d_calc_final:
                 d["output"]["nbo"] = d_calc_final["nbo_data"]
-            if (
-                d["output"]["job_type"] == "opt"
-                or d["output"]["job_type"] == "optimization"
-            ):
+
+            if d["output"]["job_type"] in ["opt", "optimization", "ts"]:
                 if "molecule_from_optimized_geometry" in d_calc_final:
                     d["output"]["optimized_molecule"] = d_calc_final[
                         "molecule_from_optimized_geometry"
@@ -230,19 +230,49 @@ class QChemDrone(AbstractDrone):
                         d_calc_final["opt_constraint"][0],
                         float(d_calc_final["opt_constraint"][6]),
                     ]
-            if (
-                d["output"]["job_type"] == "freq"
-                or d["output"]["job_type"] == "frequency"
-            ):
+            if d["output"]["job_type"] in ["freq", "frequency"]:
                 d["output"]["frequencies"] = d_calc_final["frequencies"]
+                d["output"]["frequency_modes"] = d_calc_final["frequency_mode_vectors"]
                 d["output"]["enthalpy"] = d_calc_final["total_enthalpy"]
                 d["output"]["entropy"] = d_calc_final["total_entropy"]
-                if (
-                    d["input"]["job_type"] == "opt"
-                    or d["input"]["job_type"] == "optimization"
-                ):
+                if d["input"]["job_type"] in ["opt", "optimization", "ts"]:
                     d["output"]["optimized_molecule"] = d_calc_final["initial_molecule"]
                     d["output"]["final_energy"] = d["calcs_reversed"][1]["final_energy"]
+                # For frequency-first calcs
+                else:
+                    if len(d["calcs_reversed"]) > 1:
+                        first_calc = d["calcs_reversed"][-1]["input"]["rem"]["job_type"]
+                        second_calc = d["calcs_reversed"][-2]["input"]["rem"][
+                            "job_type"
+                        ]
+                        if first_calc in ["freq", "frequency"] and second_calc in [
+                            "opt",
+                            "optimization",
+                            "ts",
+                        ]:
+                            d["output"]["optimized_molecule"] = d_calc_final[
+                                "initial_molecule"
+                            ]
+                            d["output"]["final_energy"] = d["calcs_reversed"][1][
+                                "final_energy"
+                            ]
+
+            if d["output"]["job_type"] == "pes_scan":
+                d["output"]["scan_energies"] = d_calc_final.get("scan_energies")
+                d["input"]["scan_variables"] = d_calc_final.get("scan_variables")
+                d["output"]["scan_geometries"] = d_calc_final.get(
+                    "optimized_geometries"
+                )
+                d["output"]["scan_molecules"] = d_calc_final.get(
+                    "molecules_from_optimized_geometries"
+                )
+
+            if d["output"]["job_type"] == "force":
+                d["output"]["gradients"] = d_calc_final["gradients"][0]
+                if d_calc_final["pcm_gradients"] is not None:
+                    d["output"]["pcm_gradients"] = d_calc_final["pcm_gradients"][0]
+                if d_calc_final["CDS_gradients"] is not None:
+                    d["output"]["CDS_gradients"] = d_calc_final["CDS_gradients"][0]
 
             if d["output"]["job_type"] == "force":
                 d["output"]["gradients"] = d_calc_final["gradients"][0]
@@ -256,7 +286,7 @@ class QChemDrone(AbstractDrone):
             calcs.reverse()
             for calc in calcs:
                 job_type = calc["input"]["rem"]["job_type"]
-                if job_type == "opt" or job_type == "optimization":
+                if job_type in ["opt", "optimization", "ts"]:
                     for ii, geom in enumerate(calc["geometries"]):
                         site_properties = {"Mulliken": calc["Mulliken"][ii]}
                         if "RESP" in calc:
@@ -275,7 +305,7 @@ class QChemDrone(AbstractDrone):
                 d["opt_trajectory"] = opt_trajectory
 
             if "final_energy" not in d["output"]:
-                if d_calc_final["final_energy"] != None:
+                if d_calc_final["final_energy"] is not None:
                     d["output"]["final_energy"] = d_calc_final["final_energy"]
                 else:
                     d["output"]["final_energy"] = d_calc_final["SCF"][-1][-1][0]
@@ -299,7 +329,7 @@ class QChemDrone(AbstractDrone):
             d["formula_anonymous"] = comp.anonymized_formula
             d["formula_alphabetical"] = comp.alphabetical_formula
             d["chemsys"] = "-".join(sorted(set(d_calc_final["species"])))
-            if d_calc_final["point_group"] != None:
+            if d_calc_final["point_group"] is not None:
                 d["pointgroup"] = d_calc_final["point_group"]
             else:
                 try:
@@ -316,30 +346,59 @@ class QChemDrone(AbstractDrone):
 
             d["state"] = "successful" if d_calc_final["completion"] else "unsuccessful"
             if "special_run_type" in d:
-                if d["special_run_type"] == "frequency_flattener":
+                if d["special_run_type"] in [
+                    "frequency_flattener",
+                    "ts_frequency_flattener",
+                ]:
                     if d["state"] == "successful":
-                        orig_num_neg_freq = sum(
-                            1
-                            for freq in d["calcs_reversed"][-2]["frequencies"]
-                            if freq < 0
-                        )
-                        orig_energy = d_calc_init["final_energy"]
+                        orig_num_neg_freq = None
+                        for calc in d["calcs_reversed"][::-1]:
+                            if "frequencies" in calc:
+                                orig_num_neg_freq = sum(
+                                    1 for freq in calc["frequencies"] if freq < 0
+                                )
+                                break
+                        orig_energy = None
+                        for calc in d["calcs_reversed"][::-1]:
+                            if "final_energy" in calc:
+                                if calc["final_energy"] is not None:
+                                    orig_energy = calc["final_energy"]
+                                    break
                         final_num_neg_freq = sum(
                             1 for freq in d_calc_final["frequencies"] if freq < 0
                         )
                         final_energy = d["calcs_reversed"][1]["final_energy"]
-                        d["num_frequencies_flattened"] = (
-                            orig_num_neg_freq - final_num_neg_freq
-                        )
-                        if final_num_neg_freq > 0:  # If a negative frequency remains,
-                            # and it's too large to ignore,
+                        if orig_num_neg_freq is None:
+                            d["num_frequencies_flattened"] = 0
+                        else:
+                            d["num_frequencies_flattened"] = (
+                                orig_num_neg_freq - final_num_neg_freq
+                            )
+
+                        if d["special_run_type"] == "frequency_flattener":
+                            if (
+                                final_num_neg_freq > 0
+                            ):  # If a negative frequency remains,
+                                # and it's too large to ignore,
+                                if (
+                                    final_num_neg_freq > 1
+                                    or abs(d["output"]["frequencies"][0]) >= 15.0
+                                ):
+                                    d[
+                                        "state"
+                                    ] = "unsuccessful"  # then the flattening was unsuccessful
+                        else:
                             if (
                                 final_num_neg_freq > 1
-                                or abs(d["output"]["frequencies"][0]) >= 15.0
-                            ):
-                                d[
-                                    "state"
-                                ] = "unsuccessful"  # then the flattening was unsuccessful
+                            ):  # If a negative frequency remains,
+                                # and it's too large to ignore,
+                                if (
+                                    final_num_neg_freq > 2
+                                    or abs(d["output"]["frequencies"][1]) >= 15.0
+                                ):
+                                    d[
+                                        "state"
+                                    ] = "unsuccessful"  # then the flattening was unsuccessful
                         if final_energy > orig_energy:
                             d["warnings"]["energy_increased"] = True
 
@@ -369,6 +428,8 @@ class QChemDrone(AbstractDrone):
         d["input"]["pcm"] = temp_input.pcm
         d["input"]["solvent"] = temp_input.solvent
         d["input"]["smx"] = temp_input.smx
+        d["input"]["vdw_mode"] = temp_input.vdw_mode
+        d["input"]["van_der_waals"] = temp_input.van_der_waals
         d["task"] = {"type": taskname, "name": taskname}
         return d
 
@@ -380,7 +441,8 @@ class QChemDrone(AbstractDrone):
         """
         if len(input_files) != 1:
             raise ValueError(
-                "ERROR: The drone can only process a directory containing a single input/output pair when each include multiple calculations."
+                "ERROR: The drone can only process a directory containing a single input/output pair when each "
+                "include multiple calculations."
             )
         else:
             for key in input_files:
@@ -400,6 +462,8 @@ class QChemDrone(AbstractDrone):
                     d["input"]["pcm"] = multi_in[ii].pcm
                     d["input"]["solvent"] = multi_in[ii].solvent
                     d["input"]["smx"] = multi_in[ii].smx
+                    d["input"]["vdw_mode"] = multi_in[ii].vdw_mode
+                    d["input"]["van_der_waals"] = multi_in[ii].van_der_waals
                     d["task"] = {"type": key, "name": "calc" + str(ii)}
                     to_return.append(d)
             return to_return

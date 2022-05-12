@@ -3,20 +3,18 @@ import os
 import unittest
 
 import numpy as np
-from monty.json import MontyEncoder
-
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from monty.json import MontyEncoder
+from pymatgen.core import Structure
+from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+from pymatgen.util.testing import PymatgenTest
 
+from atomate.utils.testing import AtomateTest
 from atomate.vasp.powerups import use_fake_vasp, use_no_vasp
 from atomate.vasp.workflows.presets.core import wf_bulk_modulus
-from atomate.utils.testing import AtomateTest
 
-from pymatgen.core import Structure
-from pymatgen.util.testing import PymatgenTest
-from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "..", "..", "test_files", "bulk_modulus_wf")
 
@@ -63,12 +61,12 @@ class TestBulkModulusWorkflow(AtomateTest):
             if os.path.exists(os.path.join(reference_dir, str(i), "inputs")):
                 if not VASP_CMD:
                     fake_vasp_ref_dirs[
-                        "bulk_modulus deformation {}".format(i - 2)
+                        f"bulk_modulus deformation {i - 2}"
                     ] = os.path.join(reference_dir, str(i))
             else:
-                no_vasp_ref_dirs[
-                    "bulk_modulus deformation {}".format(i - 2)
-                ] = os.path.join(self.scratch_dir, str(i))
+                no_vasp_ref_dirs[f"bulk_modulus deformation {i - 2}"] = os.path.join(
+                    self.scratch_dir, str(i)
+                )
 
         fake_vasp_ref_dirs["structure optimization"] = os.path.join(reference_dir, "1")
         new_wf = use_no_vasp(wf, no_vasp_ref_dirs)
@@ -137,14 +135,10 @@ class TestBulkModulusWorkflow(AtomateTest):
                 with open(os.path.join(reference_dir, str(i), self.task_file)) as fp:
                     d = json.load(fp)
                     new_fw = self.lp.fireworks.find_one(
-                        {
-                            "name": {
-                                "$regex": "bulk_modulus deformation {}".format(i - 2)
-                            }
-                        }
+                        {"name": {"$regex": f"bulk_modulus deformation {i - 2}"}}
                     )
 
-                    # the fw tag (inluded in "name") is important in pulling tasks in the last FW
+                    # the fw tag (included in "name") is important in pulling tasks in the last FW
                     # in wf_bulk_modulus
                     d["task_label"] = new_fw["name"]
                     d["task_id"] += i + 1000000  # to avoid duplicate task_id
@@ -164,9 +158,7 @@ class TestBulkModulusWorkflow(AtomateTest):
 
             elif not os.path.exists(os.path.join(reference_dir, str(i), "inputs")):
                 raise OSError(
-                    "neither {} nor {} are present in {}".format(
-                        "inputs", self.task_file, os.path.join(reference_dir, str(i))
-                    )
+                    f"neither inputs nor {self.task_file} are present in {os.path.join(reference_dir, str(i))}"
                 )
 
     def write_task_docs(self):
@@ -175,18 +167,14 @@ class TestBulkModulusWorkflow(AtomateTest):
             # not to unnecessarily override available task.json
             if not os.path.exists(os.path.join(reference_dir, str(i), "task.json")):
                 d = self.get_task_collection().find_one(
-                    {
-                        "task_label": {
-                            "$regex": "bulk_modulus deformation {}".format(i - 2)
-                        }
-                    }
+                    {"task_label": {"$regex": f"bulk_modulus deformation {i - 2}"}}
                 )
                 rm_props = ["bandstructure", "input"]
                 for icalc in range(len(d["calcs_reversed"])):
                     for prop in rm_props:
                         try:
                             del d["calcs_reversed"][icalc][prop]
-                        except:
+                        except Exception:
                             pass
                 with open(os.path.join(reference_dir, str(i), "task.json"), "w") as fp:
                     json.dump(

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>atomate.vasp.firetasks package &#8212; atomate 0.9.9 documentation</title>
+    <title>atomate.vasp.firetasks package &#8212; atomate 1.0.3 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.9 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.3 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.vasp.firetasks package</a></li> 
       </ul>
     </div>  
@@ -62,6 +62,12 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
+<div class="section" id="atomate-vasp-firetasks-approx-neb-dynamic-tasks-module">
+<h2>atomate.vasp.firetasks.approx_neb_dynamic_tasks module<a class="headerlink" href="#atomate-vasp-firetasks-approx-neb-dynamic-tasks-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="atomate-vasp-firetasks-approx-neb-tasks-module">
+<h2>atomate.vasp.firetasks.approx_neb_tasks module<a class="headerlink" href="#atomate-vasp-firetasks-approx-neb-tasks-module" title="Permalink to this headline">¶</a></h2>
+</div>
 <div class="section" id="atomate-vasp-firetasks-electrode-tasks-module">
 <h2>atomate.vasp.firetasks.electrode_tasks module<a class="headerlink" href="#atomate-vasp-firetasks-electrode-tasks-module" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -70,6 +76,9 @@
 </div>
 <div class="section" id="module-atomate.vasp.firetasks.glue_tasks">
 <span id="atomate-vasp-firetasks-glue-tasks-module"></span><h2>atomate.vasp.firetasks.glue_tasks module<a class="headerlink" href="#module-atomate.vasp.firetasks.glue_tasks" title="Permalink to this headline">¶</a></h2>
+<p>This module defines tasks that acts as a glue between other vasp Firetasks to allow communication
+between different Firetasks and Fireworks. This module also contains tasks that affect the control
+flow of the workflow, e.g. tasks to check stability or the gap is within a certain range.</p>
 <dl class="py class">
 <dt id="atomate.vasp.firetasks.glue_tasks.CheckBandgap">
 <em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.glue_tasks.</code><code class="sig-name descname">CheckBandgap</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.glue_tasks.CheckBandgap" title="Permalink to this definition">¶</a></dt>
@@ -355,229 +364,8 @@ the Vasprun.</p>
 <div class="section" id="atomate-vasp-firetasks-lobster-tasks-module">
 <h2>atomate.vasp.firetasks.lobster_tasks module<a class="headerlink" href="#atomate-vasp-firetasks-lobster-tasks-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-atomate.vasp.firetasks.neb_tasks">
-<span id="atomate-vasp-firetasks-neb-tasks-module"></span><h2>atomate.vasp.firetasks.neb_tasks module<a class="headerlink" href="#module-atomate.vasp.firetasks.neb_tasks" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.neb_tasks.</code><code class="sig-name descname">RunNEBVaspFake</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Vasp Emulator for NEB, which has a different file arrangement. Similar to RunVaspFake class.</p>
-<dl class="simple">
-<dt>Required params:</dt><dd><dl class="simple">
-<dt>ref_dir (string): Path to reference vasp run directory with input files in the folder named</dt><dd><p>‘inputs’ and output files in the folder named ‘outputs’.</p>
-</dd>
-</dl>
-</dd>
-<dt>Optional params:</dt><dd><p>params_to_check (list): optional list of incar parameters to check.</p>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt id="atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.optional_params">
-<code class="sig-name descname">optional_params</code><em class="property"> = ['params_to_check']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.required_params">
-<code class="sig-name descname">required_params</code><em class="property"> = ['ref_dir']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.run_task">
-<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.RunNEBVaspFake.run_task" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method gets called when the Firetask is run. It can take in a
-Firework spec, perform some task using that data, and then return an
-output in the form of a FWAction.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
-contains the env settings of the FWorker calling this method.
-This provides for abstracting out certain commands or
-settings. For example, “foo” may be named “foo1” in resource
-1 and “foo2” in resource 2. The FWorker env can specify {
-“foo”: “foo1”}, which maps an abstract variable “foo” to the
-relevant “foo1” or “foo2”. You can then write a task that
-uses fw_spec[“_fw_env”][“foo”] that will work across all
-these multiple resources.</p>
-</dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><p>(FWAction)</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="atomate.vasp.firetasks.neb_tasks.TransferNEBTask">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.neb_tasks.</code><code class="sig-name descname">TransferNEBTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.TransferNEBTask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>This class transfers NEB outputs from current directory to destination directory. “label” is
-used to determine the step of calculation and hence the final path. The corresponding structure
-will be updated in fw_spec before files transferring.</p>
-<dl class="simple">
-<dt>Required params:</dt><dd><dl class="simple">
-<dt>label (str): Type of calculation outputs being transferred, choose from “parent”, “ep0”,</dt><dd><p>“ep1”, “neb1”, “neb2” and etc..</p>
-</dd>
-</dl>
-</dd>
-<dt>Optional params:</dt><dd><dl class="simple">
-<dt>d_img (float): Distance between neighbouring images, used to determine the number of images</dt><dd><p>if “IMAGES” not provided in user_incar_settings, in Angstrom.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt id="atomate.vasp.firetasks.neb_tasks.TransferNEBTask.optional_params">
-<code class="sig-name descname">optional_params</code><em class="property"> = ['d_img']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.TransferNEBTask.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="atomate.vasp.firetasks.neb_tasks.TransferNEBTask.required_params">
-<code class="sig-name descname">required_params</code><em class="property"> = ['label']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.TransferNEBTask.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="atomate.vasp.firetasks.neb_tasks.TransferNEBTask.run_task">
-<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.TransferNEBTask.run_task" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method gets called when the Firetask is run. It can take in a
-Firework spec, perform some task using that data, and then return an
-output in the form of a FWAction.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
-contains the env settings of the FWorker calling this method.
-This provides for abstracting out certain commands or
-settings. For example, “foo” may be named “foo1” in resource
-1 and “foo2” in resource 2. The FWorker env can specify {
-“foo”: “foo1”}, which maps an abstract variable “foo” to the
-relevant “foo1” or “foo2”. You can then write a task that
-uses fw_spec[“_fw_env”][“foo”] that will work across all
-these multiple resources.</p>
-</dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><p>(FWAction)</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.neb_tasks.</code><code class="sig-name descname">WriteNEBFromEndpoints</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Generate NEB input sets using endpoint structures, default writes CI-NEB input.
-MVLCINEBSet is the only vasp_input_set supported now.</p>
-<dl>
-<dt>The number of images:</dt><dd><ol class="arabic simple">
-<li><p>search in “user_incar_settings”;</p></li>
-<li><p>otherwise, calculated using “d_img”.</p></li>
-</ol>
-</dd>
-<dt>Required parameters:</dt><dd><p>user_incar_settings (dict): additional INCAR settings.</p>
-</dd>
-<dt>Optional parameters:</dt><dd><p>user_kpoints_settings (dict): additional KPOINTS settings.
-sort_tol (float): Distance tolerance (in Angstrom) used to match the atomic indices between</p>
-<blockquote>
-<div><p>start and end structures. If it is set 0, then no sorting will be performed.</p>
-</div></blockquote>
-<dl class="simple">
-<dt>d_img (float): distance in Angstrom, used in calculating number of images. Default 0.7</dt><dd><p>Angstrom.</p>
-</dd>
-<dt>interpolation_type (str): method to do image interpolation from two endpoints.</dt><dd><p>Choose from [“IDPP”, “linear”], default “IDPP”</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.optional_params">
-<code class="sig-name descname">optional_params</code><em class="property"> = ['user_kpoints_settings', 'sort_tol', 'd_img', 'interpolation_type']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.required_params">
-<code class="sig-name descname">required_params</code><em class="property"> = ['user_incar_settings']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.run_task">
-<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromEndpoints.run_task" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method gets called when the Firetask is run. It can take in a
-Firework spec, perform some task using that data, and then return an
-output in the form of a FWAction.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
-contains the env settings of the FWorker calling this method.
-This provides for abstracting out certain commands or
-settings. For example, “foo” may be named “foo1” in resource
-1 and “foo2” in resource 2. The FWorker env can specify {
-“foo”: “foo1”}, which maps an abstract variable “foo” to the
-relevant “foo1” or “foo2”. You can then write a task that
-uses fw_spec[“_fw_env”][“foo”] that will work across all
-these multiple resources.</p>
-</dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><p>(FWAction)</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages">
-<em class="property">class </em><code class="sig-prename descclassname">atomate.vasp.firetasks.neb_tasks.</code><code class="sig-name descname">WriteNEBFromImages</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">fireworks.core.firework.FiretaskBase</span></code></p>
-<p>Generate CI-NEB input sets using given images and endpoints structures. The structures
-correspond to structures nested in subfolders (“00”, “01”, “02”, etc.)</p>
-<dl class="simple">
-<dt>Required parameters:</dt><dd><p>neb_label (str): “1”, “2”, etc., labels the running sequence of NEB</p>
-</dd>
-<dt>Optional parameters:</dt><dd><p>user_incar_settings (dict): Additional INCAR settings.
-user_kpoints_settings (dict): Additional KPOINTS settings.</p>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.optional_params">
-<code class="sig-name descname">optional_params</code><em class="property"> = ['user_incar_settings', 'user_kpoints_settings']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.required_params">
-<code class="sig-name descname">required_params</code><em class="property"> = ['neb_label']</em><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.run_task">
-<code class="sig-name descname">run_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fw_spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.firetasks.neb_tasks.WriteNEBFromImages.run_task" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method gets called when the Firetask is run. It can take in a
-Firework spec, perform some task using that data, and then return an
-output in the form of a FWAction.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>fw_spec (dict): A Firework spec. This comes from the master spec.</dt><dd><p>In addition, this spec contains a special “_fw_env” key that
-contains the env settings of the FWorker calling this method.
-This provides for abstracting out certain commands or
-settings. For example, “foo” may be named “foo1” in resource
-1 and “foo2” in resource 2. The FWorker env can specify {
-“foo”: “foo1”}, which maps an abstract variable “foo” to the
-relevant “foo1” or “foo2”. You can then write a task that
-uses fw_spec[“_fw_env”][“foo”] that will work across all
-these multiple resources.</p>
-</dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><p>(FWAction)</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="atomate-vasp-firetasks-neb-tasks-module">
+<h2>atomate.vasp.firetasks.neb_tasks module<a class="headerlink" href="#atomate-vasp-firetasks-neb-tasks-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="atomate-vasp-firetasks-parse-outputs-module">
 <h2>atomate.vasp.firetasks.parse_outputs module<a class="headerlink" href="#atomate-vasp-firetasks-parse-outputs-module" title="Permalink to this headline">¶</a></h2>
@@ -605,11 +393,13 @@ these multiple resources.</p>
 <li><a class="reference internal" href="#">atomate.vasp.firetasks package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#atomate-vasp-firetasks-approx-neb-dynamic-tasks-module">atomate.vasp.firetasks.approx_neb_dynamic_tasks module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-firetasks-approx-neb-tasks-module">atomate.vasp.firetasks.approx_neb_tasks module</a></li>
 <li><a class="reference internal" href="#atomate-vasp-firetasks-electrode-tasks-module">atomate.vasp.firetasks.electrode_tasks module</a></li>
 <li><a class="reference internal" href="#atomate-vasp-firetasks-exchange-module">atomate.vasp.firetasks.exchange module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.firetasks.glue_tasks">atomate.vasp.firetasks.glue_tasks module</a></li>
 <li><a class="reference internal" href="#atomate-vasp-firetasks-lobster-tasks-module">atomate.vasp.firetasks.lobster_tasks module</a></li>
-<li><a class="reference internal" href="#module-atomate.vasp.firetasks.neb_tasks">atomate.vasp.firetasks.neb_tasks module</a></li>
+<li><a class="reference internal" href="#atomate-vasp-firetasks-neb-tasks-module">atomate.vasp.firetasks.neb_tasks module</a></li>
 <li><a class="reference internal" href="#atomate-vasp-firetasks-parse-outputs-module">atomate.vasp.firetasks.parse_outputs module</a></li>
 <li><a class="reference internal" href="#atomate-vasp-firetasks-run-calc-module">atomate.vasp.firetasks.run_calc module</a></li>
 <li><a class="reference internal" href="#atomate-vasp-firetasks-write-inputs-module">atomate.vasp.firetasks.write_inputs module</a></li>
@@ -648,7 +438,7 @@ these multiple resources.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 0.9.9 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.3 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.vasp.firetasks package</a></li> 
       </ul>
     </div>

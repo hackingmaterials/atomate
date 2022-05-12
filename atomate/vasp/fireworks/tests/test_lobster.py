@@ -1,15 +1,16 @@
 import os
 import unittest
 
-from atomate.vasp.fireworks.core import StaticFW
-from atomate.vasp.fireworks.lobster import LobsterFW
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.structure import Structure
+
+from atomate.vasp.fireworks.core import StaticFW
+from atomate.vasp.fireworks.lobster import LobsterFW
 
 __author__ = "Janine George, Guido Petretto"
 __email__ = "janine.george@uclouvain.be"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "..", "..", "test_files")
 

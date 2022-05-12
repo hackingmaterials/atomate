@@ -1,11 +1,9 @@
+from pymatgen.analysis.structure_matcher import ElementComparator, StructureMatcher
+from pymatgen.core import Structure
+from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from tqdm import tqdm
 
-from atomate.utils.utils import get_logger, get_database
-
-from pymatgen.core import Structure
-from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
-from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
-
+from atomate.utils.utils import get_database, get_logger
 from atomate.vasp.builders.base import AbstractBuilder
 
 logger = get_logger(__name__)
@@ -39,9 +37,7 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
         all_btrap_ids = [i["_id"] for i in self._boltztrap.find({}, {"_id": 1})]
         new_btrap_ids = [o_id for o_id in all_btrap_ids if o_id not in previous_oids]
 
-        logger.info(
-            "There are {} new boltztrap ids to process.".format(len(new_btrap_ids))
-        )
+        logger.info(f"There are {len(new_btrap_ids)} new boltztrap ids to process.")
 
         pbar = tqdm(new_btrap_ids)
         for o_id in pbar:
@@ -54,7 +50,7 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
                         f"Cannot find matching material for object_id: {o_id}"
                     )
                 self._update_material(m_id, doc)
-            except:
+            except Exception:
                 import traceback
 
                 logger.exception("<---")
@@ -157,8 +153,8 @@ class BoltztrapMaterialsBuilder(AbstractBuilder):
         db_write = get_database(db_file, admin=True)
         try:
             db_read = get_database(db_file, admin=False)
-            db_read.collection_names()  # throw error if auth failed
-        except:
+            db_read.list_collection_names()  # throw error if auth failed
+        except Exception:
             print("Warning: could not get read-only database")
             db_read = get_database(db_file, admin=True)
 

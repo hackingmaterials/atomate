@@ -1,56 +1,53 @@
-import warnings
-
-from atomate.vasp.config import (
-    HALF_KPOINTS_FIRST_RELAX,
-    RELAX_MAX_FORCE,
-    VASP_CMD,
-    DB_FILE,
-    VDW_KERNEL_DIR,
-)
-
 """
 Defines standardized Fireworks that can be chained easily to perform various
 sequences of VASP calculations.
 """
+import warnings
 
 from fireworks import Firework
-
 from pymatgen.core import Structure
 from pymatgen.io.vasp.sets import (
-    MPRelaxSet,
-    MPScanRelaxSet,
     MITMDSet,
     MITRelaxSet,
-    MPStaticSet,
+    MPRelaxSet,
+    MPScanRelaxSet,
     MPSOCSet,
+    MPStaticSet,
 )
 
 from atomate.common.firetasks.glue_tasks import (
-    PassCalcLocs,
     CopyFiles,
     DeleteFiles,
     GzipDir,
+    PassCalcLocs,
+)
+from atomate.vasp.config import (
+    DB_FILE,
+    HALF_KPOINTS_FIRST_RELAX,
+    RELAX_MAX_FORCE,
+    VASP_CMD,
+    VDW_KERNEL_DIR,
 )
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, pass_vasp_result
-from atomate.vasp.firetasks.neb_tasks import TransferNEBTask
-from atomate.vasp.firetasks.parse_outputs import VaspToDb, BoltztrapToDb
-from atomate.vasp.firetasks.run_calc import (
-    RunVaspCustodian,
-    RunBoltztrap,
+from atomate.vasp.firetasks.neb_tasks import (
+    TransferNEBTask,
+    WriteNEBFromEndpoints,
+    WriteNEBFromImages,
 )
+from atomate.vasp.firetasks.parse_outputs import BoltztrapToDb, VaspToDb
+from atomate.vasp.firetasks.run_calc import RunBoltztrap, RunVaspCustodian
 from atomate.vasp.firetasks.write_inputs import (
+    ModifyIncar,
     WriteNormalmodeDisplacedPoscar,
+    WriteScanRelaxFromPrev,
     WriteTransmutedStructureIOSet,
     WriteVaspFromIOSet,
+    WriteVaspFromIOSetFromInterpolatedPOSCAR,
     WriteVaspHSEBSFromPrev,
     WriteVaspNSCFFromPrev,
     WriteVaspSOCFromPrev,
     WriteVaspStaticFromPrev,
-    WriteVaspFromIOSetFromInterpolatedPOSCAR,
-    WriteScanRelaxFromPrev,
-    ModifyIncar,
 )
-from atomate.vasp.firetasks.neb_tasks import WriteNEBFromImages, WriteNEBFromEndpoints
 
 
 class OptimizeFW(Firework):
@@ -102,9 +99,7 @@ class OptimizeFW(Firework):
             and job_type == "double_relaxation"
         ):
             warnings.warn(
-                "A double relaxation run might not be appropriate with ISIF {}".format(
-                    vasp_input_set.incar["ISIF"]
-                )
+                f"A double relaxation run might not be appropriate with ISIF {vasp_input_set.incar['ISIF']}"
             )
 
         t = []
@@ -150,7 +145,7 @@ class ScanOptimizeFW(Firework):
         initialized with no parents, it will perform a GGA optimization of the provided
         structure using the PBESol functional. This GGA-relaxed structure is intended
         to be passed to a second instance of this Firework for optimization with SCAN.
-        (see workflow definition in SCAN_optimization.yaml)
+        (see workflow definition in metagga_optimization.yaml)
 
         Args:
             structure (Structure): Input structure. Note that for prev_calc_loc jobs, the structure
@@ -180,9 +175,8 @@ class ScanOptimizeFW(Firework):
             vasptodb_kwargs["additional_fields"] = {}
         vasptodb_kwargs["additional_fields"]["task_label"] = name
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         has_previous_calc = False
 
@@ -339,9 +333,8 @@ class StaticFW(Firework):
             vasptodb_kwargs["additional_fields"] = {}
         vasptodb_kwargs["additional_fields"]["task_label"] = name
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         if spec_structure_key is not None:
             vasp_input_set = vasp_input_set or MPStaticSet(
@@ -474,11 +467,10 @@ class HSEBSFW(Firework):
             db_file (str): Path to file specifying db credentials.
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        name = name if name else "{} {}".format("hse", mode)
+        name = name if name else f"hse {mode}"
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         t = []
         if prev_calc_dir:
@@ -547,11 +539,8 @@ class NonSCFFW(Firework):
         """
         input_set_overrides = input_set_overrides or {}
 
-        fw_name = "{}-{} {}".format(
-            structure.composition.reduced_formula if structure else "unknown",
-            name,
-            mode,
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name} {mode}"
         t = []
 
         if prev_calc_dir:
@@ -582,7 +571,7 @@ class NonSCFFW(Firework):
         t.append(
             VaspToDb(
                 db_file=db_file,
-                additional_fields={"task_label": name + " " + mode},
+                additional_fields={"task_label": f"{name} {mode}"},
                 parse_dos=(mode == "uniform"),
                 bandstructure_mode=mode,
             )
@@ -628,9 +617,8 @@ class DFPTFW(Firework):
         """
         name = "static dielectric" if lepsilon else "phonon"
 
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         user_incar_settings = user_incar_settings or {}
         t = []
@@ -723,10 +711,9 @@ class RamanFW(Firework):
             user_incar_settings (dict): Parameters in INCAR to override
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        name = "{}_{}_{}".format(name, str(mode), str(displacement))
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        name = f"{name}_{mode}_{displacement}"
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         user_incar_settings = user_incar_settings or {}
 
@@ -799,9 +786,8 @@ class SOCFW(Firework):
                 FW or list of FWS.
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         t = []
         if prev_calc_dir:
@@ -1060,9 +1046,8 @@ class BoltztrapFW(Firework):
             additional_fields (dict): fields added to the document such as user-defined tags or name, ids, etc
             **kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         additional_fields = additional_fields or {}
 
@@ -1095,7 +1080,7 @@ class NEBRelaxationFW(Firework):
     Task 1) Read in a structure with "st_label" ("rlx", "ep0" or "ep1") and generates input sets.
     Task 2) Run VASP using Custodian
     Task 3) Update structure to spec
-    Task 4) Pass CalcLocs named "{}_dir".format(st_label)
+    Task 4) Pass CalcLocs named f"{st_label}_dir"
     """
 
     def __init__(
@@ -1176,7 +1161,7 @@ class NEBFW(Firework):
             The group of structures are labeled with neb_label (1, 2...)
     Task 2) Run NEB VASP using Custodian
     Task 3) Update structure to spec
-    Task 4) Pass CalcLocs named "neb_{}".format(neb_label)
+    Task 4) Pass CalcLocs named f"neb_{neb_label}"
     """
 
     def __init__(

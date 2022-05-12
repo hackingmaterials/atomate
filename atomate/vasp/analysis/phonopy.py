@@ -53,7 +53,7 @@ def get_phonopy_gibbs(
     )
 
     # gibbs free energy and temperature
-    max_t_index = phonopy_qha._qha._max_t_index
+    max_t_index = phonopy_qha._qha._len
     G = phonopy_qha.get_gibbs_temperature()[:max_t_index]
     T = phonopy_qha._qha._temperatures[:max_t_index]
     return G, T
@@ -90,9 +90,8 @@ def get_phonopy_qha(
     Returns:
         PhonopyQHA
     """
-    from phonopy import Phonopy
+    from phonopy import Phonopy, PhonopyQHA
     from phonopy.structure.atoms import Atoms as PhonopyAtoms
-    from phonopy import PhonopyQHA
     from phonopy.units import EVAngstromToGPa
 
     phon_atoms = PhonopyAtoms(
@@ -179,7 +178,7 @@ def get_phonopy_thermal_expansion(
     )
 
     # thermal expansion coefficient and temperature
-    max_t_index = phonopy_qha._qha._max_t_index
-    alpha = phonopy_qha.get_thermal_expansion()[:max_t_index]
+    max_t_index = phonopy_qha._qha._len
+    alpha = phonopy_qha.get_thermal_expansion()[: max_t_index]
     T = phonopy_qha._qha._temperatures[:max_t_index]
     return alpha, T
