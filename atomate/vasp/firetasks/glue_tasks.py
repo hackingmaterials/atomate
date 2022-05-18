@@ -290,14 +290,14 @@ class GetInterpolatedPOSCAR(FiretaskBase):
         # use CopyFilesFromCalcLoc to get files from previous locations.
         CopyFilesFromCalcLoc(
             calc_loc=self["start"],
-            filenames=["CONTCAR","CONTCAR.gz"],
+            filenames=["CONTCAR", "CONTCAR.gz"],
             name_prepend=interpolate_folder + os.sep,
             name_append="_0",
             decompress=True,
         ).run_task(fw_spec=fw_spec)
         CopyFilesFromCalcLoc(
             calc_loc=self["end"],
-            filenames=["CONTCAR","CONTCAR.gz"],
+            filenames=["CONTCAR", "CONTCAR.gz"],
             name_prepend=interpolate_folder + os.sep,
             name_append="_1",
             decompress=True,

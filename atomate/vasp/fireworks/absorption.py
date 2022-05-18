@@ -1,46 +1,34 @@
-from atomate.vasp.config import (
-    VASP_CMD,
-    DB_FILE,
-)
 from fireworks import Firework
-from pymatgen.io.vasp.sets import MPStaticSet, MPAbsorptionSet
-from atomate.common.firetasks.glue_tasks import (
-    PassCalcLocs,
-    CopyFiles,
-    DeleteFiles,
-    GzipDir,
-    CreateFolder,
-    PassCalcLocs
-)
-from atomate.vasp.firetasks import (
-    CheckBandgap,
-    CopyVaspOutputs,
-    ModifyIncar,
-    RunVaspCustodian,
-    VaspToDb,
-)
-from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspStaticFromPrev
+from pymatgen.io.vasp.sets import MPStaticSet
+
+from atomate.common.firetasks.glue_tasks import PassCalcLocs
+from atomate.vasp.config import DB_FILE, VASP_CMD
+from atomate.vasp.firetasks import CopyVaspOutputs, RunVaspCustodian, VaspToDb
 from atomate.vasp.firetasks.absorption_tasks import WriteVaspAbsorptionFromPrev
+from atomate.vasp.firetasks.write_inputs import (
+    WriteVaspFromIOSet,
+    WriteVaspStaticFromPrev,
+)
 
 
 class AbsorptionFW(Firework):
     def __init__(
-            self,
-            structure,
-            name="frequency dependent dielectrics",
-            mode='STATIC',
-            nbands=None,
-            nbands_factor=2,
-            reciprocal_density=200,
-            nkred=None,
-            nedos=2001,
-            vasp_cmd=VASP_CMD,
-            prev_calc_dir=None,
-            db_file=DB_FILE,
-            vasptodb_kwargs=None,
-            parents=None,
-            vasp_input_set_params=None,
-            **kwargs,
+        self,
+        structure,
+        name="frequency dependent dielectrics",
+        mode="STATIC",
+        nbands=None,
+        nbands_factor=2,
+        reciprocal_density=200,
+        nkred=None,
+        nedos=2001,
+        vasp_cmd=VASP_CMD,
+        prev_calc_dir=None,
+        db_file=DB_FILE,
+        vasptodb_kwargs=None,
+        parents=None,
+        vasp_input_set_params=None,
+        **kwargs,
     ):
         """
         FW that calculates frequency dependent dielectric function within
@@ -85,7 +73,9 @@ class AbsorptionFW(Firework):
         vasptodb_kwargs["additional_fields"]["task_label"] = name
 
         fw_name = "{}-{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name, mode
+            structure.composition.reduced_formula if structure else "unknown",
+            name,
+            mode,
         )
 
         # define what wavecars to copy from the previous run
@@ -102,10 +92,12 @@ class AbsorptionFW(Firework):
         if mode == "IPA" or mode == "RPA":
             if prev_calc_dir:
                 # Copy the WAVECAR from previous calc directory
-                t.append(CopyVaspOutputs(
-                    calc_dir=prev_calc_dir,
-                    contcar_to_poscar=True,
-                    additional_files=wavecars)
+                t.append(
+                    CopyVaspOutputs(
+                        calc_dir=prev_calc_dir,
+                        contcar_to_poscar=True,
+                        additional_files=wavecars,
+                    )
                 )
 
                 t.append(
@@ -119,7 +111,7 @@ class AbsorptionFW(Firework):
                         reciprocal_density=reciprocal_density,
                         nkred=nkred,
                         nedos=nedos,
-                        **vasp_input_set_params
+                        **vasp_input_set_params,
                     )
                 )
 
@@ -127,9 +119,7 @@ class AbsorptionFW(Firework):
                 # Copy the WAVECAR from previous calc location
                 t.append(
                     CopyVaspOutputs(
-                        calc_loc=True,
-                        contcar_to_poscar=True,
-                        additional_files=wavecars
+                        calc_loc=True, contcar_to_poscar=True, additional_files=wavecars
                     )
                 )
 
@@ -144,28 +134,30 @@ class AbsorptionFW(Firework):
                         reciprocal_density=reciprocal_density,
                         nkred=nkred,
                         nedos=nedos,
-                        **vasp_input_set_params
+                        **vasp_input_set_params,
                     )
                 )
 
             else:
-                raise ValueError("Must specify previous calculation for {}".format(mode))
+                raise ValueError(f"Must specify previous calculation for {mode}")
 
         # when mode = "static"
         elif mode == "STATIC":
-            static_incar={"LWAVE": True,
-                          "ENCUT": 500,
-                          "ISMEAR": 0,
-                          "SIGMA": 0.01,
-                          "LREAL": False,
-                          "GGA": "PE",
-                          "LELF": False,
-                          "LAECHG": False,
-                          "LASPH": False,
-                          "LVHAR": False,
-                          "LVTOT": False,
-                          "METAGGA": "None",
-                          "LMIXTAU": False}
+            static_incar = {
+                "LWAVE": True,
+                "ENCUT": 500,
+                "ISMEAR": 0,
+                "SIGMA": 0.01,
+                "LREAL": False,
+                "GGA": "PE",
+                "LELF": False,
+                "LAECHG": False,
+                "LASPH": False,
+                "LVHAR": False,
+                "LVTOT": False,
+                "METAGGA": "None",
+                "LMIXTAU": False,
+            }
 
             if prev_calc_dir:
                 # Copy only the CONTCAR from previous calc directory (often a relaxation run)
@@ -173,37 +165,49 @@ class AbsorptionFW(Firework):
                     CopyVaspOutputs(
                         calc_dir=prev_calc_dir,
                         contcar_to_poscar=True,
-                        additional_files=wavecars
+                        additional_files=wavecars,
                     )
                 )
 
                 t.append(
-                    WriteVaspStaticFromPrev(reciprocal_density=reciprocal_density,
-                                            other_params={"user_incar_settings": static_incar})
+                    WriteVaspStaticFromPrev(
+                        reciprocal_density=reciprocal_density,
+                        other_params={"user_incar_settings": static_incar},
+                    )
                 )
 
             elif parents:
                 # Copy only the CONTCAR from previous calc
-                t.append(CopyVaspOutputs(calc_loc=True,
-                                         additional_files=wavecars,
-                                         contcar_to_poscar=True)
-                         )
+                t.append(
+                    CopyVaspOutputs(
+                        calc_loc=True, additional_files=wavecars, contcar_to_poscar=True
+                    )
+                )
 
                 t.append(
-                    WriteVaspStaticFromPrev(reciprocal_density=reciprocal_density,
-                                            other_params={"user_incar_settings": static_incar})
+                    WriteVaspStaticFromPrev(
+                        reciprocal_density=reciprocal_density,
+                        other_params={"user_incar_settings": static_incar},
+                    )
                 )
 
             elif structure:
-                static_input_set = MPStaticSet(structure=structure,
-                                               reciprocal_density=reciprocal_density,
-                                               user_incar_settings=static_incar)
+                static_input_set = MPStaticSet(
+                    structure=structure,
+                    reciprocal_density=reciprocal_density,
+                    user_incar_settings=static_incar,
+                )
 
-                t.append(WriteVaspFromIOSet(structure=structure, vasp_input_set=static_input_set)
-                         )
+                t.append(
+                    WriteVaspFromIOSet(
+                        structure=structure, vasp_input_set=static_input_set
+                    )
+                )
 
             else:
-                raise ValueError("Must specify structure or previous calculation for static calculation")
+                raise ValueError(
+                    "Must specify structure or previous calculation for static calculation"
+                )
 
         else:
             raise ValueError("Must specify a mode from 'STATIC', 'IPA', or 'RPA'")
@@ -216,15 +220,22 @@ class AbsorptionFW(Firework):
             RunVaspCustodian(
                 vasp_cmd=vasp_cmd,
                 auto_npar=">>auto_npar<<",
-                handler_group=handler_group
+                handler_group=handler_group,
             )
         )
         t.append(PassCalcLocs(name=name))
         # Parse
-        t.append(VaspToDb(db_file=db_file,
-                          additional_fields={
-                              "task_label": structure.composition.reduced_formula + " " + name + " " + mode}))
+        t.append(
+            VaspToDb(
+                db_file=db_file,
+                additional_fields={
+                    "task_label": structure.composition.reduced_formula
+                    + " "
+                    + name
+                    + " "
+                    + mode
+                },
+            )
+        )
 
         super().__init__(t, parents=parents, name=fw_name, **kwargs)
-
-

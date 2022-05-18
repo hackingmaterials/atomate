@@ -1,16 +1,6 @@
-import os
-from importlib import import_module
-
-import numpy as np
-
-from monty.serialization import dumpfn
 from fireworks import FiretaskBase, explicit_serialize
-from fireworks.utilities.dict_mods import apply_mod
-from pymatgen.core.structure import Structure
-from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle, Kpoints
 from pymatgen.io.vasp.sets import MPAbsorptionSet
-from pymatgen.io.vasp.outputs import Vasprun
-from atomate.utils.utils import env_chk, load_class
+
 
 @explicit_serialize
 class WriteVaspAbsorptionFromPrev(FiretaskBase):
@@ -25,6 +15,7 @@ class WriteVaspAbsorptionFromPrev(FiretaskBase):
         "potcar_spec"
 
     """
+
     optional_params = [
         "prev_calc_dir",
         "structure",
@@ -37,7 +28,7 @@ class WriteVaspAbsorptionFromPrev(FiretaskBase):
         "ncores",
         "nedos",
         "potcar_spec",
-        "other_params"
+        "other_params",
     ]
 
     def run_task(self, fw_spec):

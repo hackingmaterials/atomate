@@ -12,11 +12,11 @@ import re
 import traceback
 import warnings
 from fnmatch import fnmatch
+from shutil import which
 
 import numpy as np
 from monty.io import zopen
 from monty.json import jsanitize
-from monty.os.path import which
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.command_line.bader_caller import bader_analysis_from_path
 from pymatgen.core.composition import Composition
@@ -420,7 +420,7 @@ class VaspDrone(AbstractDrone):
                     d["output"][k] = d_calc_final["output"][k]
 
             # store optical data, overwrites the LOPTICS data
-            if d["input"]["incar"].get("ALGO") == 'CHI':
+            if d["input"]["incar"].get("ALGO") == "CHI":
                 for k in ["optical_absorption_coeff", "dielectric"]:
                     d["output"][k] = d_calc_final["output"][k]
 
@@ -588,7 +588,7 @@ class VaspDrone(AbstractDrone):
             d["output"]["optical_absorption_coeff"] = vrun.optical_absorption_coeff
 
         # parse output from response function
-        if vrun.incar.get("ALGO") == 'CHI':
+        if vrun.incar.get("ALGO") == "CHI":
             dielectric = vrun.dielectric
             d["output"]["dielectric"] = dict(
                 energy=dielectric[0], real=dielectric[1], imag=dielectric[2]
