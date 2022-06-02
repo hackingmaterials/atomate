@@ -1,5 +1,5 @@
 custodian==2022.1.17
-FireWorks==1.9.7
+FireWorks==2.0.3
 maggma==0.44.0
 monty==2021.6.10
 networkx==2.5.1
