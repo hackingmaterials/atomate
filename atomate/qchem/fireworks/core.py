@@ -34,6 +34,7 @@ class SinglePointFW(Firework):
         qchem_input_params=None,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -83,6 +84,7 @@ class SinglePointFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )
@@ -108,6 +110,7 @@ class ForceFW(Firework):
         qchem_input_params=None,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -157,6 +160,7 @@ class ForceFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )
@@ -182,6 +186,7 @@ class OptimizeFW(Firework):
         qchem_input_params=None,
         db_file=None,
         parents=None,
+        max_errors=20,
         **kwargs
     ):
         """
@@ -232,6 +237,7 @@ class OptimizeFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )
@@ -257,6 +263,7 @@ class TransitionStateFW(Firework):
         qchem_input_params=None,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -307,6 +314,7 @@ class TransitionStateFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )
@@ -332,6 +340,7 @@ class FrequencyFW(Firework):
         qchem_input_params=None,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -382,6 +391,7 @@ class FrequencyFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )
@@ -408,6 +418,7 @@ class PESScanFW(Firework):
         scan_variables=None,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -467,6 +478,7 @@ class PESScanFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )
@@ -499,6 +511,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
         scale=1.0,
         db_file=None,
         parents=None,
+        max_errors=20,
         **kwargs
     ):
         """
@@ -586,6 +599,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 max_molecule_perturb_scale=max_molecule_perturb_scale,
                 linked=linked,
                 freq_before_opt=freq_before_opt,
+                max_errors=max_errors,
             )
         )
         t.append(
@@ -621,6 +635,7 @@ class FrequencyFlatteningTransitionStateFW(Firework):
         scale=1,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -719,6 +734,7 @@ class FrequencyFlatteningTransitionStateFW(Firework):
                 transition_state=True,
                 linked=linked,
                 freq_before_opt=freq_before_opt,
+                max_errors=max_errors,
             )
         )
         t.append(
@@ -819,6 +835,7 @@ class CubeAndCritic2FW(Firework):
         qchem_input_params=None,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -871,6 +888,7 @@ class CubeAndCritic2FW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )

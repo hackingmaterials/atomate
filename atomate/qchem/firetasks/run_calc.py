@@ -71,6 +71,7 @@ class RunQChemCustodian(FiretaskBase):
         calc_loc (str): Path where Q-Chem should run. Will env_chk by default. If not in
                         environment, will be set to None, in which case Q-Chem will run in
                         the system-defined QCLOCALSCR.
+        nboexe (str): Path to the NBO7 executable.
         save_scratch (bool): Whether to save scratch directory contents. Defaults to False.
         max_errors (int): Maximum # of errors to fix before giving up (default=5)
         job_type (str): Choose from "normal" (default) and "opt_with_frequency_flattener"
@@ -98,6 +99,7 @@ class RunQChemCustodian(FiretaskBase):
         "qclog_file",
         "suffix",
         "calc_loc",
+        "nboexe",
         "save_scratch",
         "max_errors",
         "job_type",
@@ -128,7 +130,8 @@ class RunQChemCustodian(FiretaskBase):
         max_cores = env_chk(self["max_cores"], fw_spec)
         qclog_file = self.get("qclog_file", "mol.qclog")
         suffix = self.get("suffix", "")
-        calc_loc = env_chk(self.get("calc_loc"), fw_spec)
+        calc_loc = self.get("calc_loc", env_chk(">>calc_loc<<", fw_spec, strict=False))
+        nboexe = self.get("nboexe", env_chk(">>nboexe<<", fw_spec, strict=False))
         save_scratch = self.get("save_scratch", False)
         max_errors = self.get("max_errors", 5)
         max_iterations = self.get("max_iterations", 10)
@@ -141,9 +144,7 @@ class RunQChemCustodian(FiretaskBase):
         freq_before_opt = self.get("freq_before_opt", False)
 
         handler_groups = {
-            "default": [
-                QChemErrorHandler(input_file=input_file, output_file=output_file)
-            ],
+            "default": [QChemErrorHandler(input_file=input_file, output_file=output_file)],
             "no_handler": [],
         }
 
@@ -159,6 +160,7 @@ class RunQChemCustodian(FiretaskBase):
                     qclog_file=qclog_file,
                     suffix=suffix,
                     calc_loc=calc_loc,
+                    nboexe=nboexe,
                     save_scratch=save_scratch,
                     backup=backup,
                 )
@@ -178,6 +180,7 @@ class RunQChemCustodian(FiretaskBase):
                     save_final_scratch=save_scratch,
                     max_cores=max_cores,
                     calc_loc=calc_loc,
+                    nboexe=nboexe,
                 )
             else:
                 jobs = QCJob.opt_with_frequency_flattener(
@@ -194,6 +197,7 @@ class RunQChemCustodian(FiretaskBase):
                     save_final_scratch=save_scratch,
                     max_cores=max_cores,
                     calc_loc=calc_loc,
+                    nboexe=nboexe,
                 )
 
         else:
@@ -202,9 +206,7 @@ class RunQChemCustodian(FiretaskBase):
         # construct handlers
         handlers = handler_groups[self.get("handler_group", "default")]
 
-        c = Custodian(
-            handlers, jobs, max_errors=max_errors, gzipped_output=gzipped_output
-        )
+        c = Custodian(handlers, jobs, max_errors=max_errors, gzipped_output=gzipped_output)
 
         c.run()
 
@@ -246,9 +248,7 @@ class RunQChemFake(FiretaskBase):
         ref_qin = QCInput.from_file(os.path.join(self["ref_dir"], input_file))
 
         np.testing.assert_equal(ref_qin.molecule.species, user_qin.molecule.species)
-        np.testing.assert_allclose(
-            ref_qin.molecule.cart_coords, user_qin.molecule.cart_coords, atol=0.0001
-        )
+        np.testing.assert_allclose(ref_qin.molecule.cart_coords, user_qin.molecule.cart_coords, atol=0.0001)
         for key in ref_qin.rem:
             if user_qin.rem.get(key) != ref_qin.rem.get(key):
                 raise ValueError(f"Rem key {key} is inconsistent!")

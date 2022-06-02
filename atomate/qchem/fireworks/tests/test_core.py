@@ -72,6 +72,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=">>max_cores<<",
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
@@ -115,6 +116,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=12,
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
@@ -149,6 +151,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=">>max_cores<<",
+                max_errors=20,
                 job_type="normal",
             ).as_dict(),
         )
@@ -192,6 +195,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=12,
+                max_errors=20,
                 job_type="normal",
             ).as_dict(),
         )
@@ -226,6 +230,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=">>max_cores<<",
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
@@ -271,6 +276,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=12,
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
@@ -309,6 +315,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=">>max_cores<<",
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
@@ -352,6 +359,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=12,
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
@@ -391,6 +399,7 @@ class TestCore(AtomateTest):
                 max_molecule_perturb_scale=0.3,
                 linked=True,
                 freq_before_opt=False,
+                max_errors=20,
             ).as_dict(),
         )
         self.assertEqual(
@@ -426,6 +435,7 @@ class TestCore(AtomateTest):
             mode=np.zeros((len(self.act_mol), 3)),
             scale=0.2,
             parents=None,
+            max_errors=20,
         )
         self.assertEqual(
             firework.tasks[0].as_dict(),
@@ -455,6 +465,7 @@ class TestCore(AtomateTest):
                 max_molecule_perturb_scale=0.2,
                 linked=False,
                 freq_before_opt=True,
+                max_errors=20,
             ).as_dict(),
         )
         self.assertEqual(
@@ -500,6 +511,7 @@ class TestCore(AtomateTest):
                 transition_state=True,
                 freq_before_opt=True,
                 linked=True,
+                max_errors=5,
             ).as_dict(),
         )
         self.assertEqual(
@@ -544,6 +556,7 @@ class TestCore(AtomateTest):
             scale=0.2,
             db_file=db_file,
             parents=None,
+            max_errors=5,
         )
         self.assertEqual(
             firework.tasks[0].as_dict(),
@@ -574,6 +587,7 @@ class TestCore(AtomateTest):
                 transition_state=True,
                 linked=False,
                 freq_before_opt=False,
+                max_errors=5,
             ).as_dict(),
         )
         self.assertEqual(
@@ -620,6 +634,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=">>max_cores<<",
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
@@ -668,6 +683,7 @@ class TestCore(AtomateTest):
                 output_file="mol.qout",
                 max_cores=12,
                 job_type="normal",
+                max_errors=5,
             ).as_dict(),
         )
         self.assertEqual(
@@ -752,6 +768,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=">>max_cores<<",
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
@@ -802,6 +819,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=12,
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
