@@ -1,7 +1,8 @@
 from fireworks import Firework
-from atomate.vasp.firetasks.approx_neb_tasks import PathfinderToDb, AddSelectiveDynamics
+
+from atomate.vasp.config import DB_FILE, VASP_CMD
 from atomate.vasp.firetasks.approx_neb_dynamic_tasks import GetImageFireworks
-from atomate.vasp.config import VASP_CMD, DB_FILE
+from atomate.vasp.firetasks.approx_neb_tasks import AddSelectiveDynamics, PathfinderToDb
 
 __author__ = "Ann Rutt"
 __email__ = "acrutt@lbl.gov"
@@ -24,9 +25,9 @@ class EvaluatePathFW(Firework):
         parents=None,
         add_additional_fields=None,
         add_tags=None,
-        **kwargs
+        **kwargs,
     ):
-        """
+        r"""
         Applies NEBPathFinder (from pymatgen.analysis.path_finder)
         using the host charge density (chgcar from the task_id stored)
         and output structures stored in the "end_points" field of the
@@ -84,7 +85,7 @@ class EvaluatePathFW(Firework):
             task docs.
         \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "hop: " + mobile_specie + " " + end_points_combo
+        fw_name = f"hop: {mobile_specie} {end_points_combo}"
         fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "evaluate_path"]}
 
         t = []

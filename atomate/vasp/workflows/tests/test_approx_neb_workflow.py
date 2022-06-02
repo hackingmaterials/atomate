@@ -1,9 +1,11 @@
 from pathlib import Path
-from atomate.utils.testing import AtomateTest
-from pymatgen.core import Structure
-from atomate.vasp.workflows.base.approx_neb import get_aneb_wf
+
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from pymatgen.core import Structure
+
+from atomate.utils.testing import AtomateTest
+from atomate.vasp.workflows.base.approx_neb import get_aneb_wf
 
 __author__ = "Ann Rutt"
 __email__ = "acrutt@lbl.gov"
@@ -15,7 +17,7 @@ ref_dir = module_dir / "../../test_files"
 
 class TestApproxNEBWorkflow(AtomateTest):
     def setUp(self):
-        super(TestApproxNEBWorkflow, self).setUp()
+        super().setUp()
 
         # get base structure file
         input_host_file = ref_dir / "approx_neb_wf/spinel_MnO2_POSCAR"

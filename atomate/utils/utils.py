@@ -1,17 +1,16 @@
 import logging
 import os
-import sys
 import socket
+import sys
 from random import randint
 from time import time
 
-from pymongo import MongoClient
+from fireworks import Workflow
 from monty.json import MontyDecoder
 from monty.serialization import loadfn
-from pymatgen.core import Composition
-
-from fireworks import Workflow
 from pymatgen.alchemy.materials import TransformedStructure
+from pymatgen.core.composition import Composition
+from pymongo import MongoClient
 
 __author__ = "Anubhav Jain, Kiran Mathew"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
@@ -70,7 +69,7 @@ def get_mongolike(d, key):
     lead_key = key.split(".", 1)[0]
     try:
         lead_key = int(lead_key)  # for searching array data
-    except:
+    except Exception:
         pass
 
     if "." in key:
@@ -274,7 +273,7 @@ def get_wf_from_spec_dict(structure, wfspec, common_param_updates=None):
         fws.append(cls_(structure=structure, **params))
 
     wfname = (
-        "{}:{}".format(structure.composition.reduced_formula, wfspec["name"])
+        f"{structure.composition.reduced_formula}:{wfspec['name']}"
         if wfspec.get("name")
         else structure.composition.reduced_formula
     )
@@ -302,7 +301,7 @@ def recursive_update(d, u):
     Recursive updates d with values from u
     Args:
         d (dict): dict to update
-        u (dict): updates to propogate
+        u (dict): updates to propagate
     """
 
     for k, v in u.items():
@@ -334,7 +333,7 @@ def get_uri(dir_name):
     fullpath = os.path.abspath(dir_name)
     try:
         hostname = socket.gethostbyaddr(socket.gethostname())[0]
-    except:
+    except Exception:
         hostname = socket.gethostname()
     return f"{hostname}:{fullpath}"
 

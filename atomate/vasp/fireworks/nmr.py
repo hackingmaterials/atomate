@@ -1,12 +1,11 @@
 from fireworks import Firework
-
 from pymatgen.io.vasp.sets import MPNMRSet
 
 from atomate.common.firetasks.glue_tasks import PassCalcLocs
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.vasp.firetasks.parse_outputs import VaspToDb
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
-from atomate.vasp.firetasks.write_inputs import WriteVaspNMRFromPrev, WriteVaspFromIOSet
+from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspNMRFromPrev
 
 
 class NMRFW(Firework):
@@ -21,7 +20,7 @@ class NMRFW(Firework):
         copy_vasp_outputs=True,
         db_file=None,
         parents=None,
-        **kwargs
+        **kwargs,
     ):
         """
         Firework for NMR tensor calculations
@@ -42,9 +41,8 @@ class NMRFW(Firework):
                 FW or list of FWS.
             kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "{}-{}".format(
-            structure.composition.reduced_formula if structure else "unknown", name
-        )
+        formula = structure.composition.reduced_formula if structure else "unknown"
+        fw_name = f"{formula}-{name}"
 
         isotopes = isotopes.split() if isinstance(isotopes, str) else isotopes
         t = []

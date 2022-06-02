@@ -3,14 +3,12 @@ This module defines FEFF XAS(XANES/EXAFS) workflows.
 """
 
 import numpy as np
-
+from fireworks import Workflow
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
-from fireworks import Workflow
-
-from atomate.utils.utils import get_logger
-from atomate.feff.fireworks.core import XASFW, EXAFSPathsFW, EELSFW
 from atomate.feff.firetasks.write_inputs import get_feff_input_set_obj
+from atomate.feff.fireworks.core import EELSFW, XASFW, EXAFSPathsFW
+from atomate.utils.utils import get_logger
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
@@ -89,9 +87,8 @@ def get_wf_xas(
 
     wf_metadata = dict(metadata) if metadata else {}
     wf_metadata["absorbing_atom_indices"] = list(ab_atom_indices)
-    wfname = "{}:{}:{} edge".format(
-        structure.composition.reduced_formula, f"{spectrum_type} spectroscopy", edge
-    )
+    formula = structure.composition.reduced_formula
+    wfname = f"{formula}:{spectrum_type} spectroscopy:{edge} edge"
 
     return Workflow(fws, name=wfname, metadata=wf_metadata)
 
@@ -259,9 +256,8 @@ def get_wf_eels(
             )
         )
 
-    wfname = "{}:{}:{} edge".format(
-        structure.composition.reduced_formula, f"{spectrum_type} spectroscopy", edge
-    )
+    formula = structure.composition.reduced_formula
+    wfname = f"{formula}:{spectrum_type} spectroscopy:{edge} edge"
     wf_metadata = dict(metadata) if metadata else {}
     wf_metadata["absorbing_atom_indices"] = list(ab_atom_indices)
 

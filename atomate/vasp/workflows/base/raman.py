@@ -3,12 +3,11 @@ This module defines the workflow to compute the Raman susceptibility tensor.
 """
 
 from fireworks import Firework, Workflow
-
 from pymatgen.io.vasp.sets import MPRelaxSet
 
 from atomate.utils.utils import get_logger
-from atomate.vasp.fireworks.core import OptimizeFW, DFPTFW, RamanFW
 from atomate.vasp.firetasks.parse_outputs import RamanTensorToDb
+from atomate.vasp.fireworks.core import DFPTFW, OptimizeFW, RamanFW
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
@@ -89,9 +88,9 @@ def get_wf_raman_spectra(
     fw_analysis = Firework(
         RamanTensorToDb(db_file=db_file),
         parents=fws[:],
-        name="{}-{}".format(structure.composition.reduced_formula, "raman analysis"),
+        name=f"{structure.composition.reduced_formula}-raman analysis",
     )
     fws.append(fw_analysis)
 
-    wfname = "{}:{}".format(structure.composition.reduced_formula, "raman spectra")
+    wfname = f"{structure.composition.reduced_formula}:raman spectra"
     return Workflow(fws, name=wfname)

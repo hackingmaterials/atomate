@@ -3,11 +3,12 @@ import unittest
 
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
-from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
 from pymatgen.io.qchem.inputs import QCInput
+
 from atomate.qchem.powerups import use_fake_qchem
 from atomate.qchem.workflows.base.double_FF_opt import get_wf_double_FF_opt
+from atomate.utils.testing import AtomateTest
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -19,7 +20,7 @@ __date__ = "6/1/18"
 __credits__ = "Brandon Wood, Shyam Dwaraknath"
 
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 

@@ -5,7 +5,6 @@ This module defines the gibbs free energy workflow.
 from uuid import uuid4
 
 from fireworks import Firework, Workflow
-
 from pymatgen.analysis.elasticity.strain import Deformation
 from pymatgen.io.vasp.sets import MPStaticSet
 
@@ -70,7 +69,7 @@ def get_wf_gibbs_free_energy(
         Workflow
     """
 
-    tag = tag or "gibbs group: >>{}<<".format(str(uuid4()))
+    tag = tag or f"gibbs group: >>{uuid4()}<<"
 
     deformations = [Deformation(defo_mat) for defo_mat in deformations]
 
@@ -126,8 +125,6 @@ def get_wf_gibbs_free_energy(
 
     wf_gibbs.append_wf(Workflow.from_Firework(fw_analysis), wf_gibbs.leaf_fw_ids)
 
-    wf_gibbs.name = "{}:{}".format(
-        structure.composition.reduced_formula, "gibbs free energy"
-    )
+    wf_gibbs.name = f"{structure.composition.reduced_formula}:gibbs free energy"
 
     return wf_gibbs

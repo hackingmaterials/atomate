@@ -1,20 +1,21 @@
 import os
-import unittest
 import shutil
+import unittest
 
-from atomate.qchem.firetasks.write_inputs import (
-    WriteInputFromIOSet,
-    WriteInput,
-    WriteCustomInput,
-)
-from atomate.utils.testing import AtomateTest
 from pymatgen.core import Molecule
 from pymatgen.io.qchem.inputs import QCInput
+
+from atomate.qchem.firetasks.write_inputs import (
+    WriteCustomInput,
+    WriteInput,
+    WriteInputFromIOSet,
+)
+from atomate.utils.testing import AtomateTest
 
 __author__ = "Brandon Wood"
 __email__ = "b.wood@berkeley.edu"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestWriteInputQChem(AtomateTest):
@@ -104,12 +105,14 @@ class TestWriteInputQChem(AtomateTest):
         rem = {
             "job_type": "opt",
             "basis": "def2-tzvppd",
-            "max_scf_cycles": 200,
+            "max_scf_cycles": 100,
             "method": "wB97xd",
             "geom_opt_max_cycles": 200,
             "gen_scfman": True,
             "scf_algorithm": "diis",
             "xc_grid": 3,
+            "thresh": 14,
+            "s2thresh": 16,
             "sym_ignore": True,
             "symmetry": False,
             "resp_charges": True,
@@ -126,12 +129,14 @@ class TestWriteInputQChem(AtomateTest):
         rem = {
             "job_type": "opt",
             "basis": "def2-tzvppd",
-            "max_scf_cycles": 200,
+            "max_scf_cycles": 100,
             "method": "wB97xd",
             "geom_opt_max_cycles": 200,
             "gen_scfman": True,
             "scf_algorithm": "diis",
             "xc_grid": 3,
+            "thresh": 14,
+            "s2thresh": 16,
             "sym_ignore": True,
             "symmetry": False,
             "resp_charges": True,

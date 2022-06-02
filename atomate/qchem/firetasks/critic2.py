@@ -1,12 +1,10 @@
 # This module defines a Firetask that runs Critic2 to analyze a Q-Chem electron density.
 
 
-from pymatgen.command_line.critic2_caller import Critic2Caller
-from monty.serialization import loadfn, dumpfn
-
-
+from fireworks import FiretaskBase, explicit_serialize
+from monty.serialization import dumpfn, loadfn
 from monty.shutil import compress_file, decompress_file
-from fireworks import explicit_serialize, FiretaskBase
+from pymatgen.command_line.critic2_caller import Critic2Caller
 
 from atomate.utils.utils import get_logger
 
@@ -43,7 +41,7 @@ class RunCritic2(FiretaskBase):
             molecule = fw_spec.get("prev_calc_molecule")
         else:
             molecule = self.get("molecule")
-        if molecule == None:
+        if molecule is None:
             raise ValueError(
                 "No molecule passed and no prev_calc_molecule found in spec! Exiting..."
             )
@@ -90,7 +88,7 @@ class ProcessCritic2(FiretaskBase):
             molecule = fw_spec.get("prev_calc_molecule")
         else:
             molecule = self.get("molecule")
-        if molecule == None:
+        if molecule is None:
             raise ValueError(
                 "No molecule passed and no prev_calc_molecule found in spec! Exiting..."
             )
@@ -116,7 +114,7 @@ class ProcessCritic2(FiretaskBase):
                 coords.append((val + centering_vector[jj]) * bohr_to_ang)
             if str(molecule[ii].specie) != specie:
                 raise RuntimeError("Atom ordering different!")
-            if molecule[ii].distance_from_point(coords) > 1 * 10 ** -5:
+            if molecule[ii].distance_from_point(coords) > 1 * 10**-5:
                 raise RuntimeError("Atom position " + str(ii) + " inconsistent!")
 
         if (

@@ -2,12 +2,10 @@ import os
 import unittest
 
 import numpy as np
-
-from pymatgen.core import Structure
-from pymatgen.io.feff.inputs import Tags
-
 from fireworks.core.fworker import FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from pymatgen.core import Structure
+from pymatgen.io.feff.inputs import Tags
 
 from atomate.feff.workflows.core import get_wf_xas
 from atomate.utils.testing import AtomateTest
@@ -15,7 +13,7 @@ from atomate.utils.testing import AtomateTest
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 
 DEBUG_MODE = (

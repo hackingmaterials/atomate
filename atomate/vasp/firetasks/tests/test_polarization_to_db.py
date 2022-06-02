@@ -1,15 +1,13 @@
 import os
 import unittest
 
-
 from atomate.utils.testing import AtomateTest
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDb
-
 
 __author__ = "Tess Smidt"
 __email__ = "blondegeek@gmail.com"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 ref_dir = os.path.join(module_dir, "..", "..", "test_files")
 
@@ -25,8 +23,9 @@ VASP_CMD = (
 class TestFerroelectricWorkflow(AtomateTest):
     def test_polarizationtodb(self):
 
-        import bson
         import gzip
+
+        import bson
 
         reference_dir = os.path.abspath(os.path.join(ref_dir, "ferroelectric_wf"))
 
@@ -35,9 +34,9 @@ class TestFerroelectricWorkflow(AtomateTest):
 
         coll = bson.decode_all(coll_raw)
 
-        db = self.get_task_collection()
+        task_coll = self.get_task_collection()
         for c in coll:
-            db.insert(c)
+            task_coll.insert_one(c)
 
         new_fw_spec = {
             "_fw_env": {"db_file": os.path.join(db_dir, "db.json")},

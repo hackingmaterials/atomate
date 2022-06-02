@@ -131,7 +131,7 @@ class FileClient:
         else:
             command = f". ./.bashrc; readlink -f {path}"
             stdin, stdout, stderr = self.ssh.exec_command(command)
-            full_path = [l.split("\n")[0] for l in stdout]
+            full_path = [line.split("\n")[0] for line in stdout]
             return full_path[0]
 
     def glob(self, path):
@@ -146,4 +146,4 @@ class FileClient:
         else:
             command = f". ./.bashrc; for i in $(ls {path}); do readlink -f $i; done"
             stdin, stdout, stderr = self.ssh.exec_command(command)
-            return [l.split("\n")[0] for l in stdout]
+            return [line.split("\n")[0] for line in stdout]

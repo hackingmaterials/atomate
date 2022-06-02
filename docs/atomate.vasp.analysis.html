@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>atomate.vasp.analysis package &#8212; atomate 1.0.1 documentation</title>
+    <title>atomate.vasp.analysis package &#8212; atomate 1.0.3 documentation</title>
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -28,7 +28,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.3 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.vasp.analysis package</a></li> 
       </ul>
     </div>  
@@ -42,6 +42,78 @@
 <h1>atomate.vasp.analysis package<a class="headerlink" href="#atomate-vasp-analysis-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-atomate.vasp.analysis.linear_response">
+<span id="atomate-vasp-analysis-linear-response-module"></span><h2>atomate.vasp.analysis.linear_response module<a class="headerlink" href="#module-atomate.vasp.analysis.linear_response" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="atomate.vasp.analysis.linear_response.chi_inverse">
+<code class="sig-prename descclassname">atomate.vasp.analysis.linear_response.</code><code class="sig-name descname">chi_inverse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">chi</span></em>, <em class="sig-param"><span class="n">chi_err</span></em>, <em class="sig-param"><span class="n">method</span><span class="o">=</span><span class="default_value">'full'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.linear_response.chi_inverse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to compute inverse of response matrix and associated
+element-wise uncertainty for point-wise, atom-wise,
+and full matrix inversion</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.vasp.analysis.linear_response.compute_u_pointwise">
+<code class="sig-prename descclassname">atomate.vasp.analysis.linear_response.</code><code class="sig-name descname">compute_u_pointwise</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">site_index</span></em>, <em class="sig-param"><span class="n">f_matrix</span></em>, <em class="sig-param"><span class="n">f_matrix_err</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.linear_response.compute_u_pointwise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to compute Hubbard U value using point-wise (diagonal) inversion,
+in addition to the associated uncertainty value
+- based on the study by Linscott et. al.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.vasp.analysis.linear_response.compute_uj_scaled_two_by_two">
+<code class="sig-prename descclassname">atomate.vasp.analysis.linear_response.</code><code class="sig-name descname">compute_uj_scaled_two_by_two</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">site_index</span></em>, <em class="sig-param"><span class="n">f_matrix</span></em>, <em class="sig-param"><span class="n">f_matrix_err</span></em>, <em class="sig-param"><span class="n">chi_matrix_scf</span></em>, <em class="sig-param"><span class="n">chi_scf_err</span></em>, <em class="sig-param"><span class="n">chi_matrix_nscf</span></em>, <em class="sig-param"><span class="n">chi_nscf_err</span></em>, <em class="sig-param"><span class="n">chi_scf_inv_jacobs</span></em>, <em class="sig-param"><span class="n">chi_nscf_inv_jacobs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.linear_response.compute_uj_scaled_two_by_two" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to compute Hubbard U and Hund J values using scaled 2x2 formula,
+in addition to the associated uncertainty values
+- based on the study by Linscott et. al.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.vasp.analysis.linear_response.compute_uj_simple_two_by_two">
+<code class="sig-prename descclassname">atomate.vasp.analysis.linear_response.</code><code class="sig-name descname">compute_uj_simple_two_by_two</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">site_index</span></em>, <em class="sig-param"><span class="n">f_matrix</span></em>, <em class="sig-param"><span class="n">f_matrix_err</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.linear_response.compute_uj_simple_two_by_two" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to compute Hubbard U and Hund J values using simple 2x2 formula,
+in addition to the associated uncertainty values
+- based on the study by Linscott et. al.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.vasp.analysis.linear_response.inverse_matrix_uncertainty">
+<code class="sig-prename descclassname">atomate.vasp.analysis.linear_response.</code><code class="sig-name descname">inverse_matrix_uncertainty</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">matrix</span></em>, <em class="sig-param"><span class="n">matrix_covar</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.linear_response.inverse_matrix_uncertainty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to compute the element-wise error propagation in matrix inversion</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.vasp.analysis.linear_response.obtain_response_matrices">
+<code class="sig-prename descclassname">atomate.vasp.analysis.linear_response.</code><code class="sig-name descname">obtain_response_matrices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_response</span></em>, <em class="sig-param"><span class="n">spin_polarized</span></em>, <em class="sig-param"><span class="n">response_dict</span></em>, <em class="sig-param"><span class="n">keys</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.linear_response.obtain_response_matrices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to compute self-consistent (SCF) and non-self-consistent (NSCF)
+linear response “chi” matrices; In addition to using linear regression
+to compute slopes about zero potential, the uncertainty associated
+with these values are also stored for subsequent error quantification.
+Returns: chi_matrix_nscf, chi_matrix_scf, chi_nscf_err, chi_scf_err</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.vasp.analysis.linear_response.procure_response_dict">
+<code class="sig-prename descclassname">atomate.vasp.analysis.linear_response.</code><code class="sig-name descname">procure_response_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">struct_final</span></em>, <em class="sig-param"><span class="n">num_perturb_sites</span></em>, <em class="sig-param"><span class="n">incar_dict</span></em>, <em class="sig-param"><span class="n">outcar_dict</span></em>, <em class="sig-param"><span class="n">inv_block_dict</span></em>, <em class="sig-param"><span class="n">response_dict</span></em>, <em class="sig-param"><span class="n">perturb_dict</span></em>, <em class="sig-param"><span class="n">rkey</span></em>, <em class="sig-param"><span class="n">ldaul_vals</span></em>, <em class="sig-param"><span class="n">analyzer_gs</span></em>, <em class="sig-param"><span class="n">calcs_skipped</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.linear_response.procure_response_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to gather response data, in preparation for linear regression.
+This data is organized into <cite>response_dict</cite>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.vasp.analysis.linear_response.response_fit">
+<code class="sig-prename descclassname">atomate.vasp.analysis.linear_response.</code><code class="sig-name descname">response_fit</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.linear_response.response_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for fitting to response data. Returns: slope and associated error</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="atomate.vasp.analysis.linear_response.response_fit_stepped">
+<code class="sig-prename descclassname">atomate.vasp.analysis.linear_response.</code><code class="sig-name descname">response_fit_stepped</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em>, <em class="sig-param"><span class="n">tol</span><span class="o">=</span><span class="default_value">1e-06</span></em><span class="sig-paren">)</span><a class="headerlink" href="#atomate.vasp.analysis.linear_response.response_fit_stepped" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for fitting to response data
+- includes the “slope ~ zero” case for stepped data due to low precision
+Returns: slope and associated error</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-atomate.vasp.analysis.phonopy">
 <span id="atomate-vasp-analysis-phonopy-module"></span><h2>atomate.vasp.analysis.phonopy module<a class="headerlink" href="#module-atomate.vasp.analysis.phonopy" title="Permalink to this headline">¶</a></h2>
@@ -134,6 +206,7 @@ eos (str): equation of state used for fitting the energies and the volumes.</p>
   <ul>
 <li><a class="reference internal" href="#">atomate.vasp.analysis package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-atomate.vasp.analysis.linear_response">atomate.vasp.analysis.linear_response module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.analysis.phonopy">atomate.vasp.analysis.phonopy module</a></li>
 <li><a class="reference internal" href="#module-atomate.vasp.analysis">Module contents</a></li>
 </ul>
@@ -170,7 +243,7 @@ eos (str): equation of state used for fitting the energies and the volumes.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">atomate 1.0.3 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">atomate.vasp.analysis package</a></li> 
       </ul>
     </div>

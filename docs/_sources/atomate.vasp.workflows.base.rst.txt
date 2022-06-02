@@ -84,6 +84,14 @@ atomate.vasp.workflows.base.gibbs module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.workflows.base.hubbard\_hund\_linresp module
+---------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.base.hubbard_hund_linresp
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.workflows.base.lobster module
 ------------------------------------------
 

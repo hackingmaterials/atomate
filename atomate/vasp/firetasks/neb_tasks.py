@@ -1,17 +1,16 @@
-import os
 import glob
+import os
 import shutil
 
-from pymatgen.core import Structure
-from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
+from fireworks.core.firework import FiretaskBase, FWAction
+from fireworks.utilities.fw_utilities import explicit_serialize
 from pymatgen.analysis.diffusion.neb.io import (
     MVLCINEBSet,
     get_endpoint_dist,
     get_endpoints_from_index,
 )
-
-from fireworks.core.firework import FiretaskBase, FWAction
-from fireworks.utilities.fw_utilities import explicit_serialize
+from pymatgen.core import Structure
+from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
 
 from atomate.utils.utils import get_logger
 
@@ -81,7 +80,7 @@ class TransferNEBTask(FiretaskBase):
 
             # Update the two ending "images".
             images.insert(0, Structure.from_file("00/POSCAR"))
-            images.append(Structure.from_file("{:02}/POSCAR".format(nimages - 1)))
+            images.append(Structure.from_file(f"{nimages - 1:02}/POSCAR"))
             images = [s.as_dict() for s in images]
             neb = fw_spec.get("neb")
             neb.append(images)
@@ -114,7 +113,7 @@ class TransferNEBTask(FiretaskBase):
             else:
                 # Calculate number of images if "IMAGES" tag is not provided.
                 index = int(label[-1])
-                ep_1_dict = fw_spec.get("ep{}".format(1 - index))  # Another endpoint
+                ep_1_dict = fw_spec.get(f"ep{1 - index}")  # Another endpoint
                 try:
                     ep_1 = Structure.from_dict(ep_1_dict)
                 except Exception:
@@ -196,8 +195,7 @@ class RunNEBVaspFake(FiretaskBase):
         # Check sub-folders consistence.
         if len(user_sdir) != len(ref_sdir_input):
             raise ValueError(
-                "Sub-folder numbers are inconsistent! "
-                "Paths are:\n{}\n{}".format(self.user_dir, self.ref_dir_input)
+                f"Sub-folder numbers are inconsistent! Paths are:\n{self.user_dir}\n{self.ref_dir_input}"
             )
         self.user_sdir = user_sdir
         self.ref_sdir_input = ref_sdir_input
@@ -224,9 +222,7 @@ class RunNEBVaspFake(FiretaskBase):
         ):
             raise ValueError(
                 "KPOINT files are inconsistent! "
-                "Paths are:\n{}\n{} with kpts = {} {}".format(
-                    self.user_dir, self.ref_dir_input, user_kpoints, ref_kpoints
-                )
+                f"Paths are:\n{self.user_dir}\n{self.ref_dir_input} with kpts = {user_kpoints} {ref_kpoints}"
             )
 
         # Check POTCAR
@@ -235,7 +231,7 @@ class RunNEBVaspFake(FiretaskBase):
         if user_potcar.symbols != ref_potcar.symbols:
             raise ValueError(
                 "POTCAR files are inconsistent! "
-                "Paths are:\n{}\n{}".format(self.user_dir, self.ref_dir_input)
+                f"Paths are:\n{self.user_dir}\n{self.ref_dir_input}"
             )
 
         # Check POSCARs

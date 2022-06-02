@@ -5,38 +5,35 @@ import zlib
 
 import boto3
 import gridfs
-from monty.json import MontyDecoder
-from moto import mock_s3
-from pymatgen.electronic_structure.bandstructure import BandStructure
-from pymatgen.electronic_structure.dos import CompleteDos
-from pymongo import DESCENDING
-
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from monty.json import MontyDecoder
+from moto import mock_s3
+from pymatgen.core import Structure
+from pymatgen.electronic_structure.bandstructure import BandStructure
+from pymatgen.electronic_structure.dos import CompleteDos
+from pymatgen.io.vasp import Chgcar, Incar
+from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
+from pymatgen.util.testing import PymatgenTest
+from pymongo import DESCENDING
 
+from atomate.common.powerups import add_namefile
+from atomate.utils.testing import AtomateTest
+from atomate.vasp.database import VaspCalcDb
+from atomate.vasp.firetasks.parse_outputs import VaspDrone
 from atomate.vasp.powerups import (
-    use_custodian,
-    add_namefile,
-    use_fake_vasp,
-    add_trackers,
     add_bandgap_check,
+    add_trackers,
+    use_custodian,
+    use_fake_vasp,
     use_potcar_spec,
 )
 from atomate.vasp.workflows.base.core import get_wf
-from atomate.utils.testing import AtomateTest
-from atomate.vasp.firetasks.parse_outputs import VaspDrone
-from atomate.vasp.database import VaspCalcDb
-
-
-from pymatgen.io.vasp import Incar, Chgcar
-from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet
-from pymatgen.util.testing import PymatgenTest
-from pymatgen.core import Structure
 
 __author__ = "Anubhav Jain, Kiran Mathew"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "..", "..", "test_files")
 
@@ -426,7 +423,7 @@ class TestVaspWorkflows(AtomateTest):
             _, _ = mmdb.insert_maggma_store(doc, "store2", oid="2")
             assert set(mmdb._maggma_stores.keys()) == {"store1", "store2"}
             with mmdb._maggma_stores["store1"] as store:
-                self.assertTrue(store.compress == True)
+                self.assertTrue(store.compress)
                 self.assertTrue(
                     store.query_one({"fs_id": "1"})
                     == {
@@ -437,7 +434,7 @@ class TestVaspWorkflows(AtomateTest):
                     }
                 )
             with mmdb._maggma_stores["store2"] as store:
-                self.assertTrue(store.compress == True)
+                self.assertTrue(store.compress)
                 self.assertTrue(
                     store.query_one({"task_id": "mp-1"})
                     == {

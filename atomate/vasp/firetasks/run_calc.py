@@ -1,46 +1,41 @@
-from monty.os.path import zpath
-from monty.serialization import loadfn
-
-from atomate.vasp.config import HALF_KPOINTS_FIRST_RELAX
-
 """
 This module defines tasks that support running vasp in various ways.
 """
 
-import shutil
-import shlex
 import os
+import shlex
+import shutil
 import subprocess
-
-from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
-from pymatgen.io.vasp.sets import get_vasprun_outcar
-from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
 
 from custodian import Custodian
 from custodian.vasp.handlers import (
-    VaspErrorHandler,
     AliasingErrorHandler,
-    MeshSymmetryErrorHandler,
-    UnconvergedErrorHandler,
-    MaxForceErrorHandler,
-    PotimErrorHandler,
+    DriftErrorHandler,
     FrozenJobErrorHandler,
+    IncorrectSmearingHandler,
+    LargeSigmaHandler,
+    MaxForceErrorHandler,
+    MeshSymmetryErrorHandler,
     NonConvergingErrorHandler,
     PositiveEnergyErrorHandler,
-    WalltimeHandler,
-    StdErrHandler,
-    DriftErrorHandler,
-    LargeSigmaHandler,
-    IncorrectSmearingHandler,
+    PotimErrorHandler,
     ScanMetalHandler,
+    StdErrHandler,
+    UnconvergedErrorHandler,
+    VaspErrorHandler,
+    WalltimeHandler,
 )
 from custodian.vasp.jobs import VaspJob, VaspNEBJob
-from custodian.vasp.validators import VasprunXMLValidator, VaspFilesValidator
-
-from fireworks import explicit_serialize, FiretaskBase, FWAction
+from custodian.vasp.validators import VaspFilesValidator, VasprunXMLValidator
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from monty.os.path import zpath
+from monty.serialization import loadfn
+from pymatgen.electronic_structure.boltztrap import BoltztrapRunner
+from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
+from pymatgen.io.vasp.sets import get_vasprun_outcar
 
 from atomate.utils.utils import env_chk, get_logger
-from atomate.vasp.config import CUSTODIAN_MAX_ERRORS
+from atomate.vasp.config import CUSTODIAN_MAX_ERRORS, HALF_KPOINTS_FIRST_RELAX
 
 __author__ = "Anubhav Jain <ajain@lbl.gov>"
 __credits__ = "Shyue Ping Ong <ong.sp>"
@@ -83,7 +78,7 @@ class RunVaspCustodian(FiretaskBase):
     Optional params:
         job_type: (str) - choose from "normal" (default), "double_relaxation_run" (two consecutive
             jobs), "full_opt_run" (multiple optimizations), and "neb"
-        handler_group: (str or [ErrorHandler]) - group of handlers to use. See handler_groups dict in the code for
+        handler_group: (str | list[ErrorHandler]) - group of handlers to use. See handler_groups dict in the code or
             the groups and complete list of handlers in each group. Alternatively, you can
             specify a list of ErrorHandler objects.
         max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for
@@ -281,9 +276,8 @@ class RunVaspCustodian(FiretaskBase):
             handlers.append(WalltimeHandler(wall_time=self["wall_time"]))
 
         if job_type == "neb":
-            validators = (
-                []
-            )  # CINEB vasprun.xml sometimes incomplete, file structure different
+            # CINEB vasprun.xml sometimes incomplete, file structure different
+            validators = []
         else:
             validators = [VasprunXMLValidator(), VaspFilesValidator()]
 
@@ -299,7 +293,13 @@ class RunVaspCustodian(FiretaskBase):
         c.run()
 
         if os.path.exists(zpath("custodian.json")):
-            stored_custodian_data = {"custodian": loadfn(zpath("custodian.json"))}
+            if os.path.exists(zpath("FW_offline.json")):
+                import json
+
+                with open(zpath("custodian.json")) as f:
+                    stored_custodian_data = {"custodian": json.load(f)}
+            else:
+                stored_custodian_data = {"custodian": loadfn(zpath("custodian.json"))}
             return FWAction(stored_data=stored_custodian_data)
 
 
@@ -383,7 +383,9 @@ class RunVaspFake(FiretaskBase):
         self._generate_outputs()
 
     def _verify_inputs(self):
-        user_incar = Incar.from_file(os.path.join(os.getcwd(), "INCAR"))
+        cwd = os.getcwd()
+        user_incar = Incar.from_file(os.path.join(cwd, "INCAR"))
+        input_path = os.path.join(self["ref_dir"], "inputs")
 
         # Carry out some BASIC tests.
 
@@ -402,7 +404,7 @@ class RunVaspFake(FiretaskBase):
 
         # Check KPOINTS
         if self.get("check_kpoints", True):
-            user_kpoints = Kpoints.from_file(os.path.join(os.getcwd(), "KPOINTS"))
+            user_kpoints = Kpoints.from_file(os.path.join(cwd, "KPOINTS"))
             ref_kpoints = Kpoints.from_file(
                 os.path.join(self["ref_dir"], "inputs", "KPOINTS")
             )
@@ -411,17 +413,13 @@ class RunVaspFake(FiretaskBase):
                 or user_kpoints.num_kpts != ref_kpoints.num_kpts
             ):
                 raise ValueError(
-                    "KPOINT files are inconsistent! Paths are:\n{}\n{} with kpoints {} and {}".format(
-                        os.getcwd(),
-                        os.path.join(self["ref_dir"], "inputs"),
-                        user_kpoints,
-                        ref_kpoints,
-                    )
+                    f"KPOINT files are inconsistent! Paths are:\n{cwd}\n{input_path} "
+                    f"with kpoints {user_kpoints} and {ref_kpoints}"
                 )
 
         # Check POSCAR
         if self.get("check_poscar", True):
-            user_poscar = Poscar.from_file(os.path.join(os.getcwd(), "POSCAR"))
+            user_poscar = Poscar.from_file(os.path.join(cwd, "POSCAR"))
             ref_poscar = Poscar.from_file(
                 os.path.join(self["ref_dir"], "inputs", "POSCAR")
             )
@@ -430,22 +428,18 @@ class RunVaspFake(FiretaskBase):
                 or user_poscar.site_symbols != ref_poscar.site_symbols
             ):
                 raise ValueError(
-                    "POSCAR files are inconsistent! Paths are:\n{}\n{}".format(
-                        os.getcwd(), os.path.join(self["ref_dir"], "inputs")
-                    )
+                    f"POSCAR files are inconsistent! Paths are:\n{cwd}\n{input_path}"
                 )
 
         # Check POTCAR
         if self.get("check_potcar", True):
-            user_potcar = Potcar.from_file(os.path.join(os.getcwd(), "POTCAR"))
+            user_potcar = Potcar.from_file(os.path.join(cwd, "POTCAR"))
             ref_potcar = Potcar.from_file(
                 os.path.join(self["ref_dir"], "inputs", "POTCAR")
             )
             if user_potcar.symbols != ref_potcar.symbols:
                 raise ValueError(
-                    "POTCAR files are inconsistent! Paths are:\n{}\n{}".format(
-                        os.getcwd(), os.path.join(self["ref_dir"], "inputs")
-                    )
+                    f"POTCAR files are inconsistent! Paths are:\n{cwd}\n{input_path}"
                 )
 
         logger.info("RunVaspFake: verified inputs successfully")

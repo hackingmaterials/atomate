@@ -1,13 +1,14 @@
 import os
 import unittest
 
-from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 from atomate.utils.testing import AtomateTest
+from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
 
 __author__ = "Anubhav Jain"
 __email__ = "ajain@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
+test_files = os.path.join(module_dir, "..", "..", "test_files")
 
 DEBUG_MODE = False
 
@@ -16,31 +17,16 @@ class TestCopyVaspOutputs(AtomateTest):
     @classmethod
     def setUpClass(cls):
         cls.plain_outdir = os.path.join(
-            module_dir,
-            "..",
-            "..",
-            "test_files",
-            "Si_structure_optimization_plain",
-            "outputs",
+            test_files, "Si_structure_optimization_plain", "outputs"
         )
         cls.gzip_outdir = os.path.join(
-            module_dir, "..", "..", "test_files", "Si_structure_optimization", "outputs"
+            test_files, "Si_structure_optimization", "outputs"
         )
         cls.relax2_outdir = os.path.join(
-            module_dir,
-            "..",
-            "..",
-            "test_files",
-            "Si_structure_optimization_relax2",
-            "outputs",
+            test_files, "Si_structure_optimization_relax2", "outputs"
         )
         cls.nokpts_outdir = os.path.join(
-            module_dir,
-            "..",
-            "..",
-            "test_files",
-            "Si_structure_optimization",
-            "outputs_no_kpts",
+            test_files, "Si_structure_optimization", "outputs_no_kpts"
         )
 
     def test_unittestsetup(self):

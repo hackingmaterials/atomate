@@ -1,19 +1,18 @@
 import os
 import unittest
 
+from fireworks import Firework, Workflow
+from fireworks.core.rocket_launcher import rapidfire
 from pymatgen.core.structure import Structure
 
-from fireworks.core.firework import Firework, Workflow
-from fireworks.core.rocket_launcher import rapidfire
-
 from atomate.common.firetasks.glue_tasks import PassCalcLocs, get_calc_loc
-from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, GetInterpolatedPOSCAR
 from atomate.utils.testing import AtomateTest
+from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs, GetInterpolatedPOSCAR
 
 __author__ = "Tess Smidt"
 __email__ = "blondegeek@gmail.com"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 DEBUG_MODE = False
 

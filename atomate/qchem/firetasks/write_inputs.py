@@ -2,11 +2,12 @@
 
 import os
 
-from atomate.utils.utils import load_class
 from fireworks import FiretaskBase, explicit_serialize
-from pymatgen.io.qchem.inputs import QCInput
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
+from pymatgen.io.qchem.inputs import QCInput
+
+from atomate.utils.utils import load_class
 
 __author__ = "Brandon Wood"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -32,24 +33,21 @@ class WriteInputFromIOSet(FiretaskBase):
     optional_params:
         molecule (Molecule): Molecule that will be subjected to an electronic structure calculation
         qchem_input_params (dict): When using a string name for QChem input set, use this as a dict
-                                   to specify kwargs for instantiating the input set parameters. This
-                                   setting is ignored if you provide the full object representation of
-                                   a QChemDictSet. Basic uses would be to modify the default inputs of
-                                   the set, such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
-                                   or max_scf_cycles. See pymatgen/io/qchem/sets.py for default values
-                                   of all input parameters. For instance, if a user wanted to use a more
-                                   advanced DFT functional, include a pcm with a dielectric of 30, and
-                                   use a larger basis, the user would set qchem_input_params = {"dft_rung":
-                                   5, "pcm_dielectric": 30, "basis_set": "6-311++g**"}. However, more
-                                   advanced customization of the input is also possible through the
-                                   overwrite_inputs key which allows the user to directly modify the rem,
-                                   pcm, smd, and solvent dictionaries that QChemDictSet passes to inputs.py
-                                   to print an actual input file. For instance, if a user wanted to set the
-                                   sym_ignore flag in the rem section of the input file to true, then they
-                                   would set qchem_input_params = {"overwrite_inputs": "rem": {"sym_ignore":
-                                   "true"}}. Of course, overwrite_inputs could be used in conjuction with
-                                   more typical modifications, as seen in the test_double_FF_opt workflow
-                                   test.
+            to specify kwargs for instantiating the input set parameters. This setting is
+            ignored if you provide the full object representation of a QChemDictSet. Basic uses
+            would be to modify the default inputs of the set, such as dft_rung, basis_set,
+            pcm_dielectric, scf_algorithm, or max_scf_cycles. See pymatgen/io/qchem/sets.py for
+            default values of all input parameters. For instance, if a user wanted to use a
+            more advanced DFT functional, include a pcm with a dielectric of 30, and use a
+            larger basis, the user would set qchem_input_params = {"dft_rung": 5,
+            "pcm_dielectric": 30, "basis_set": "6-311++g**"}. However, more advanced
+            customization of the input is also possible through the overwrite_inputs key which
+            allows the user to directly modify the rem, pcm, smd, and solvent dictionaries that
+            QChemDictSet passes to inputs.py to print an actual input file. For instance, if a
+            user wanted to set the sym_ignore flag in the rem section of the input file to
+            true, then they would set qchem_input_params = {"overwrite_inputs": "rem":
+            {"sym_ignore": "true"}}. Of course, overwrite_inputs could be used in conjunction
+            with more typical modifications, as seen in the test_double_FF_opt workflow test.
         input_file (str): Name of the QChem input file. Defaults to mol.qin
         write_to_dir (str): Path of the directory where the QChem input file will be written,
         the default is to write to the current working directory
@@ -73,14 +71,9 @@ class WriteInputFromIOSet(FiretaskBase):
             if self.get("molecule"):
                 mol = self.get("molecule")
                 # check if mol and prev_calc_mol are isomorphic
-                mol_graph = MoleculeGraph.with_local_env_strategy(
-                    mol, OpenBabelNN(), reorder=False, extend_structure=False
-                )
+                mol_graph = MoleculeGraph.with_local_env_strategy(mol, OpenBabelNN())
                 prev_mol_graph = MoleculeGraph.with_local_env_strategy(
-                    prev_calc_molecule,
-                    OpenBabelNN(),
-                    reorder=False,
-                    extend_structure=False,
+                    prev_calc_mol, OpenBabelNN()
                 )
                 # If they are isomorphic, aka a previous FW has not changed bonding,
                 # then we will use prev_calc_mol. If bonding has changed, we will use mol.
@@ -138,6 +131,7 @@ class WriteCustomInput(FiretaskBase):
         "opt",
         "pcm",
         "solvent",
+        "van_der_waals",
         "input_file",
         "write_to_dir",
     ]
@@ -153,14 +147,9 @@ class WriteCustomInput(FiretaskBase):
             if self.get("molecule"):
                 mol = self.get("molecule")
                 # check if mol and prev_calc_mol are isomorphic
-                mol_graph = MoleculeGraph.with_local_env_strategy(
-                    mol, OpenBabelNN(), reorder=False, extend_structure=False
-                )
+                mol_graph = MoleculeGraph.with_local_env_strategy(mol, OpenBabelNN())
                 prev_mol_graph = MoleculeGraph.with_local_env_strategy(
-                    prev_calc_molecule,
-                    OpenBabelNN(),
-                    reorder=False,
-                    extend_structure=False,
+                    prev_calc_mol, OpenBabelNN()
                 )
                 if mol_graph.isomorphic_to(prev_mol_graph):
                     mol = prev_calc_mol
@@ -181,8 +170,18 @@ class WriteCustomInput(FiretaskBase):
         opt = self.get("opt", None)
         pcm = self.get("pcm", None)
         solvent = self.get("solvent", None)
+        vdw_mode = self.get("vdw_mode", "atomic")
+        van_der_waals = self.get("van_der_waals", None)
 
-        qcin = QCInput(molecule=mol, rem=self["rem"], opt=opt, pcm=pcm, solvent=solvent)
+        qcin = QCInput(
+            molecule=mol,
+            rem=self["rem"],
+            opt=opt,
+            pcm=pcm,
+            solvent=solvent,
+            van_der_waals=van_der_waals,
+            vdw_mode=vdw_mode,
+        )
         qcin.write_file(input_file)
 
 

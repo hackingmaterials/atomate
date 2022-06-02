@@ -626,4 +626,3 @@ Q: I honestly tried everything I can to solve my problem. I still need help!
 ----------------------------------------------------------------------------
 
 :A: There is a support forum for atomate: https://discuss.matsci.org/c/atomate
-

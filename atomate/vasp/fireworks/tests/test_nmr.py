@@ -4,14 +4,13 @@ import unittest
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.structure import Structure
 
-from atomate.vasp.fireworks.nmr import *
-
-from atomate.vasp.firetasks.write_inputs import WriteVaspNMRFromPrev, WriteVaspFromIOSet
+from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet, WriteVaspNMRFromPrev
+from atomate.vasp.fireworks.nmr import NMRFW
 
 __author__ = "Shyam Dwaraknath"
 __email__ = "shyamd@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "..", "..", "test_files")
 

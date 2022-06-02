@@ -1,34 +1,34 @@
+from fireworks.core.firework import Tracker
+from monty.dev import deprecated
+
 from atomate.common.firetasks.glue_tasks import DeleteFiles
+from atomate.common.powerups import (
+    add_additional_fields_to_taskdocs as common_add_additional_fields_to_taskdocs,
+)
+from atomate.common.powerups import add_namefile
 from atomate.common.powerups import add_priority as common_add_priority
 from atomate.common.powerups import preserve_fworker as common_preserve_fworker
 from atomate.common.powerups import (
     set_execution_options as common_set_execution_options,
 )
-from atomate.common.powerups import add_namefile as common_add_namefile
-from atomate.common.powerups import (
-    add_additional_fields_to_taskdocs as common_add_additional_fields_to_taskdocs,
-)
-from atomate.common.powerups import add_tags as common_add_tags
-from atomate.utils.utils import get_meta_from_structure, get_fws_and_tasks
+from atomate.utils.utils import get_fws_and_tasks, get_meta_from_structure
 from atomate.vasp.config import (
-    ADD_NAMEFILE,
-    SCRATCH_DIR,
     ADD_MODIFY_INCAR,
+    ADD_NAMEFILE,
     GAMMA_VASP_CMD,
+    SCRATCH_DIR,
 )
-from atomate.vasp.firetasks.glue_tasks import CheckStability, CheckBandgap
+from atomate.vasp.firetasks.glue_tasks import CheckBandgap, CheckStability
 from atomate.vasp.firetasks.lobster_tasks import RunLobsterFake
 from atomate.vasp.firetasks.neb_tasks import RunNEBVaspFake
 from atomate.vasp.firetasks.parse_outputs import JsonToDb
 from atomate.vasp.firetasks.run_calc import (
-    RunVaspCustodian,
-    RunVaspFake,
-    RunVaspDirect,
     RunNoVasp,
+    RunVaspCustodian,
+    RunVaspDirect,
+    RunVaspFake,
 )
-from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyPotcar, ModifyKpoints
-from monty.dev import deprecated
-from fireworks.core.firework import Tracker
+from atomate.vasp.firetasks.write_inputs import ModifyIncar, ModifyKpoints, ModifyPotcar
 
 __author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
@@ -83,17 +83,19 @@ def use_custodian(original_wf, fw_name_constraint=None, custodian_params=None):
     Returns:
        Workflow
     """
-    custodian_params = custodian_params if custodian_params else {}
+    custodian_params = custodian_params or {}
     vasp_fws_and_tasks = get_fws_and_tasks(
         original_wf,
         fw_name_constraint=fw_name_constraint,
         task_name_constraint="RunVasp",
     )
     for idx_fw, idx_t in vasp_fws_and_tasks:
-        if "vasp_cmd" not in custodian_params:
-            custodian_params["vasp_cmd"] = original_wf.fws[idx_fw].tasks[idx_t][
-                "vasp_cmd"
-            ]
+        for param in (
+            RunVaspCustodian.optional_params + RunVaspCustodian.required_params
+        ):
+            value = original_wf.fws[idx_fw].tasks[idx_t].get(param, None)
+            if value is not None and param not in custodian_params:
+                custodian_params[param] = value
         original_wf.fws[idx_fw].tasks[idx_t] = RunVaspCustodian(**custodian_params)
     return original_wf
 
@@ -192,11 +194,6 @@ def use_fake_vasp(
                         )
 
     return original_wf
-
-
-@deprecated(replacement=common_add_namefile)
-def add_namefile(original_wf, use_slug=True):
-    return common_add_namefile(original_wf, use_slug=use_slug)
 
 
 def add_trackers(original_wf, tracked_files=None, nlines=25):
@@ -424,7 +421,7 @@ def set_queue_options(
     """
     Modify queue submission parameters of Fireworks in a Workflow.
 
-    This powerup overrides paramters in the qadapter file by setting values in
+    This powerup overrides parameters in the qadapter file by setting values in
     the 'queueadapter' key of a Firework spec. For example, the walltime
     requested from a queue can be modified on a per-workflow basis.
 
@@ -670,11 +667,6 @@ def add_additional_fields_to_taskdocs(
     )
 
 
-@deprecated(replacement=common_add_tags)
-def add_tags(original_wf, tags_list):
-    return common_add_tags(original_wf, tags_list)
-
-
 def add_common_powerups(wf, c=None):
     """
     Apply the common powerups such as add_namefile, use_scratch_dir etc. from
@@ -690,7 +682,7 @@ def add_common_powerups(wf, c=None):
     c = c or {}
 
     if c.get("ADD_NAMEFILE", ADD_NAMEFILE):
-        wf = common_add_namefile(wf)
+        wf = add_namefile(wf)
 
     if c.get("SCRATCH_DIR", SCRATCH_DIR):
         wf = use_scratch_dir(wf, c.get("SCRATCH_DIR", SCRATCH_DIR))
@@ -723,12 +715,14 @@ def use_gamma_vasp(original_wf, gamma_vasp_cmd):
 
 def modify_gzip_vasp(original_wf, gzip_output):
     """
-    For all RunVaspCustodian tasks, modify gzip_output boolean
+    For all RunVaspCustodian tasks, modify gzip_output boolean.
+
     Args:
         original_wf (Workflow)
         gzip_output (bool): Value to set gzip_output to for RunVaspCustodian
+
     Returns:
-       Workflow
+       Workflow: Same workflow as passed in with in-place modified gzip_output.
     """
     idx_list = get_fws_and_tasks(original_wf, task_name_constraint="RunVaspCustodian")
     for idx_fw, idx_t in idx_list:

@@ -1,13 +1,13 @@
-import os
-import monty
-import shutil
 import glob
+import os
+import shutil
 
-from fireworks import explicit_serialize, FiretaskBase, FWAction
-
-from atomate.utils.utils import env_chk, load_class, recursive_get_result
-from atomate.utils.fileio import FileClient
+import monty
+from fireworks import FiretaskBase, FWAction, explicit_serialize
 from monty.shutil import copy_r, gzip_dir
+
+from atomate.utils.fileio import FileClient
+from atomate.utils.utils import env_chk, load_class, recursive_get_result
 
 __author__ = "Anubhav Jain"
 __email__ = "ajain@lbl.gov"
@@ -95,10 +95,17 @@ class CopyFilesFromCalcLoc(FiretaskBase):
         name_append (str): string to append to destination filenames.
         exclude_files (list): list of file names to be excluded. Accepts glob
             patterns.
+        decompress (bool): if True, files are decompressed after copy.
     """
 
     required_params = ["calc_loc"]
-    optional_params = ["filenames", "name_prepend", "name_append", "exclude_files"]
+    optional_params = [
+        "filenames",
+        "name_prepend",
+        "name_append",
+        "exclude_files",
+        "decompress",
+    ]
 
     def run_task(self, fw_spec=None):
         calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])
@@ -142,10 +149,15 @@ class CopyFilesFromCalcLoc(FiretaskBase):
 
         for f in files_to_copy:
             prev_path_full = os.path.join(calc_dir, f)
-            dest_fname = self.get("name_prepend", "") + f + self.get("name_append", "")
+            f, ext = os.path.splitext(f)
+            dest_fname = (
+                self.get("name_prepend", "") + f + self.get("name_append", "") + ext
+            )
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
             fileclient.copy(prev_path_full, dest_path)
+            if self.get("decompress", False):
+                monty.shutil.decompress_file(dest_path)
 
 
 @explicit_serialize
@@ -231,7 +243,7 @@ class CreateFolder(FiretaskBase):
         if self.get("relative_path", True):
             new_dir = os.path.join(os.getcwd(), self["folder_name"])
         else:
-            new_dir = os.path.join(self["folder_name"])
+            new_dir = self["folder_name"]
         if not os.path.exists(new_dir):
             os.makedirs(new_dir)
         if self.get("change_dir", False):
@@ -344,8 +356,8 @@ class CopyFiles(FiretaskBase):
                 (e.g., rename 'INCAR' to 'INCAR.precondition')
             continue_on_missing(bool): Whether to continue copying when a file
                 in filenames is missing. Defaults to False.
-            from_path_dict (dict): dict specification of the path. If specified must contain atleast
-                the key "path" that specifies the path to the from_dir.
+            from_path_dict (dict): dict specification of the path. If specified must contain at
+                least the key "path" that specifies the path to the from_dir.
         """
         from_path_dict = from_path_dict or {}
         from_dir = env_chk(from_dir, fw_spec, strict=False) or from_path_dict.get(
@@ -377,7 +389,7 @@ class CopyFiles(FiretaskBase):
             try:
                 self.fileclient.copy(prev_path_full, dest_path)
             except FileNotFoundError as exc:
-                if continue_on_missing:
+                if self.continue_on_missing:
                     continue
                 else:
                     raise exc

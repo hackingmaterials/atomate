@@ -3,12 +3,11 @@ This module defines firetasks for writing LAMMPS input files (data file and the 
 parameters file)
 """
 
-from pymatgen.core import Molecule
-
-# from pymatgen.io.lammps.data import LammpsData
-# from pymatgen.io.lammps.sets import LammpsInputSet
-
 from fireworks import FiretaskBase, explicit_serialize
+from pymatgen.core import Molecule
+from pymatgen.io.lammps.data import LammpsData
+
+# from pymatgen.io.lammps.sets import LammpsInputSet
 
 __author__ = "Kiran Mathew, Brandon Wood"
 __email__ = "kmathew@lbl.gov, b.wood@berkeley.edu"

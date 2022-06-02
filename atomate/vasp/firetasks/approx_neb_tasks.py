@@ -1,14 +1,15 @@
-from pymatgen.core import Element, Structure
-from pymatgen.analysis.path_finder import NEBPathfinder, ChgcarPotential
-from fireworks import FiretaskBase, FWAction, explicit_serialize
-from atomate.utils.utils import env_chk
-from atomate.utils.utils import get_logger
-from atomate.vasp.database import VaspCalcDb
-from pymatgen.io.vasp.sets import MPRelaxSet
-from pydash import get
-from monty.json import MontyEncoder
-from json import loads
 from datetime import datetime
+from json import loads
+
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from monty.json import MontyEncoder
+from pydash import get
+from pymatgen.analysis.path_finder import ChgcarPotential, NEBPathfinder
+from pymatgen.core import Element, Structure
+from pymatgen.io.vasp.sets import MPRelaxSet
+
+from atomate.utils.utils import env_chk, get_logger
+from atomate.vasp.database import VaspCalcDb
 
 __author__ = "Ann Rutt"
 __email__ = "acrutt@lbl.gov"
@@ -55,7 +56,8 @@ class HostToDb(FiretaskBase):
         approx_neb_db = mmdb.db["approx_neb"]
         if approx_neb_db.count_documents({"wf_uuid": wf_uuid}) != 0:
             raise ValueError(
-                "Provided approx_neb_wf_uuid is not unique. A unique workflow id is required for querying in the approx_neb workflow."
+                "Provided approx_neb_wf_uuid is not unique. A unique workflow id is required "
+                "for querying in the approx_neb workflow."
             )
 
         # update host task doc (from host_task_id) with unique wf_uuid
@@ -65,10 +67,8 @@ class HostToDb(FiretaskBase):
             {"task_id": t_id, "approx_neb.calc_type": "host"},
             {"$push": {"approx_neb.wf_uuids": wf_uuid}},
         )
-        if host_tasks_doc == None:
-            raise ValueError(
-                "Error updating approx neb host with task_id: {}".format(t_id)
-            )
+        if host_tasks_doc is None:
+            raise ValueError(f"Error updating approx neb host with task_id: {t_id}")
 
         # Initialize and store select host task doc fields in approx_neb_doc
         # (to be stored in the approx_neb collection)
@@ -339,12 +339,12 @@ class WriteVaspInput(FiretaskBase):
             approx_neb_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
             structure = Structure.from_dict(get(approx_neb_doc, structure_path))
 
-        except:
+        except Exception:
             raise ValueError("Error getting structure from approx_neb collection")
 
         # get vasp input set and write files
         override_default_vasp_params = self.get("override_default_vasp_params") or {}
-        if self["vasp_input_set"] == None or override_default_vasp_params != {}:
+        if self["vasp_input_set"] is None or override_default_vasp_params != {}:
             vis = MPRelaxSet(
                 structure, **override_default_vasp_params, sort_structure=False
             )
@@ -429,9 +429,9 @@ class EndPointToDb(FiretaskBase):
                 },
             },
         )
-        if task_doc == None:
+        if task_doc is None:
             raise ValueError(
-                "Error updating approx neb end point with task_id: {}".format(t_id)
+                f"Error updating approx neb end point with task_id: {t_id}"
             )
 
         # Store info in approx_neb collection for record keeping
@@ -502,10 +502,8 @@ class PathfinderToDb(FiretaskBase):
                 c = [int(combo[0]), int(combo[1])]
             else:
                 raise ValueError("NEBPathfinder requires exactly two end points")
-        except:
-            raise ValueError(
-                "{} end_points_combo input is incorrect".format(str(end_points_combo))
-            )
+        except Exception:
+            raise ValueError(f"{end_points_combo} end_points_combo input is incorrect")
 
         # get the database connection
         db_file = env_chk(self["db_file"], fw_spec)
@@ -675,7 +673,7 @@ class AddSelectiveDynamics(FiretaskBase):
     def get_images_list(self, structure_docs, scheme, fixed_index, fixed_specie):
         """
         Returns a list of structure objects with selective
-        dynamics applied according ot the specified scheme.
+        dynamics applied according to the specified scheme.
 
         Args:
             structure_docs (list): list of structure
@@ -684,7 +682,7 @@ class AddSelectiveDynamics(FiretaskBase):
         Returns:
              list of structure objects
         """
-        if isinstance(structure_docs, (list)) == False:
+        if isinstance(structure_docs, (list)) is False:
             raise TypeError("list input required for structure_docs")
 
         if scheme == "fix_two_atom":
@@ -735,9 +733,7 @@ class AddSelectiveDynamics(FiretaskBase):
 
         if structure[fixed_index].specie != Element(fixed_specie):
             raise ValueError(
-                "The chosen fixed atom at index {} is not a {} atom".format(
-                    fixed_index, fixed_specie
-                )
+                f"The chosen fixed atom at index {fixed_index} is not a {fixed_specie} atom"
             )
 
         # removes site properties to avoid error
@@ -818,10 +814,8 @@ class ImageToDb(FiretaskBase):
                 },
             },
         )
-        if task_doc == None:
-            raise ValueError(
-                "Error updating approx neb image with task_id: {}".format(t_id)
-            )
+        if task_doc is None:
+            raise ValueError(f"Error updating approx neb image with task_id: {t_id}")
 
         # Store info in approx_neb collection for record keeping
         images_key = task_doc["approx_neb"]["images_key"]

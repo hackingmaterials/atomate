@@ -1,13 +1,15 @@
 # This module defines a task that returns all fragments of a molecule
 
 import copy
-from pymatgen.core.structure import Molecule
+
+from fireworks import FiretaskBase, FWAction, explicit_serialize
+from pymatgen.analysis.fragmenter import Fragmenter
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
-from pymatgen.analysis.fragmenter import Fragmenter
-from atomate.utils.utils import env_chk
+from pymatgen.core.structure import Molecule
+
 from atomate.qchem.database import QChemCalcDb
-from fireworks import FiretaskBase, FWAction, explicit_serialize
+from atomate.utils.utils import env_chk
 
 __author__ = "Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -52,51 +54,45 @@ class FragmentMolecule(FiretaskBase):
     Optional params:
         molecule (Molecule): The molecule to fragment
         edges (list): List of index pairs that define graph edges, aka molecule bonds. If not
-                      set, edges will be determined with OpenBabel.
+            set, edges will be determined with OpenBabel.
         depth (int): The number of levels of iterative fragmentation to perform, where each
-                     level will include fragments obtained by breaking one bond of a fragment
-                     one level up. Defaults to 1. However, if set to 0, instead all possible
-                     fragments are generated using an alternative, non-iterative scheme.
+            level will include fragments obtained by breaking one bond of a fragment one level
+            up. Defaults to 1. However, if set to 0, instead all possible fragments are
+            generated using an alternative, non-iterative scheme.
         open_rings (bool): Whether or not to open any rings encountered during fragmentation.
-                           Defaults to True. If true, any bond that fails to yield disconnected
-                           graphs when broken is instead removed and the entire structure is
-                           optimized with OpenBabel in order to obtain a good initial guess for
-                           an opened geometry that can then be put back into QChem to be
-                           optimized without the ring just reforming.
+            Defaults to True. If true, any bond that fails to yield disconnected graphs when
+            broken is instead removed and the entire structure is optimized with OpenBabel in
+            order to obtain a good initial guess for an opened geometry that can then be put
+            back into QChem to be optimized without the ring just reforming.
         opt_steps (int): Number of optimization steps when opening rings. Defaults to 10000.
         additional_charges (list): List of additional charges besides the defaults described
-                                   above. For example, if a principle molecule with a +2 charge
-                                   is provided, by default all fragments will be calculated with
-                                   +1 and +2 charges as explained above. If the user includes
-                                   additional_charges=[0] then all fragments will be calculated
-                                   with 0, +1, and +2 charges. Additional charge values of 1 or 2
-                                   would not cause any new charges to be calculated as they are
-                                   already done. Defaults to [].
+            above. For example, if a principle molecule with a +2 charge is provided, by
+            default all fragments will be calculated with +1 and +2 charges as explained above.
+            If the user includes additional_charges=[0] then all fragments will be calculated
+            with 0, +1, and +2 charges. Additional charge values of 1 or 2 would not cause any
+            new charges to be calculated as they are already done. Defaults to [].
         do_triplets (bool): Whether to simulate triplets as well as singlets for molecules with
-                            an even number of electrons. Defaults to False.
+            an even number of electrons. Defaults to False.
         linked (bool): If True, use a linked FFopt. If False, use the original. Defaults to True.
         qchem_input_params (dict): Specify kwargs for instantiating the input set parameters.
-                                   Basic uses would be to modify the default inputs of the set,
-                                   such as dft_rung, basis_set, pcm_dielectric, scf_algorithm,
-                                   or max_scf_cycles. See pymatgen/io/qchem/sets.py for default
-                                   values of all input parameters. For instance, if a user wanted
-                                   to use a more advanced DFT functional, include a pcm with a
-                                   dielectric of 30, and use a larger basis, the user would set
-                                   qchem_input_params = {"dft_rung": 5, "pcm_dielectric": 30,
-                                   "basis_set": "6-311++g**"}. However, more advanced customization
-                                   of the input is also possible through the overwrite_inputs key
-                                   which allows the user to directly modify the rem, pcm, smd, and
-                                   solvent dictionaries that QChemDictSet passes to inputs.py to
-                                   print an actual input file. For instance, if a user wanted to
-                                   set the sym_ignore flag in the rem section of the input file
-                                   to true, then they would set qchem_input_params = {"overwrite_inputs":
-                                   "rem": {"sym_ignore": "true"}}. Of course, overwrite_inputs
-                                   could be used in conjuction with more typical modifications,
-                                   as seen in the test_double_FF_opt workflow test.
+            Basic uses would be to modify the default inputs of the set, such as dft_rung,
+            basis_set, pcm_dielectric, scf_algorithm, or max_scf_cycles. See
+            pymatgen/io/qchem/sets.py for default values of all input parameters. For instance,
+            if a user wanted to use a more advanced DFT functional, include a pcm with a
+            dielectric of 30, and use a larger basis, the user would set qchem_input_params =
+            {"dft_rung": 5, "pcm_dielectric": 30, "basis_set": "6-311++g**"}. However, more
+            advanced customization of the input is also possible through the overwrite_inputs
+            key which allows the user to directly modify the rem, pcm, smd, and solvent
+            dictionaries that QChemDictSet passes to inputs.py to print an actual input file.
+            For instance, if a user wanted to set the sym_ignore flag in the rem section of the
+            input file to true, then they would set qchem_input_params = {"overwrite_inputs":
+            "rem": {"sym_ignore": "true"}}. Of course, overwrite_inputs could be used in
+            conjunction with more typical modifications, as seen in the test_double_FF_opt
+            workflow test.
         db_file (str): Path to file containing the database credentials. Supports env_chk.
         check_db (bool): Whether or not to check if fragments are present in the database.
-                         Defaults to bool(db_file), aka true if a db_file is present and
-                         false if db_file is None.
+            Defaults to bool(db_file), aka true if a db_file is present and false if db_file is
+            None.
     """
 
     optional_params = [
@@ -251,8 +247,10 @@ class FragmentMolecule(FiretaskBase):
         molecule, unless the fragment is a single atom, in which case add a SinglePointFW instead.
         If the fragment is already in the database, don't add any new firework.
         """
-        from atomate.qchem.fireworks.core import FrequencyFlatteningOptimizeFW
-        from atomate.qchem.fireworks.core import SinglePointFW
+        from atomate.qchem.fireworks.core import (
+            FrequencyFlatteningOptimizeFW,
+            SinglePointFW,
+        )
 
         new_FWs = []
         for ii, unique_molecule in enumerate(self.unique_molecules):

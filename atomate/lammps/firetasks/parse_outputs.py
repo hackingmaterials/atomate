@@ -3,18 +3,17 @@ This module defines firetasks for parsing and processing the LAMMPS outputfiles 
 information such as the summary of transport properties and insert them into the database.
 """
 
-import os
 import json
+import os
 
 from fireworks import FiretaskBase, FWAction
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.utilities.fw_utilities import explicit_serialize
 
-from atomate.utils.utils import get_logger
 from atomate.common.firetasks.glue_tasks import get_calc_loc
-from atomate.utils.utils import env_chk
-from atomate.lammps.drones import LammpsDrone
 from atomate.lammps.database import LammpsCalcDb
+from atomate.lammps.drones import LammpsDrone
+from atomate.utils.utils import env_chk, get_logger
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"

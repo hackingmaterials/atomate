@@ -1,18 +1,19 @@
-from pymatgen.io.vasp.sets import MPRelaxSet
 from fireworks import Firework
+from pymatgen.io.vasp.sets import MPRelaxSet
+
+from atomate.common.firetasks.glue_tasks import PassCalcLocs
+from atomate.vasp.config import DB_FILE, VASP_CMD
+from atomate.vasp.firetasks.approx_neb_tasks import (
+    EndPointToDb,
+    HostToDb,
+    ImageToDb,
+    InsertSites,
+    PassFromDb,
+    WriteVaspInput,
+)
+from atomate.vasp.firetasks.parse_outputs import VaspToDb
 from atomate.vasp.firetasks.run_calc import RunVaspCustodian
 from atomate.vasp.firetasks.write_inputs import WriteVaspFromIOSet
-from atomate.common.firetasks.glue_tasks import PassCalcLocs
-from atomate.vasp.firetasks.parse_outputs import VaspToDb
-from atomate.vasp.firetasks.approx_neb_tasks import (
-    HostToDb,
-    PassFromDb,
-    InsertSites,
-    WriteVaspInput,
-    EndPointToDb,
-    ImageToDb,
-)
-from atomate.vasp.config import VASP_CMD, DB_FILE
 
 __author__ = "Ann Rutt"
 __email__ = "acrutt@lbl.gov"
@@ -30,9 +31,9 @@ class HostFW(Firework):
         job_type="double_relaxation_run",
         additional_fields=None,
         tags=None,
-        **kwargs
+        **kwargs,
     ):
-        """
+        r"""
         Launches a VASP calculation for the provided empty host structure
         and adds task doc fields for approx_neb workflow record keeping.
         Initializes a doc in the approx_neb collection and stores relevant
@@ -72,7 +73,7 @@ class HostFW(Firework):
         """
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
-        fw_name = "{} {}".format(structure.composition.reduced_formula, "host")
+        fw_name = f"{structure.composition.reduced_formula} host"
         fw_spec = {"tags": ["approx_neb", approx_neb_wf_uuid, "host", "relaxation"]}
         task_doc_additional_fields = {
             "approx_neb": {
@@ -124,9 +125,9 @@ class EndPointFW(Firework):
         override_default_vasp_params=None,
         job_type="double_relaxation_run",
         parents=None,
-        **kwargs
+        **kwargs,
     ):
-        """
+        r"""
         Pulls information from the approx_neb collection (e.g. host
         task_id) using the provided approx_neb_wf_uuid. Gets the host
         structure from the tasks collection and inserts the site(s)
@@ -169,14 +170,13 @@ class EndPointFW(Firework):
             parents ([Firework]): Parents of this particular Firework.
             \*\*kwargs: Other kwargs that are passed to Firework.__init__.
         """
-        fw_name = "end point: insert " + insert_specie + " " + str(end_points_index)
+        fw_name = f"end point: insert {insert_specie} {end_points_index}"
         fw_spec = {
             "tags": ["approx_neb", approx_neb_wf_uuid, "end_point", "relaxation"]
         }
 
         # set additional_fields to be added to task doc by VaspToDb
         # initiates the information stored in the tasks collection to aid record keeping
-        inserted_site_indexes = []
         additional_fields = {
             "approx_neb": {
                 "wf_uuids": [],
@@ -270,9 +270,9 @@ class ImageFW(Firework):
         parents=None,
         add_additional_fields=None,
         add_tags=None,
-        **kwargs
+        **kwargs,
     ):
-        """
+        r"""
         Pulls information from the approx_neb collection using the
         provided approx_neb_wf_uuid (including the image structure using
         structure_path and pydash.get() notation). Launches a VASP

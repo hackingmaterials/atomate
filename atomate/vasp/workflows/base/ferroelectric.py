@@ -4,14 +4,11 @@ This module defines the ferroelectric workflow
 
 from fireworks import Firework, Workflow
 
-from atomate.utils.utils import get_logger, get_a_unique_id
-
-
-from atomate.vasp.fireworks.core import OptimizeFW
-from atomate.vasp.fireworks.polarization import LcalcpolFW
-from atomate.vasp.fireworks.core import HSEBSFW
+from atomate.common.powerups import add_tags
+from atomate.utils.utils import get_a_unique_id, get_logger
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDb
-from atomate.vasp.powerups import add_tags
+from atomate.vasp.fireworks.core import HSEBSFW, OptimizeFW
+from atomate.vasp.fireworks.polarization import LcalcpolFW
 
 __author__ = "Tess Smidt"
 __email__ = "tsmidt@berkeley.edu"
@@ -61,7 +58,7 @@ def get_wf_ferroelectric(
         nimages: Number of interpolations calculated from polar to nonpolar structures, including the nonpolar.
             For example, nimages = 9 will calculate 8 interpolated structures. 8 interpolations + nonpolar = 9.
         add_analysis_task: Analyze polarization and energy trends as part of workflow. Default False.
-        wfid (string): Unique worfklow id starting with "wfid_". If None this is atomatically generated (recommended).
+        wfid (string): Unique workflow id starting with "wfid_". If None this is automatically generated (recommended).
         tags (list of strings): Additional tags to add such as identifiers for structures.
 
     Returns:
@@ -134,8 +131,8 @@ def get_wf_ferroelectric(
         interpolation.append(
             LcalcpolFW(
                 structure=polar_structure,
-                name="_interpolation_{}_polarization".format(str(i)),
-                static_name="_interpolation_{}_static".format(str(i)),
+                name=f"_interpolation_{i}_polarization",
+                static_name=f"_interpolation_{i}_static",
                 vasp_cmd=vasp_cmd,
                 db_file=db_file,
                 vasp_input_set=vasp_input_set_polar,

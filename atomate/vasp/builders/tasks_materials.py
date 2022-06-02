@@ -1,22 +1,21 @@
 import os
 from datetime import datetime
 
+from monty.serialization import loadfn
+from pymatgen.analysis.structure_matcher import ElementComparator, StructureMatcher
+from pymatgen.core import Structure
 from pymongo import ReturnDocument
 from tqdm import tqdm
 
-from atomate.utils.utils import get_mongolike, get_logger
+from atomate.utils.utils import get_database, get_logger, get_mongolike
 from atomate.vasp.builders.base import AbstractBuilder
-from atomate.vasp.builders.utils import dbid_to_str, dbid_to_int
-from atomate.utils.utils import get_database
-from monty.serialization import loadfn
-from pymatgen.core import Structure
-from pymatgen.analysis.structure_matcher import StructureMatcher, ElementComparator
+from atomate.vasp.builders.utils import dbid_to_int, dbid_to_str
 
 logger = get_logger(__name__)
 
 __author__ = "Anubhav Jain <ajain@lbl.gov>"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 """
 This class collects all "tasks" (individual calculations) on a single compound and produces a
@@ -62,11 +61,11 @@ class TasksMaterialsBuilder(AbstractBuilder):
         self.properties_root = x.get("properties_root", [])
 
         self._materials = materials_write
-        if self._materials.count() == 0:
+        if self._materials.count_documents({}) == 0:
             self._build_indexes()
 
         self._counter = counter_write
-        if self._counter.find({"_id": "materialid"}).count() == 0:
+        if self._counter.count_documents({"_id": "materialid"}) == 0:
             self._counter.insert_one({"_id": "materialid", "c": 0})
 
         self._tasks = tasks_read
@@ -87,7 +86,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
             common_keys = [k for k in q.keys() if k in self.query.keys()]
             if common_keys:
                 raise ValueError(
-                    "User query parameter cannot contain key(s): {}".format(common_keys)
+                    f"User query parameter cannot contain key(s): {common_keys}"
                 )
             q.update(self.query)
 
@@ -97,7 +96,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
         ]
         task_ids = [t_id for t_id in all_task_ids if t_id not in previous_task_ids]
 
-        logger.info("There are {} new task_ids to process.".format(len(task_ids)))
+        logger.info(f"There are {len(task_ids)} new task_ids to process.")
 
         pbar = tqdm(task_ids)
         for t_id in pbar:
@@ -109,7 +108,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
                     m_id = self._create_new_material(taskdoc)
                 self._update_material(m_id, taskdoc)
 
-            except:
+            except Exception:
                 import traceback
 
                 logger.exception("<---")
@@ -142,8 +141,8 @@ class TasksMaterialsBuilder(AbstractBuilder):
         db_write = get_database(db_file, admin=True)
         try:
             db_read = get_database(db_file, admin=False)
-            db_read.collection_names()  # throw error if auth failed
-        except:
+            db_read.list_collection_names()  # throw error if auth failed
+        except Exception:
             logger.warning(
                 "Warning: could not get read-only database; using write creds"
             )
@@ -315,15 +314,9 @@ class TasksMaterialsBuilder(AbstractBuilder):
                         # figure out where the property data lives in the materials doc and
                         # in the task doc
                         materials_key = (
-                            "{}.{}".format(x["materials_key"], p)
-                            if x.get("materials_key")
-                            else p
+                            f"{x['materials_key']}.{p}" if x.get("materials_key") else p
                         )
-                        tasks_key = (
-                            "{}.{}".format(x["tasks_key"], p)
-                            if x.get("tasks_key")
-                            else p
-                        )
+                        tasks_key = f"{x['tasks_key']}.{p}" if x.get("tasks_key") else p
 
                         # insert property data AND metadata about this task
                         self._materials.update_one(

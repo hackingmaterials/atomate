@@ -4,17 +4,14 @@ from datetime import datetime
 from glob import glob
 
 import numpy as np
-
-from pymatgen.io.feff.inputs import Tags, Atoms
-
 from fireworks import FiretaskBase, FWAction, explicit_serialize
-from fireworks.utilities.fw_serializers import DATETIME_HANDLER
 from fireworks.user_objects.firetasks.filepad_tasks import get_fpad
+from fireworks.utilities.fw_serializers import DATETIME_HANDLER
+from pymatgen.io.feff.inputs import Atoms, Tags
 
-from atomate.utils.utils import env_chk
 from atomate.common.firetasks.glue_tasks import get_calc_loc
-from atomate.utils.utils import get_logger
 from atomate.feff.database import FeffCalcDb
+from atomate.utils.utils import env_chk, get_logger
 
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
@@ -106,7 +103,7 @@ class AddPathsToFilepadTask(FiretaskBase):
     Optional_params:
         labels (list): list of labels to tag the inserted files. Useful for querying later.
         filepad_file (str): path to the filepad connection settings file.
-        compress (bool): wether or not to compress the file contents before insertion.
+        compress (bool): Whether or not to compress the file contents before insertion.
         metadata (dict): metadata.
     """
 
@@ -117,10 +114,10 @@ class AddPathsToFilepadTask(FiretaskBase):
         fpad = get_fpad(self.get("filepad_file", None))
         labels = self.get("labels", None)
         for i, p in enumerate(paths):
-            l = labels[i] if labels is not None else None
+            label = labels[i] if labels is not None else None
             fpad.add_file(
                 p,
-                label=l,
+                label=label,
                 metadata=self.get("metadata", None),
                 compress=self.get("compress", True),
             )

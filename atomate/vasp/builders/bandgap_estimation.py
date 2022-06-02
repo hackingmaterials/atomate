@@ -1,6 +1,8 @@
-from tqdm import tqdm
 import math
-from atomate.utils.utils import get_logger, get_database
+
+from tqdm import tqdm
+
+from atomate.utils.utils import get_database, get_logger
 
 logger = get_logger(__name__)
 
@@ -46,12 +48,12 @@ class BandgapEstimationBuilder:
                 ]  # electronic portion of eps ("eps_static") approximates eps_inf
                 n = math.sqrt(eps)  # sqrt(eps_inf) to get refractive index
                 d = {}
-                d["gap_moss"] = (95 / n ** 4) if n > 0 else None
+                d["gap_moss"] = (95 / n**4) if n > 0 else None
                 d["gap_gupta-ravindra"] = (4.16 - n) / 0.85 if n <= 4.16 else None
                 d["gap_reddy-anjaneyulu"] = 36.3 / math.exp(n)
-                d["gap_reddy-ahamed"] = 154 / n ** 4 + 0.365 if n > 0 else None
+                d["gap_reddy-ahamed"] = 154 / n**4 + 0.365 if n > 0 else None
                 d["gap_herve_vandamme"] = (
-                    13.47 / math.sqrt(n ** 2 - 1) - 3.47 if n > 1 else None
+                    13.47 / math.sqrt(n**2 - 1) - 3.47 if n > 1 else None
                 )
 
                 d = {"bandgap_estimation": d}
@@ -59,7 +61,7 @@ class BandgapEstimationBuilder:
                     {"material_id": m["material_id"]}, {"$set": d}
                 )
 
-            except:
+            except Exception:
                 import traceback
 
                 logger.exception(traceback.format_exc())

@@ -5,12 +5,22 @@ from pymatgen.core.lattice import Lattice
 from pymatgen.core.structure import Structure
 from pymatgen.transformations.standard_transformations import RotationTransformation
 
-from atomate.vasp.fireworks.core import *
+from atomate.vasp.fireworks.core import (
+    DFPTFW,
+    HSEBSFW,
+    SOCFW,
+    BoltztrapFW,
+    NonSCFFW,
+    OptimizeFW,
+    RamanFW,
+    StaticFW,
+    TransmuterFW,
+)
 
 __author__ = "Shyam Dwaraknath"
 __email__ = "shyamd@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "..", "..", "test_files")
 

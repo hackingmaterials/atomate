@@ -1,14 +1,14 @@
 import os
 
-from atomate.utils.utils import get_wf_from_spec_dict
-
 from monty.serialization import loadfn
+
+from atomate.utils.utils import get_wf_from_spec_dict
 
 __author__ = "Anubhav Jain, Shyue Ping Ong, Kiran Mathew"
 __email__ = "ajain@lbl.gov, ongsp@eng.ucsd.edu, kmathew@lbl.gov"
 
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_wf(

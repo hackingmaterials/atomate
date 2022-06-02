@@ -1,22 +1,30 @@
 import os
 import unittest
+from itertools import chain
 
-from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
-from atomate.qchem.firetasks.run_calc import RunQChemCustodian
-from atomate.qchem.firetasks.parse_outputs import QChemToDb
-from atomate.qchem.firetasks.fragmenter import FragmentMolecule
-from atomate.qchem.firetasks.critic2 import RunCritic2, ProcessCritic2
-from atomate.qchem.fireworks.core import (
-    OptimizeFW,
-    FrequencyFlatteningOptimizeFW,
-    FragmentFW,
-    SinglePointFW,
-    CubeAndCritic2FW,
-)
-from atomate.utils.testing import AtomateTest
+import numpy as np
 from pymatgen.io.qchem.outputs import QCOutput
 
-__author__ = "Samuel Blau"
+from atomate.qchem.firetasks.critic2 import ProcessCritic2, RunCritic2
+from atomate.qchem.firetasks.fragmenter import FragmentMolecule
+from atomate.qchem.firetasks.geo_transformations import PerturbGeometry
+from atomate.qchem.firetasks.parse_outputs import QChemToDb
+from atomate.qchem.firetasks.run_calc import RunQChemCustodian
+from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
+from atomate.qchem.fireworks.core import (
+    CubeAndCritic2FW,
+    FragmentFW,
+    FrequencyFlatteningOptimizeFW,
+    FrequencyFlatteningTransitionStateFW,
+    FrequencyFW,
+    OptimizeFW,
+    PESScanFW,
+    SinglePointFW,
+    TransitionStateFW,
+)
+from atomate.utils.testing import AtomateTest
+
+__author__ = "Samuel Blau, Evan Spotte-Smith"
 __copyright__ = "Copyright 2018, The Materials Project"
 __version__ = "0.1"
 __maintainer__ = "Samuel Blau"
@@ -25,8 +33,9 @@ __status__ = "Alpha"
 __date__ = "5/23/18"
 __credits__ = "Brandon Wood, Shyam Dwaraknath"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
+db_file = os.path.join(db_dir, "db.json")
 
 
 class TestCore(AtomateTest):
@@ -36,6 +45,9 @@ class TestCore(AtomateTest):
         )
         qc_out = QCOutput(filename=out_file)
         self.act_mol = qc_out.data["initial_molecule"]
+
+        self.maxDiff = None
+
         super().setUp(lpad=False)
 
     def tearDown(self):
@@ -60,6 +72,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=">>max_cores<<",
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
@@ -83,7 +96,7 @@ class TestCore(AtomateTest):
             multimode="mpi",
             max_cores=12,
             qchem_input_params={"pcm_dielectric": 10.0},
-            db_file=os.path.join(db_dir, "db.json"),
+            db_file=db_file,
             parents=None,
         )
         self.assertEqual(
@@ -103,13 +116,14 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=12,
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
         self.assertEqual(
             firework.tasks[2].as_dict(),
             QChemToDb(
-                db_file=os.path.join(db_dir, "db.json"),
+                db_file=db_file,
                 input_file="mol.qin",
                 output_file="mol.qout",
                 additional_fields={"task_label": "special single point"},
@@ -137,6 +151,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=">>max_cores<<",
+                max_errors=20,
                 job_type="normal",
             ).as_dict(),
         )
@@ -160,7 +175,7 @@ class TestCore(AtomateTest):
             multimode="mpi",
             max_cores=12,
             qchem_input_params={"pcm_dielectric": 10.0},
-            db_file=os.path.join(db_dir, "db.json"),
+            db_file=db_file,
             parents=None,
         )
         self.assertEqual(
@@ -180,13 +195,14 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=12,
+                max_errors=20,
                 job_type="normal",
             ).as_dict(),
         )
         self.assertEqual(
             firework.tasks[2].as_dict(),
             QChemToDb(
-                db_file=os.path.join(db_dir, "db.json"),
+                db_file=db_file,
                 input_file="mol.qin",
                 output_file="mol.qout",
                 additional_fields={"task_label": "special structure optimization"},
@@ -194,6 +210,170 @@ class TestCore(AtomateTest):
         )
         self.assertEqual(firework.parents, [])
         self.assertEqual(firework.name, "special structure optimization")
+
+    def test_TransitionStateFW_defaults(self):
+        firework = TransitionStateFW(molecule=self.act_mol)
+        self.assertEqual(
+            firework.tasks[0].as_dict(),
+            WriteInputFromIOSet(
+                molecule=self.act_mol,
+                qchem_input_set="TransitionStateSet",
+                input_file="mol.qin",
+                qchem_input_params={},
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[1].as_dict(),
+            RunQChemCustodian(
+                qchem_cmd=">>qchem_cmd<<",
+                multimode=">>multimode<<",
+                input_file="mol.qin",
+                output_file="mol.qout",
+                max_cores=">>max_cores<<",
+                max_errors=5,
+                job_type="normal",
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[2].as_dict(),
+            QChemToDb(
+                db_file=None,
+                input_file="mol.qin",
+                output_file="mol.qout",
+                additional_fields={
+                    "task_label": "transition state structure optimization"
+                },
+            ).as_dict(),
+        )
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(firework.name, "transition state structure optimization")
+
+    def test_TransitionStateFW_not_defaults(self):
+        firework = TransitionStateFW(
+            molecule=self.act_mol,
+            name="special transition state structure optimization",
+            qchem_cmd="qchem -slurm",
+            multimode="mpi",
+            max_cores=12,
+            qchem_input_params={"pcm_dielectric": 10.0},
+            db_file=db_file,
+            parents=None,
+        )
+        self.assertEqual(
+            firework.tasks[0].as_dict(),
+            WriteInputFromIOSet(
+                molecule=self.act_mol,
+                qchem_input_set="TransitionStateSet",
+                input_file="mol.qin",
+                qchem_input_params={"pcm_dielectric": 10.0},
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[1].as_dict(),
+            RunQChemCustodian(
+                qchem_cmd="qchem -slurm",
+                multimode="mpi",
+                input_file="mol.qin",
+                output_file="mol.qout",
+                max_cores=12,
+                max_errors=5,
+                job_type="normal",
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[2].as_dict(),
+            QChemToDb(
+                db_file=db_file,
+                input_file="mol.qin",
+                output_file="mol.qout",
+                additional_fields={
+                    "task_label": "special transition state structure optimization"
+                },
+            ).as_dict(),
+        )
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(
+            firework.name, "special transition state structure optimization"
+        )
+
+    def test_FrequencyFW_defaults(self):
+        firework = FrequencyFW(molecule=self.act_mol)
+        self.assertEqual(
+            firework.tasks[0].as_dict(),
+            WriteInputFromIOSet(
+                molecule=self.act_mol,
+                qchem_input_set="FreqSet",
+                input_file="mol.qin",
+                qchem_input_params={},
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[1].as_dict(),
+            RunQChemCustodian(
+                qchem_cmd=">>qchem_cmd<<",
+                multimode=">>multimode<<",
+                input_file="mol.qin",
+                output_file="mol.qout",
+                max_cores=">>max_cores<<",
+                max_errors=5,
+                job_type="normal",
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[2].as_dict(),
+            QChemToDb(
+                db_file=None,
+                input_file="mol.qin",
+                output_file="mol.qout",
+                additional_fields={"task_label": "frequency calculation"},
+            ).as_dict(),
+        )
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(firework.name, "frequency calculation")
+
+    def test_FrequencyFW_not_defaults(self):
+        firework = FrequencyFW(
+            molecule=self.act_mol,
+            name="special frequency analysis",
+            qchem_cmd="qchem -slurm",
+            multimode="mpi",
+            max_cores=12,
+            qchem_input_params={"pcm_dielectric": 10.0},
+            db_file=db_file,
+            parents=None,
+        )
+        self.assertEqual(
+            firework.tasks[0].as_dict(),
+            WriteInputFromIOSet(
+                molecule=self.act_mol,
+                qchem_input_set="FreqSet",
+                input_file="mol.qin",
+                qchem_input_params={"pcm_dielectric": 10.0},
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[1].as_dict(),
+            RunQChemCustodian(
+                qchem_cmd="qchem -slurm",
+                multimode="mpi",
+                input_file="mol.qin",
+                output_file="mol.qout",
+                max_cores=12,
+                max_errors=5,
+                job_type="normal",
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[2].as_dict(),
+            QChemToDb(
+                db_file=db_file,
+                input_file="mol.qin",
+                output_file="mol.qout",
+                additional_fields={"task_label": "special frequency analysis"},
+            ).as_dict(),
+        )
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(firework.name, "special frequency analysis")
 
     def test_FrequencyFlatteningOptimizeFW_defaults(self):
         firework = FrequencyFlatteningOptimizeFW(molecule=self.act_mol)
@@ -218,6 +398,8 @@ class TestCore(AtomateTest):
                 max_iterations=10,
                 max_molecule_perturb_scale=0.3,
                 linked=True,
+                freq_before_opt=False,
+                max_errors=20,
             ).as_dict(),
         )
         self.assertEqual(
@@ -246,17 +428,250 @@ class TestCore(AtomateTest):
             qchem_input_params={"pcm_dielectric": 10.0},
             max_iterations=5,
             max_molecule_perturb_scale=0.2,
-            linked=True,
-            db_file=os.path.join(db_dir, "db.json"),
+            linked=False,
+            freq_before_opt=True,
+            db_file=db_file,
+            perturb_geometry=True,
+            mode=np.zeros((len(self.act_mol), 3)),
+            scale=0.2,
             parents=None,
+            max_errors=20,
+        )
+        self.assertEqual(
+            firework.tasks[0].as_dict(),
+            PerturbGeometry(
+                molecule=self.act_mol, mode=np.zeros((len(self.act_mol), 3)), scale=0.2
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[1].as_dict(),
+            WriteInputFromIOSet(
+                molecule=None,
+                qchem_input_set="FreqSet",
+                input_file="mol.qin",
+                qchem_input_params={"pcm_dielectric": 10.0},
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[2].as_dict(),
+            RunQChemCustodian(
+                qchem_cmd="qchem -slurm",
+                multimode="mpi",
+                input_file="mol.qin",
+                output_file="mol.qout",
+                max_cores=12,
+                job_type="opt_with_frequency_flattener",
+                max_iterations=5,
+                max_molecule_perturb_scale=0.2,
+                linked=False,
+                freq_before_opt=True,
+                max_errors=20,
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[3].as_dict(),
+            QChemToDb(
+                db_file=db_file,
+                input_file="mol.qin",
+                output_file="mol.qout",
+                additional_fields={
+                    "task_label": "special frequency flattening structure optimization",
+                    "special_run_type": "frequency_flattener",
+                    "linked": False,
+                },
+            ).as_dict(),
+        )
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(
+            firework.name, "special frequency flattening structure optimization"
+        )
+
+    def test_FrequencyFlatteningTransitionStateFW_defaults(self):
+        firework = FrequencyFlatteningTransitionStateFW(molecule=self.act_mol)
+        self.assertEqual(
+            firework.tasks[0].as_dict(),
+            WriteInputFromIOSet(
+                molecule=self.act_mol,
+                qchem_input_set="FreqSet",
+                input_file="mol.qin",
+                qchem_input_params={},
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[1].as_dict(),
+            RunQChemCustodian(
+                qchem_cmd=">>qchem_cmd<<",
+                multimode=">>multimode<<",
+                input_file="mol.qin",
+                output_file="mol.qout",
+                max_cores=">>max_cores<<",
+                job_type="opt_with_frequency_flattener",
+                max_iterations=3,
+                max_molecule_perturb_scale=0.3,
+                transition_state=True,
+                freq_before_opt=True,
+                linked=True,
+                max_errors=5,
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[2].as_dict(),
+            QChemToDb(
+                db_file=None,
+                input_file="mol.qin",
+                output_file="mol.qout",
+                additional_fields={
+                    "task_label": "frequency flattening transition state optimization",
+                    "special_run_type": "ts_frequency_flattener",
+                    "linked": True,
+                },
+                runs=["freq_pre"]
+                + list(
+                    chain.from_iterable(
+                        [["ts_" + str(ii), "freq_" + str(ii)] for ii in range(10)]
+                    )
+                ),
+            ).as_dict(),
+        )
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(
+            firework.name, "frequency flattening transition state optimization"
+        )
+
+    def test_FrequencyFlatteningTransitionStateFW_not_defaults(self):
+        self.maxDiff = None
+        firework = FrequencyFlatteningTransitionStateFW(
+            molecule=self.act_mol,
+            name="special frequency flattening transition state optimization",
+            qchem_cmd="qchem -slurm",
+            multimode="mpi",
+            max_cores=12,
+            qchem_input_params={"pcm_dielectric": 10.0},
+            max_iterations=5,
+            max_molecule_perturb_scale=0.2,
+            linked=False,
+            freq_before_opt=False,
+            perturb_geometry=True,
+            mode=np.zeros((len(self.act_mol), 3)),
+            scale=0.2,
+            db_file=db_file,
+            parents=None,
+            max_errors=5,
+        )
+        self.assertEqual(
+            firework.tasks[0].as_dict(),
+            PerturbGeometry(
+                molecule=self.act_mol, mode=np.zeros((len(self.act_mol), 3)), scale=0.2
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[1].as_dict(),
+            WriteInputFromIOSet(
+                molecule=None,
+                qchem_input_set="TransitionStateSet",
+                input_file="mol.qin",
+                qchem_input_params={"pcm_dielectric": 10.0},
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[2].as_dict(),
+            RunQChemCustodian(
+                qchem_cmd="qchem -slurm",
+                multimode="mpi",
+                input_file="mol.qin",
+                output_file="mol.qout",
+                max_cores=12,
+                job_type="opt_with_frequency_flattener",
+                max_iterations=5,
+                max_molecule_perturb_scale=0.2,
+                transition_state=True,
+                linked=False,
+                freq_before_opt=False,
+                max_errors=5,
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[3].as_dict(),
+            QChemToDb(
+                db_file=db_file,
+                input_file="mol.qin",
+                output_file="mol.qout",
+                additional_fields={
+                    "task_label": "special frequency flattening transition state optimization",
+                    "special_run_type": "ts_frequency_flattener",
+                    "linked": False,
+                },
+                runs=list(
+                    chain.from_iterable(
+                        [["ts_" + str(ii), "freq_" + str(ii)] for ii in range(10)]
+                    )
+                ),
+            ).as_dict(),
+        )
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(
+            firework.name, "special frequency flattening transition state optimization"
+        )
+
+    def test_PESScanFW_defaults(self):
+        firework = PESScanFW(
+            molecule=self.act_mol, scan_variables={"stre": ["0 1 1.5 2.0 0.01"]}
         )
         self.assertEqual(
             firework.tasks[0].as_dict(),
             WriteInputFromIOSet(
                 molecule=self.act_mol,
-                qchem_input_set="OptSet",
+                qchem_input_set="PESScanSet",
                 input_file="mol.qin",
-                qchem_input_params={"pcm_dielectric": 10.0},
+                qchem_input_params={"scan_variables": {"stre": ["0 1 1.5 2.0 0.01"]}},
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[1].as_dict(),
+            RunQChemCustodian(
+                qchem_cmd=">>qchem_cmd<<",
+                multimode=">>multimode<<",
+                input_file="mol.qin",
+                output_file="mol.qout",
+                max_cores=">>max_cores<<",
+                max_errors=5,
+                job_type="normal",
+            ).as_dict(),
+        )
+        self.assertEqual(
+            firework.tasks[2].as_dict(),
+            QChemToDb(
+                db_file=None,
+                input_file="mol.qin",
+                output_file="mol.qout",
+                additional_fields={"task_label": "potential energy surface scan"},
+            ).as_dict(),
+        )
+        self.assertEqual(firework.parents, [])
+        self.assertEqual(firework.name, "potential energy surface scan")
+
+    def test_PESScanFW_not_defaults(self):
+        firework = PESScanFW(
+            molecule=self.act_mol,
+            name="special potential energy surface scan",
+            qchem_cmd="qchem -slurm",
+            multimode="mpi",
+            max_cores=12,
+            qchem_input_params={"pcm_dielectric": 10.0},
+            db_file=db_file,
+            parents=None,
+            scan_variables={"stre": ["0 1 1.5 2.0 0.01"]},
+        )
+        self.assertEqual(
+            firework.tasks[0].as_dict(),
+            WriteInputFromIOSet(
+                molecule=self.act_mol,
+                qchem_input_set="PESScanSet",
+                input_file="mol.qin",
+                qchem_input_params={
+                    "pcm_dielectric": 10.0,
+                    "scan_variables": {"stre": ["0 1 1.5 2.0 0.01"]},
+                },
             ).as_dict(),
         )
         self.assertEqual(
@@ -267,29 +682,23 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=12,
-                job_type="opt_with_frequency_flattener",
-                max_iterations=5,
-                max_molecule_perturb_scale=0.2,
-                linked=True,
+                job_type="normal",
+                max_errors=5,
             ).as_dict(),
         )
         self.assertEqual(
             firework.tasks[2].as_dict(),
             QChemToDb(
-                db_file=os.path.join(db_dir, "db.json"),
+                db_file=db_file,
                 input_file="mol.qin",
                 output_file="mol.qout",
                 additional_fields={
-                    "task_label": "special frequency flattening structure optimization",
-                    "special_run_type": "frequency_flattener",
-                    "linked": True,
+                    "task_label": "special potential energy surface scan"
                 },
             ).as_dict(),
         )
         self.assertEqual(firework.parents, [])
-        self.assertEqual(
-            firework.name, "special frequency flattening structure optimization"
-        )
+        self.assertEqual(firework.name, "special potential energy surface scan")
 
     def test_FragmentFW_defaults(self):
         firework = FragmentFW(molecule=self.act_mol)
@@ -320,7 +729,7 @@ class TestCore(AtomateTest):
             linked=True,
             name="fragmenting a thing",
             qchem_input_params={"pcm_dielectric": 10.0},
-            db_file=os.path.join(db_dir, "db.json"),
+            db_file=db_file,
             check_db=False,
         )
         self.assertEqual(
@@ -333,7 +742,7 @@ class TestCore(AtomateTest):
                 do_triplets=False,
                 linked=True,
                 qchem_input_params={"pcm_dielectric": 10.0},
-                db_file=os.path.join(db_dir, "db.json"),
+                db_file=db_file,
                 check_db=False,
             ).as_dict(),
         )
@@ -359,6 +768,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=">>max_cores<<",
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
@@ -389,7 +799,7 @@ class TestCore(AtomateTest):
             multimode="mpi",
             max_cores=12,
             qchem_input_params={"pcm_dielectric": 10.0},
-            db_file=os.path.join(db_dir, "db.json"),
+            db_file=db_file,
             parents=None,
         )
         self.assertEqual(
@@ -409,6 +819,7 @@ class TestCore(AtomateTest):
                 input_file="mol.qin",
                 output_file="mol.qout",
                 max_cores=12,
+                max_errors=5,
                 job_type="normal",
             ).as_dict(),
         )
@@ -422,7 +833,7 @@ class TestCore(AtomateTest):
         self.assertEqual(
             firework.tasks[4].as_dict(),
             QChemToDb(
-                db_file=os.path.join(db_dir, "db.json"),
+                db_file=db_file,
                 input_file="mol.qin",
                 output_file="mol.qout",
                 additional_fields={"task_label": "special cube and critic2"},

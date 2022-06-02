@@ -46,7 +46,6 @@ fireworks:
 - fw: atomate.vasp.fireworks.core.NEBFW
   user_incar_settings:
     EDIFFG: -0.03
-    EDIFFG: -0.03
     IOPT: 1
   user_kpoints_settings:
     grid_density: 100
