@@ -162,6 +162,7 @@ class ForceFW(Firework):
                 max_cores=max_cores,
                 max_errors=max_errors,
                 job_type="normal",
+                save_scratch=True,
             )
         )
         t.append(
