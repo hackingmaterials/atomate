@@ -108,7 +108,7 @@ class QChemToDb(FiretaskBase):
                         split_line = line.split()
                         if len(split_line) == 3:
                             grad.append([float(split_line[0]), float(split_line[1]), float(split_line[2])])
-                task_doc["output"]["precise_grad"] = grad
+                task_doc["output"]["precise_gradients"] = grad
 
 
         # Check for additional keys to set based on the fw_spec

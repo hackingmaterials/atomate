@@ -23,9 +23,9 @@ class TestParseOutputQChem(AtomateTest):
         ft.run_task({})
         task_doc = loadfn(os.path.join(my_calc_dir,"task.json"))
         self.assertEqual(task_doc["output"]["final_energy"], -274.6893362188)
-        self.assertEqual(len(task_doc["output"]["precise_grad"]), 10)
-        self.assertEqual(task_doc["output"]["precise_grad"][0], [0.0090906486788787, 0.016150932052898, 0.0054568671405536])
-        self.assertEqual(task_doc["output"]["precise_grad"][-1], [0.0014495621906601, -0.0018570062958895, 0.0012478282193499])
+        self.assertEqual(len(task_doc["output"]["precise_gradients"]), 10)
+        self.assertEqual(task_doc["output"]["precise_gradients"][0], [0.0090906486788787, 0.016150932052898, 0.0054568671405536])
+        self.assertEqual(task_doc["output"]["precise_gradients"][-1], [0.0014495621906601, -0.0018570062958895, 0.0012478282193499])
         os.remove(os.path.join(my_calc_dir, "task.json"))
 
     def test_parse_grad_bad(self):
