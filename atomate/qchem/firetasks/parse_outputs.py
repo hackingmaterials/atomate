@@ -1,5 +1,6 @@
 import json
 import os
+from monty.io import zopen
 
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
@@ -50,6 +51,7 @@ class QChemToDb(FiretaskBase):
         "calc_loc",
         "input_file",
         "output_file",
+        "parse_grad_file",
         "additional_fields",
         "db_file",
         "fw_spec_field",
@@ -83,6 +85,31 @@ class QChemToDb(FiretaskBase):
             output_file=output_file,
             multirun=multirun,
         )
+
+        # parse the GRAD file, if desired and if it is present
+        if self.get("parse_grad_file", False):
+            grad_file = None
+            if os.path.exists(os.path.join(calc_dir,"GRAD.gz")):
+                grad_file = os.path.join(calc_dir,"GRAD.gz")
+            elif os.path.exists(os.path.join(calc_dir,"GRAD")):
+                grad_file = os.path.join(calc_dir,"GRAD")
+            elif os.path.exists(os.path.join(calc_dir,"scratch/GRAD.gz")):
+                grad_file = os.path.join(calc_dir,"scratch/GRAD.gz")
+            elif os.path.exists(os.path.join(calc_dir,"scratch/GRAD")):
+                grad_file = os.path.join(calc_dir,"scratch/GRAD")
+
+            if grad_file is None:
+                task_doc["warnings"]["grad_file_missing"] = True
+            else:
+                grad = []
+                with zopen(grad_file, mode="rt", encoding="ISO-8859-1") as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        split_line = line.split()
+                        if len(split_line) == 3:
+                            grad.append([float(split_line[0]), float(split_line[1]), float(split_line[2])])
+                task_doc["output"]["precise_grad"] = grad
+
 
         # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):

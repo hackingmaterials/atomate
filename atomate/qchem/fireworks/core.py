@@ -170,6 +170,7 @@ class ForceFW(Firework):
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
+                parse_grad_file=True,
                 additional_fields={"task_label": name},
             )
         )
