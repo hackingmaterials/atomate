@@ -109,6 +109,8 @@ class QChemToDb(FiretaskBase):
                         if len(split_line) == 3:
                             grad.append([float(split_line[0]), float(split_line[1]), float(split_line[2])])
                 task_doc["output"]["precise_gradients"] = grad
+                if os.path.exists(os.path.join(calc_dir,"scratch")):
+                    shutil.rmtree(os.path.join(calc_dir,"scratch"))
 
 
         # Check for additional keys to set based on the fw_spec
