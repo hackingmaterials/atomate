@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 from monty.io import zopen
 
 from fireworks import FiretaskBase, FWAction, explicit_serialize
