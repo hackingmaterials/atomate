@@ -136,8 +136,6 @@ class ProtCalcToDb(FiretaskBase):
         additional_fields (dict): dict of additional fields to add
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
-        multirun (bool): Whether the job to parse includes multiple
-            calculations in one input / output pair.
         runs (list): Series of file suffixes that the Drone should look for
             when parsing output.
     """
@@ -151,7 +149,6 @@ class ProtCalcToDb(FiretaskBase):
         "output_file_H2",
         "additional_fields",
         "db_file",
-        "multirun",
         "runs",
     ]
 
@@ -166,7 +163,6 @@ class ProtCalcToDb(FiretaskBase):
         output_file_H0 = self.get("output_file_H0", "H0.qout")
         input_file_H2 = self.get("input_file_H2", "H2_plus.qin")
         output_file_H2 = self.get("output_file_H2", "H2_plus.qout")
-        multirun = self.get("multirun", False)
         runs = self.get("runs", None)
 
         # parse the QChem directory
@@ -181,14 +177,14 @@ class ProtCalcToDb(FiretaskBase):
             path=calc_dir,
             input_file=input_file_H0,
             output_file=output_file_H0,
-            multirun=multirun,
+            multirun=False,
         )
 
         task_doc_2 = drone.assimilate(
             path=calc_dir,
             input_file=input_file_H2,
             output_file=output_file_H2,
-            multirun=multirun,
+            multirun=False,
         )
 
         task_doc_clean = task_doc_1

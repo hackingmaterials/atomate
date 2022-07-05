@@ -136,7 +136,7 @@ class TestCore(AtomateTest):
         self.assertEqual(firework.parents, [])
         self.assertEqual(firework.name, "special single point")
 
-    def test_ProtonEnergyFW_not_defaults(self):
+    def test_ProtonEnergyFW(self):
         H_site = Site("H", [0.0, 0.0, 0.0])
         H_site_inf = Site("H", [100000.0, 0.0, 0.0])
         H0_atom = Molecule.from_sites([H_site])
