@@ -146,3 +146,101 @@ class QChemToDb(FiretaskBase):
             stored_data={"task_id": task_doc.get("task_id", None)},
             update_spec=update_spec,
         )
+
+
+@explicit_serialize
+class ProtCalcToDb(FiretaskBase):
+    """
+    Enter a QChem run of a proton into the database. Uses current directory unless you
+    specify calc_dir or calc_loc.
+
+    Optional params:
+        calc_dir (str): path to dir (on current filesystem) that contains QChem
+            input and output files for both the H0 and H2+. Default: use current working directory.
+        calc_loc (str OR bool): if True will set most recent calc_loc. If str
+            search for the most recent calc_loc with the matching name
+        input_file_H0 (str): name of the QChem input file for H0 calculation
+        output_file_H0 (str): name of the QChem output file for H0 calculation
+        input_file_H2 (str): name of the QChem input file for H2 calculation
+        output_file_H2 (str): name of the QChem output file for H2 calculation
+        additional_fields (dict): dict of additional fields to add
+        db_file (str): path to file containing the database credentials.
+            Supports env_chk. Default: write data to JSON file.
+        runs (list): Series of file suffixes that the Drone should look for
+            when parsing output.
+    """
+
+    optional_params = [
+        "calc_dir",
+        "calc_loc",
+        "input_file_H0",
+        "output_file_H0",
+        "input_file_H2",
+        "output_file_H2",
+        "additional_fields",
+        "db_file",
+        "runs",
+    ]
+
+    def run_task(self, fw_spec):
+        # get the directory that contains the QChem dir to parse
+        calc_dir = os.getcwd()
+        if "calc_dir" in self:
+            calc_dir = self["calc_dir"]
+        elif self.get("calc_loc"):
+            calc_dir = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])["path"]
+        input_file_H0 = self.get("input_file_H0", "H0.qin")
+        output_file_H0 = self.get("output_file_H0", "H0.qout")
+        input_file_H2 = self.get("input_file_H2", "H2_plus.qin")
+        output_file_H2 = self.get("output_file_H2", "H2_plus.qout")
+        runs = self.get("runs", None)
+
+        # parse the QChem directory
+        logger.info(f"PARSING DIRECTORY: {calc_dir}")
+
+        additional_fields = self.get("additional_fields", {})
+
+        drone = QChemDrone(runs=runs, additional_fields=additional_fields)
+
+        # assimilate (i.e., parse)
+        task_doc_1 = drone.assimilate(
+            path=calc_dir,
+            input_file=input_file_H0,
+            output_file=output_file_H0,
+            multirun=False,
+        )
+
+        task_doc_2 = drone.assimilate(
+            path=calc_dir,
+            input_file=input_file_H2,
+            output_file=output_file_H2,
+            multirun=False,
+        )
+
+        task_doc_clean = task_doc_1
+        task_doc_clean["calcs_reversed"].append(task_doc_2["calcs_reversed"][0])
+        task_doc_clean["input"]["initial_molecule"]["charge"] = 1
+        task_doc_clean["input"]["initial_molecule"]["spin_multiplicity"] = 1
+        task_doc_clean["orig"]["molecule"]["charge"] = 1
+        task_doc_clean["orig"]["molecule"]["spin_multiplicity"] = 1
+        task_doc_clean["output"]["initial_molecule"]["charge"] = 1
+        task_doc_clean["output"]["initial_molecule"]["spin_multiplicity"] = 1
+        task_doc_clean["output"]["final_energy"] = (
+            task_doc_2["output"]["final_energy"] - task_doc_1["output"]["final_energy"]
+        )
+
+        # get the database connection
+        db_file = env_chk(self.get("db_file"), fw_spec)
+
+        # db insertion or taskdoc dump
+        if not db_file:
+            with open(os.path.join(calc_dir, "task.json"), "w") as f:
+                f.write(json.dumps(task_doc_clean, default=DATETIME_HANDLER))
+        else:
+            mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
+            t_id = mmdb.insert(task_doc_clean)
+            logger.info(f"Finished parsing with task_id: {t_id}")
+
+        return FWAction(
+            stored_data={"task_id": task_doc_clean.get("task_id", None)},
+        )
