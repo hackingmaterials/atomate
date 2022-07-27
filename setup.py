@@ -34,7 +34,6 @@ if __name__ == "__main__":
             "pydash>=4.1.0",
             "pymatgen-analysis-diffusion",
             "pymatgen",
-            "pymatgen-analysis-defects",
             "pymongo",
             "pyyaml>=5.1.2",
             "ruamel.yaml",
@@ -45,10 +44,12 @@ if __name__ == "__main__":
             "plotting": ["matplotlib>=1.5.2"],
             "phonons": ["phonopy>=1.10.8"],
             "qchem": ["openbabel"],
+            "defects": ["pymatgen-analysis-defects"],
             "complete": [
                 "matplotlib>=1.5.2",
                 "phonopy>=1.10.8",
                 "openbabel",
+                "pymatgen-analysis-defects",
             ],
         },
         classifiers=[
