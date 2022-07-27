@@ -2,6 +2,8 @@
 Defines standardized Fireworks that can be chained easily to perform various
 sequences of VASP calculations.
 """
+from __future__ import annotations
+
 import warnings
 from typing import Any
 
