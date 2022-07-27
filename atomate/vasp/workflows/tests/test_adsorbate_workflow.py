@@ -51,7 +51,7 @@ class TestAdsorptionWorkflow(AtomateTest):
             db_file=os.path.join(db_dir, "db.json"),
         )
 
-    @unittest.skip("The expected behaviour of these functions has changed.")
+    @unittest.skip("The expected behavior of these functions has changed.")
     def test_wf_functions(self):
         # Test slab trans params generator
         for slab in self.slabs:
@@ -135,7 +135,7 @@ class TestAdsorptionWorkflow(AtomateTest):
 
     def _check_run(self, d, mode):
         if mode not in ["H1-Ir_(1, 0, 0) adsorbate optimization 1", "oriented_ucell"]:
-            raise ValueError("Invalid mode!")
+            raise ValueError(f"Invalid {mode=}!")
 
         if "adsorbate" in mode:
             self.assertEqual(d["formula_reduced_abc"], "H1 Ir16")

@@ -214,7 +214,7 @@ def add_trackers(original_wf, tracked_files=None, nlines=25):
     trackers = [Tracker(f, nlines=nlines, allow_zipped=True) for f in tracked_files]
 
     idx_list = get_fws_and_tasks(original_wf, task_name_constraint="RunVasp")
-    for idx_fw, idx_t in idx_list:
+    for idx_fw, _ in idx_list:
         if "_trackers" in original_wf.fws[idx_fw].spec:
             original_wf.fws[idx_fw].spec["_trackers"].extend(trackers)
         else:
