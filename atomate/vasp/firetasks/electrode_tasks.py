@@ -1,7 +1,6 @@
 import math
 
 from fireworks import FiretaskBase, Firework, FWAction, Workflow, explicit_serialize
-from pymatgen.analysis.defects.utils import ChargeInsertionAnalyzer
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core import Structure
 
@@ -11,6 +10,15 @@ from atomate.vasp.config import DB_FILE
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.firetasks import pass_vasp_result
 from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
+
+try:
+    from pymatgen.analysis.defects import ChargeInsertionAnalyzer
+except ImportError:
+    print(
+        "Failed to import ChargeInsertionAnalyzer. This is likely due to converting the pymatgen defects module "
+        "to a namespace package. See https://github.com/materialsproject/pymatgen/pull/2582#issuecomment-1198318101 "
+        "for updates."
+    )
 
 __author__ = "Jimmy Shen"
 __email__ = "jmmshn@lbl.gov"
