@@ -63,9 +63,6 @@ class WriteInputFromIOSet(FiretaskBase):
 
         # Fix deprecated input parameters
         qchem_input_params = self.get("qchem_input_params", {})
-        if "dft_rung" in qchem_input_params:
-            dft_level = qchem_input_params.pop("dft_rung")
-            qchem_input_params["dft_level"] = dft_level
         if "new_geom_opt" in qchem_input_params:
             geom_opt = qchem_input_params.pop("new_geom_opt")
             qchem_input_params["geom_opt"] = geom_opt

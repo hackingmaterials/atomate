@@ -28,6 +28,9 @@ class TestWriteInputQChem(AtomateTest):
         cls.co_opt_ref_in = QCInput.from_file(
             os.path.join(module_dir, "..", "..", "test_files", "co_qc.in")
         )
+        cls.co_opt_diff_in = QCInput.from_file(
+            os.path.join(module_dir, "..", "..", "test_files", "co_qc_diff.in")
+        )
         cls.opt_mol_ref_in = QCInput.from_file(
             os.path.join(module_dir, "..", "..", "test_files", "to_opt.qin")
         )
@@ -62,18 +65,37 @@ class TestWriteInputQChem(AtomateTest):
             self.assertEqual(v, test_dict[k])
 
     def test_write_input_from_io_set_v5_deprecated_params(self):
-        params = {"qchem_version": 5, "basis_set": "def2-svpd", "dft_rung": 5, "new_geom_opt":{}}
-        ft = WriteInputFromIOSet(molecule=self.co_mol, qchem_input_set="OptSet", qchem_input_params=params, write_to_dir=module_dir)
+        params = {
+            "qchem_version": 5,
+            "basis_set": "def2-svpd",
+            "dft_rung": 4,
+            "new_geom_opt": {},
+        }
+        ft = WriteInputFromIOSet(
+            molecule=self.co_mol,
+            qchem_input_set="OptSet",
+            qchem_input_params=params,
+            write_to_dir=module_dir,
+        )
         ft.run_task({})
-        test_dict = QCInput.from_file(os.path.join(module_dir,"mol.qin")).as_dict()
+        test_dict = QCInput.from_file(os.path.join(module_dir, "mol.qin")).as_dict()
         for k, v in self.v5_ref_in.as_dict().items():
             self.assertEqual(v, test_dict[k])
 
     def test_write_input_from_io_set_v6_deprecated_params(self):
-        params = {"qchem_version": 6, "basis_set": "def2-svpd", "dft_rung": 5, "new_geom_opt":{}}
-        ft = WriteInputFromIOSet(molecule=self.co_mol, qchem_input_set="OptSet", qchem_input_params=params, write_to_dir=module_dir)
+        params = {
+            "qchem_version": 6,
+            "basis_set": "def2-svpd",
+            "dft_rung": 4,
+        }
+        ft = WriteInputFromIOSet(
+            molecule=self.co_mol,
+            qchem_input_set="OptSet",
+            qchem_input_params=params,
+            write_to_dir=module_dir,
+        )
         ft.run_task({})
-        test_dict = QCInput.from_file(os.path.join(module_dir,"mol.qin")).as_dict()
+        test_dict = QCInput.from_file(os.path.join(module_dir, "mol.qin")).as_dict()
         for k, v in self.v6_ref_in.as_dict().items():
             self.assertEqual(v, test_dict[k])
 
@@ -143,7 +165,7 @@ class TestWriteInputQChem(AtomateTest):
         ft = WriteInput(qc_input=qc_input)
         ft.run_task({})
         test_dict = QCInput.from_file("mol.qin").as_dict()
-        for k, v in self.co_opt_ref_in.as_dict().items():
+        for k, v in self.co_opt_diff_in.as_dict().items():
             self.assertEqual(v, test_dict[k])
 
     def test_write_custom_input(self):
@@ -166,7 +188,7 @@ class TestWriteInputQChem(AtomateTest):
         ft = WriteCustomInput(molecule=mol, rem=rem)
         ft.run_task({})
         test_dict = QCInput.from_file("mol.qin").as_dict()
-        for k, v in self.co_opt_ref_in.as_dict().items():
+        for k, v in self.co_opt_diff_in.as_dict().items():
             self.assertEqual(v, test_dict[k])
 
 
