@@ -9,14 +9,14 @@ from pymatgen.io.qchem.inputs import QCInput
 
 from atomate.utils.utils import load_class
 
-__author__ = "Brandon Wood"
+__author__ = "Brandon Wood, Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
 __version__ = "0.1"
-__maintainer__ = "Brandon Wood"
-__email__ = "b.wood@berkeley.edu"
+__maintainer__ = "Samuel Blau"
+__email__ = "samblau1@gmail.com"
 __status__ = "Alpha"
 __date__ = "5/20/18"
-__credits__ = "Sam Blau, Shyam Dwaraknath"
+__credits__ = "Shyam Dwaraknath"
 
 
 @explicit_serialize
@@ -61,6 +61,15 @@ class WriteInputFromIOSet(FiretaskBase):
             self.get("write_to_dir", ""), self.get("input_file", "mol.qin")
         )
 
+        # Fix deprecated input parameters
+        qchem_input_params = self.get("qchem_input_params", {})
+        if "dft_rung" in qchem_input_params:
+            dft_level = qchem_input_params.pop("dft_rung")
+            qchem_input_params["dft_level"] = dft_level
+        if "new_geom_opt" in qchem_input_params:
+            geom_opt = qchem_input_params.pop("new_geom_opt")
+            qchem_input_params["geom_opt"] = geom_opt
+
         # if a full QChemDictSet object was provided
         if hasattr(self["qchem_input_set"], "write_file"):
             qcin = self["qchem_input_set"]
@@ -92,11 +101,11 @@ class WriteInputFromIOSet(FiretaskBase):
                 mol = prev_calc_mol
 
             qcin_cls = load_class("pymatgen.io.qchem.sets", self["qchem_input_set"])
-            qcin = qcin_cls(mol, **self.get("qchem_input_params", {}))
+            qcin = qcin_cls(mol, **qchem_input_params)
         # if a molecule is only included as an optional parameter
         elif self.get("molecule"):
             qcin_cls = load_class("pymatgen.io.qchem.sets", self["qchem_input_set"])
-            qcin = qcin_cls(self.get("molecule"), **self.get("qchem_input_params", {}))
+            qcin = qcin_cls(self.get("molecule"), **qchem_input_params)
         # if no molecule is present raise an error
         else:
             raise KeyError(

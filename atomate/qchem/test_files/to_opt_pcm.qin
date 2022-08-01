@@ -13,7 +13,7 @@ $end
 
 $rem
    BASIS  =  def2-tzvppd
-   METHOD  =  wb97xd
+   METHOD  =  wb97xv
    JOB_TYPE  =  Opt
    gen_scfman = True
    scf_algorithm = diis
