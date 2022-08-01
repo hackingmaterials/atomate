@@ -23,6 +23,5 @@ $end
 $geom_opt
    maxiter = 200
    coordinates = redundant
-   max_displacement = 0.019127302
    optimization_restart = false
 $end
