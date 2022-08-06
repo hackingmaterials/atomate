@@ -87,6 +87,7 @@ class TestWriteInputQChem(AtomateTest):
             "qchem_version": 6,
             "basis_set": "def2-svpd",
             "dft_rung": 4,
+            "new_geom_opt": {},
         }
         ft = WriteInputFromIOSet(
             molecule=self.co_mol,
