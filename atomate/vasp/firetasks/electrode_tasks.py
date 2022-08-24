@@ -29,7 +29,7 @@ Should only be used by the `get_ion_insertion_wf` function.
 
 Note:
 The workflow passes data to fw_spec extensively and requires specific fields in the spec to be updated.
-Example, the base_taks_id must be stored and the spec and updated as the workflow runs so you have to set
+Example, the base_task_id must be stored and the spec and updated as the workflow runs so you have to set
 ```
 {
     "store_volumetric_data": vasptodb_kwargs_vol_data[volumetric_data_type],

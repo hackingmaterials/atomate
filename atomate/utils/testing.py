@@ -14,12 +14,10 @@ __email__ = "kmathew@lbl.gov"
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_DIR = os.path.join(MODULE_DIR, "..", "common", "test_files")
 
-DEBUG_MODE = (
-    False  # If true, retains the database and output dirs at the end of the test
-)
-VASP_CMD = (
-    None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-)
+# If DEBUG_MODE = true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False
+# If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+VASP_CMD = None
 
 
 class AtomateTest(unittest.TestCase):

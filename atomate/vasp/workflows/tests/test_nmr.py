@@ -14,12 +14,10 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 reference_dir = os.path.join(module_dir, "..", "..", "test_files", "nmr_wf")
 
-DEBUG_MODE = (
-    False  # If True, retains the database and output dirs at the end of the test
-)
-VASP_CMD = (
-    None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-)
+# If DEBUG_MODE = true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False
+# If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+VASP_CMD = None
 _write_task_docs = (
     False  # Test developer option: defaults to False, need to be True only once
 )

@@ -14,9 +14,8 @@ __email__ = "kmathew@lbl.gov"
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
-DEBUG_MODE = (
-    False  # If true, retains the database and output dirs at the end of the test
-)
+# If DEBUG_MODE = true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False
 
 
 class TestEELSWorkflow(AtomateTest):
