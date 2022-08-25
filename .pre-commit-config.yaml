@@ -20,7 +20,6 @@ repos:
     rev: 4.0.1
     hooks:
       - id: flake8
-        args: [--max-line-length=125]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.3.0

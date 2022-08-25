@@ -139,7 +139,7 @@ In the same directory as the POSCAR, create a Python script named ``mgo_bandstru
     # create the Workflow
     wf = wf_bandstructure(struct)
 
-    # finally, instatiate the LaunchPad and add the workflow to it
+    # finally, instantiate the LaunchPad and add the workflow to it
     lpad = LaunchPad.auto_load() # loads this based on the FireWorks configuration
     lpad.add_wf(wf)
 
@@ -188,7 +188,7 @@ Simply add the following Python script (``bs-analysis.py``) to your folder, **ch
     # use the get_dos method of the database to get the pymatgen CompleteDOS for that task id
     uniform_bs_entry = atomate_db.collection.find_one({'task_label': 'nscf uniform', 'formula_pretty': 'MgO'})
     complete_dos = atomate_db.get_dos(uniform_bs_entry['task_id'])
-    # Instatiate a DosPlotter and plot the DOS.
+    # instantiate a DosPlotter and plot the DOS.
     # Comment out the get_plot and uncomment save_plot if you have no GUI frontend to plot to.
     dos_plotter = DosPlotter()
     dos_plotter.add_dos_dict(complete_dos.get_element_dos())
@@ -203,7 +203,7 @@ Simply add the following Python script (``bs-analysis.py``) to your folder, **ch
     # use the get_band_structure method of the database to get the pymatgen BandStructureSymmLine for that task id
     line_bs_entry = atomate_db.collection.find_one({'task_label': 'nscf line', 'formula_pretty': 'MgO'})
     bandstructure = atomate_db.get_band_structure(line_bs_entry['task_id'])
-    # Instatiate a bandstructure plotter and plot the bandstructure.
+    # instantiate a bandstructure plotter and plot the bandstructure.
     # You can uncomment out the get_plot if you have a GUI frontend to plot to.
     bs_plotter = BSPlotter(bandstructure)
     bs_plotter.get_plot()
