@@ -22,9 +22,8 @@ reference_dir = os.path.join(module_dir, "..", "..", "test_files", "bulk_modulus
 DEBUG_MODE = False
 # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
 VASP_CMD = None
-_write_task_docs = (
-    False  # Test developer option: defaults to False, need to be True only once
-)
+# Test developer option: defaults to False, need to be True only once
+_write_task_docs = False
 
 
 class TestBulkModulusWorkflow(AtomateTest):
@@ -44,10 +43,10 @@ class TestBulkModulusWorkflow(AtomateTest):
     def setUp(self):
         super().setUp()
         self.struct_si = PymatgenTest.get_structure("Si")
-        self.ndeformations = 6
+        self.n_deformations = 6
         self.deformations = [
             (np.identity(3) * (1 + x)).tolist()
-            for x in np.linspace(-0.05, 0.05, self.ndeformations)
+            for x in np.linspace(-0.05, 0.05, self.n_deformations)
         ]
         self.wf_config = {"VASP_CMD": ">>vasp_cmd<<", "DB_FILE": ">>db_file<<"}
         self.wf = wf_bulk_modulus(self.struct_si, self.wf_config)
@@ -55,7 +54,7 @@ class TestBulkModulusWorkflow(AtomateTest):
     def _simulate_vasprun(self, wf):
         no_vasp_ref_dirs = {}
         fake_vasp_ref_dirs = {}
-        for i in range(2, self.ndeformations + 2):
+        for i in range(2, self.n_deformations + 2):
             if os.path.exists(os.path.join(reference_dir, str(i), "inputs")):
                 if not VASP_CMD:
                     fake_vasp_ref_dirs[
@@ -119,8 +118,8 @@ class TestBulkModulusWorkflow(AtomateTest):
         elif mode in ["fit equation of state"]:
             self.assertAlmostEqual(d["bulk_modulus"], 88.90, places=2)
             self.assertEqual(len(d["all_task_ids"]), 7)
-            self.assertEqual(len(d["energies"]), self.ndeformations)
-            self.assertEqual(len(d["volumes"]), self.ndeformations)
+            self.assertEqual(len(d["energies"]), self.n_deformations)
+            self.assertEqual(len(d["volumes"]), self.n_deformations)
             s = SpacegroupAnalyzer(
                 Structure.from_dict(d["structure"])
             ).get_conventional_standard_structure()
@@ -128,7 +127,7 @@ class TestBulkModulusWorkflow(AtomateTest):
 
     def setup_task_docs(self):
         self.task_file = "task.json"
-        for i in range(2, self.ndeformations + 2):
+        for i in range(2, self.n_deformations + 2):
             if os.path.exists(os.path.join(reference_dir, str(i), self.task_file)):
                 with open(os.path.join(reference_dir, str(i), self.task_file)) as fp:
                     d = json.load(fp)
@@ -161,7 +160,7 @@ class TestBulkModulusWorkflow(AtomateTest):
 
     def write_task_docs(self):
         # this step needs to be run once: once task.json is present, remove the inputs/outputs folders
-        for i in range(2, self.ndeformations + 2):
+        for i in range(2, self.n_deformations + 2):
             # not to unnecessarily override available task.json
             if not os.path.exists(os.path.join(reference_dir, str(i), "task.json")):
                 d = self.get_task_collection().find_one(
@@ -186,7 +185,7 @@ class TestBulkModulusWorkflow(AtomateTest):
 
     def test_wf(self):
         self.wf = self._simulate_vasprun(self.wf)
-        self.assertEqual(len(self.wf.fws), self.ndeformations + 2)
+        self.assertEqual(len(self.wf.fws), self.n_deformations + 2)
 
         defo_vis = [
             fw.tasks[2]["vasp_input_set"] for fw in self.wf.fws if "deform" in fw.name
