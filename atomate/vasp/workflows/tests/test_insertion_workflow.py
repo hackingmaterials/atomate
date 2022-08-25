@@ -12,7 +12,7 @@ from atomate.vasp.powerups import add_modify_incar, use_fake_vasp, use_potcar_sp
 from atomate.vasp.workflows.base.electrode import get_ion_insertion_wf
 
 try:
-    from pymatgen.analysis.defects import ChargeInsertionAnalyzer
+    from pymatgen.analysis.defects.utils import ChargeInsertionAnalyzer
 except ImportError:
     ChargeInsertionAnalyzer = None
 
