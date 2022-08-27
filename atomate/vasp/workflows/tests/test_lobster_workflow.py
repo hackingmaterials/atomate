@@ -20,9 +20,8 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 DEBUG_MODE = (
     True  # If True, retains the database and output dirs at the end of the test
 )
-VASP_CMD = (
-    None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-)
+# If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+VASP_CMD = None
 _write_task_docs = (
     True  # Test developer option: defaults to False, need to be True only once
 )
