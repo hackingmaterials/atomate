@@ -24,12 +24,10 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 ref_dir = os.path.join(module_dir, "..", "..", "test_files")
 
-DEBUG_MODE = (
-    False  # If true, retains the database and output dirs at the end of the test
-)
-VASP_CMD = (
-    None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-)
+# If DEBUG_MODE = true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False
+# If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+VASP_CMD = None
 
 
 class TestAdsorptionWorkflow(AtomateTest):
@@ -51,7 +49,7 @@ class TestAdsorptionWorkflow(AtomateTest):
             db_file=os.path.join(db_dir, "db.json"),
         )
 
-    @unittest.skip("The expected behaviour of these functions has changed.")
+    @unittest.skip("The expected behavior of these functions has changed.")
     def test_wf_functions(self):
         # Test slab trans params generator
         for slab in self.slabs:
@@ -135,7 +133,7 @@ class TestAdsorptionWorkflow(AtomateTest):
 
     def _check_run(self, d, mode):
         if mode not in ["H1-Ir_(1, 0, 0) adsorbate optimization 1", "oriented_ucell"]:
-            raise ValueError("Invalid mode!")
+            raise ValueError(f"Invalid {mode=}!")
 
         if "adsorbate" in mode:
             self.assertEqual(d["formula_reduced_abc"], "H1 Ir16")

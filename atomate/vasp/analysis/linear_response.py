@@ -253,29 +253,32 @@ def inverse_matrix_uncertainty(matrix, matrix_covar):
     jacobians = [[] for i in range(m)]
 
     det = np.linalg.det(matrix)
-    for i in range(m):
-        for j in range(n):
-            mji = np.delete(np.delete(matrix, j, 0), i, 1)
-            minor = (-1) ** (i + j) * np.linalg.det(mji)
+    for idx in range(m):
+        for jdx in range(n):
+            mji = np.delete(np.delete(matrix, jdx, 0), idx, 1)
+            minor = (-1) ** (idx + jdx) * np.linalg.det(mji)
 
             j_matrix = np.zeros([m, n])
-            for k in range(m):
-                for l in range(n):
-                    det_p = det_deriv(matrix, k, l)
+            for kdx in range(m):
+                for ldx in range(n):
+                    det_p = det_deriv(matrix, kdx, ldx)
 
-                    if k == j or l == i:
+                    if kdx == jdx or ldx == idx:
                         minor_p = 0.0
                     else:
-                        kk, ll = k - 1 if k > j else k, l - 1 if l > i else l
-                        minor_p = (-1) ** (i + j) * det_deriv(mji, kk, ll)
+                        kk, ll = (
+                            kdx - 1 if kdx > jdx else kdx,
+                            ldx - 1 if ldx > idx else ldx,
+                        )
+                        minor_p = (-1) ** (idx + jdx) * det_deriv(mji, kk, ll)
 
-                    j_matrix[k, l] = (minor_p * det - minor * det_p) / det**2
+                    j_matrix[kdx, ldx] = (minor_p * det - minor * det_p) / det**2
 
-            jacobians[i].append(j_matrix)
+            jacobians[idx].append(j_matrix)
 
             j_vec = np.reshape(j_matrix, [m * n, 1])
             sigma_f = np.sum(np.dot(np.transpose(j_vec), np.dot(matrix_covar, j_vec)))
-            matrixinv_var[i, j] = sigma_f
+            matrixinv_var[idx, jdx] = sigma_f
 
     return matrixinv, matrixinv_var, jacobians
 

@@ -15,9 +15,8 @@ ref_dir = os.path.join(module_dir, "..", "..", "test_files")
 DEBUG_MODE = (
     True  # If true, retains the database and output dirs at the end of the test
 )
-VASP_CMD = (
-    None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-)
+# If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+VASP_CMD = None
 
 
 class TestFerroelectricWorkflow(AtomateTest):
