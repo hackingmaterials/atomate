@@ -8,6 +8,7 @@ pandas==1.4.4
 paramiko==2.11.0
 pydash==5.1.0
 pymatgen-analysis-diffusion==2022.7.21
+pymatgen-analysis-defects==2022.9.14
 pymatgen==2022.9.8
 pymongo==4.2.0
 ruamel.yaml==0.17.21
