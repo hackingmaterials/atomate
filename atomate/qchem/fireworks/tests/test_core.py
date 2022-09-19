@@ -151,8 +151,8 @@ class TestCore(AtomateTest):
             [H_site_1_H3O, H_site_2_H3O, H_site_3_H3O, O_site_H3O]
         )
 
-        H2O_molecule.set_charge_and_spin(0, 2)
-        H3O_ion.set_charge_and_spin(1, 2)
+        H2O_molecule.set_charge_and_spin(0, 1)
+        H3O_ion.set_charge_and_spin(1, 1)
 
         firework = ProtonEnergyFW(qchem_input_params={"smd_solvent": "water"})
         self.assertEqual(
