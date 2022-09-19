@@ -46,12 +46,10 @@ ref_dirs_si = {
 
 _fworker = FWorker(env={"db_file": os.path.join(db_dir, "db.json")})
 
-DEBUG_MODE = (
-    False  # If true, retains the database and output dirs at the end of the test
-)
-VASP_CMD = (
-    None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-)
+# If DEBUG_MODE = true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False
+# If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+VASP_CMD = None
 
 decoder = MontyDecoder()
 
