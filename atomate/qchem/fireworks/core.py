@@ -14,7 +14,6 @@ from atomate.qchem.firetasks.geo_transformations import PerturbGeometry
 from atomate.qchem.firetasks.parse_outputs import ProtCalcToDb, QChemToDb
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
-from pymatgen.core.structure import Molecule
 
 __author__ = "Samuel Blau, Evan Spotte-Smith"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -101,116 +100,6 @@ class SinglePointFW(Firework):
         )
         super().__init__(t, parents=parents, name=name, **kwargs)
 
-class ProtonEnergyFW(Firework):
-    def __init__(
-        self,
-        name="proton electronic energy",
-        qchem_cmd=">>qchem_cmd<<",
-        multimode=">>multimode<<",
-        max_cores=">>max_cores<<",
-        qchem_input_params=None,
-        db_file=None,
-        parents=None,
-        max_errors=5,
-        **kwargs
-    ):
-        """
-
-        Args:
-            name (str): Name for the Firework.
-            qchem_cmd (str): Command to run QChem. Supports env_chk.
-            multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
-            max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
-            qchem_input_params (dict): Specify kwargs for instantiating the input set parameters
-                calculating the electronic energy of the proton in a specific solvent environment.
-                The energy of the proton will be effectively zero in vacuum. Use either pcm_dieletric
-                or smd_solvent.Basic uses would be to modify the default inputs of the set, 
-                such as dft_rung, basis_set, pcm_dielectric, scf_algorithm, or max_scf_cycles. 
-                See pymatgen/io/qchem/sets.py for default values of all input parameters. For
-                instance, if a user wanted to use a more advanced DFT functional, include a pcm
-                with a dielectric of 30, and use a larger basis, the user would set
-                qchem_input_params = {"dft_rung": 5, "pcm_dielectric": 30, "basis_set":
-                "6-311++g**"}. However, more advanced customization of the input is also
-                possible through the overwrite_inputs key which allows the user to directly
-                modify the rem, pcm, smd, and solvent dictionaries that QChemDictSet passes to
-                inputs.py to print an actual input file. For instance, if a user wanted to set
-                the sym_ignore flag in the rem section of the input file to true, then they
-                would set qchem_input_params = {"overwrite_inputs": "rem": {"sym_ignore":
-                "true"}}. Of course, overwrite_inputs could be used in conjunction with more
-                typical modifications, as seen in the test_double_FF_opt workflow test.
-            db_file (str): Path to file specifying db credentials to place output parsing.
-            parents ([Firework]): Parents of this particular Firework.
-            **kwargs: Other kwargs that are passed to Firework.__init__.
-        """
-
-        qchem_input_params = qchem_input_params or {}
-        input_file_1 = "atom.qin"
-        output_file_1 = "atom.qout"
-        molecule_1 = Molecule.from_file("hydro_atom.xyz")
-        molecule_1.set_charge_and_spin(0,2)
-        input_file_2 = "ion.qin"
-        output_file_2 = "ion.qout"
-        molecule_2 = Molecule.from_file("hydro_ion_inf_sep.xyz")
-        molecule_2.set_charge_and_spin(1,2)
-        t = []
-        t.append(
-            WriteInputFromIOSet(
-                molecule=molecule_1,
-                qchem_input_set="SinglePointSet",
-                input_file=input_file_1,
-                qchem_input_params=qchem_input_params,
-            )
-        )
-        t.append(
-            RunQChemCustodian(
-                qchem_cmd=qchem_cmd,
-                multimode=multimode,
-                input_file=input_file_1,
-                output_file=output_file_1,
-                max_cores=max_cores,
-                max_errors=max_errors,
-                job_type="normal",
-            )
-        )
-        t.append(
-            QChemToDb(
-                db_file=db_file,
-                input_file=input_file_1,
-                output_file=output_file_1,
-                additional_fields={"task_label": name},
-            )
-        )
-        t.append(
-            WriteInputFromIOSet(
-                molecule=molecule_2,
-                qchem_input_set="SinglePointSet",
-                input_file=input_file_2,
-                qchem_input_params=qchem_input_params,
-
-            )
-        )
-        t.append(
-            RunQChemCustodian(
-                qchem_cmd=qchem_cmd,
-                multimode=multimode,
-                input_file=input_file_2,
-                output_file=output_file_2,
-                max_cores=max_cores,
-                max_errors=max_errors,
-                job_type="normal",
-            )
-        )
-        t.append(
-            QChemToDb(
-                db_file=db_file,
-                input_file=input_file_1,
-                output_file=output_file_1,
-                additional_fields={"task_label": name},
-            )
-        )
-
-        super().__init__(t, parents=parents, name=name, **kwargs)
-
 
 class ProtonEnergyFW(Firework):
     def __init__(
@@ -228,11 +117,11 @@ class ProtonEnergyFW(Firework):
         """
         For this custom Firework the electronic energy of a proton in a specific solvent environment is approximated.
         Since a proton has 0 electrons,running a QChem job would yield an error. The energy can be approximated by
-        calculating the electronic energy of a proton and a hydrogen atom at infinite separation and then subtracting
-        the electronic energy of a hydrogen atom. This Firework combines these two calculations and adds a task doc to the
+        calculating the electronic energy of a hydronium ion and a water molecule and then subtracting
+        the respective electronic energies. This Firework combines these two calculations and adds a task doc to the
         DB with the separate calculation details and the effective energy after subtraction.
 
-        Args:
+        Arg
             name (str): Name for the Firework.
             qchem_cmd (str): Command to run QChem. Supports env_chk.
             multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
@@ -261,21 +150,31 @@ class ProtonEnergyFW(Firework):
 
         qchem_input_params = qchem_input_params or {}
 
-        H_site = Site("H", [0.0, 0.0, 0.0])
-        H_site_inf = Site("H", [100000.0, 0.0, 0.0])
-        H0_atom = Molecule.from_sites([H_site])
-        H2_plus_mol = Molecule.from_sites([H_site, H_site_inf])
-        H0_atom.set_charge_and_spin(0, 2)
-        H2_plus_mol.set_charge_and_spin(1, 2)
-        input_file_1 = "H0.qin"
-        output_file_1 = "H0.qout"
-        input_file_2 = "H2_plus.qin"
-        output_file_2 = "H2_plus.qout"
+        H_site_1_H2O = Site("H", [0.18338, 2.20176, 0.01351])
+        H_site_2_H2O = Site("H", [-1.09531, 1.61602, 0.70231])
+        O_site_H2O = Site("O", [-0.80595, 2.22952, -0.01914])
+        H2O_molecule = Molecule.from_sites([H_site_1_H2O, H_site_2_H2O, O_site_H2O])
+
+        H_site_1_H3O = Site("H", [0.11550, 2.34733, 0.00157])
+        H_site_2_H3O = Site("H", [-1.17463, 1.77063, 0.67652])
+        H_site_3_H3O = Site("H", [-1.29839, 2.78012, -0.51436])
+        O_site_H3O = Site("O", [-0.78481, 1.99137, -0.20661])
+        H3O_ion = Molecule.from_sites(
+            [H_site_1_H3O, H_site_2_H3O, H_site_3_H3O, O_site_H3O]
+        )
+
+        H2O_molecule.set_charge_and_spin(0, 2)
+        H3O_ion.set_charge_and_spin(1, 2)
+
+        input_file_1 = "water.qin"
+        output_file_1 = "water.qout"
+        input_file_2 = "hydronium.qin"
+        output_file_2 = "hydronium.qout"
         t = []
         t.append(
             WriteInputFromIOSet(
-                molecule=H0_atom,
-                qchem_input_set="SinglePointSet",
+                molecule=H2O_molecule,
+                qchem_input_set="OptSet",
                 input_file=input_file_1,
                 qchem_input_params=qchem_input_params,
             )
@@ -295,8 +194,8 @@ class ProtonEnergyFW(Firework):
 
         t.append(
             WriteInputFromIOSet(
-                molecule=H2_plus_mol,
-                qchem_input_set="SinglePointSet",
+                molecule=H3O_ion,
+                qchem_input_set="OptSet",
                 input_file=input_file_2,
                 qchem_input_params=qchem_input_params,
             )
@@ -316,10 +215,10 @@ class ProtonEnergyFW(Firework):
         t.append(
             ProtCalcToDb(
                 db_file=db_file,
-                input_file_H0=input_file_1,
-                output_file_H0=output_file_1,
-                input_file_H2=input_file_2,
-                output_file_H2=output_file_2,
+                input_file_H2O=input_file_1,
+                output_file_H2O=output_file_1,
+                input_file_H3O=input_file_2,
+                output_file_H3O=output_file_2,
                 additional_fields={"task_label": name},
             )
         )
