@@ -828,9 +828,9 @@ class VaspDrone(AbstractDrone):
         # notice if the validation fails? -computron
         for k, v in self.schema.items():
             if k == "calcs_reversed":
-                diff = v.difference(set(d.get(k, d)[0].keys()))
+                diff = v - set(d.get(k, d)[0].keys())
             else:
-                diff = v.difference(set(d.get(k, d).keys()))
+                diff = v - set(d.get(k, d).keys())
             if diff:
                 logger.warning(f"The keys {diff} in {k} not set")
 

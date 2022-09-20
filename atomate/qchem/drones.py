@@ -508,7 +508,7 @@ class QChemDrone(AbstractDrone):
         to pass validation is unfortunately unlikely to be noticed by a user.
         """
         for k, v in self.schema.items():
-            diff = v.difference(set(d.get(k, d).keys()))
+            diff = v - set(d.get(k, d).keys())
             if diff:
                 logger.warning(f"The keys {diff} in {k} not set")
 
