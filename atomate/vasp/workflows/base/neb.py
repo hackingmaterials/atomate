@@ -83,7 +83,7 @@ def get_wf_neb_from_structure(
                     user_incar_settings is used to determine how many NEB rounds will be. Default
                     is [{}, {}, {}].
         additional_spec (dict): User spec settings to overwrite default_spec.
-        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at
+        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at
                     least three elements, which is similar to user_incar_settings. For example,
                     [{}, {}, {"grid_density": 100}] for the workflow from the parent structure
                     relaxation, then the endpoint relaxation followed by one-round NEB simulation.
@@ -170,7 +170,7 @@ def get_wf_neb_from_structure(
             )
         )
 
-        for i, label in enumerate(["ep0", "ep1"]):
+        for label in ["ep0", "ep1"]:
             fw = NEBRelaxationFW(
                 spec=spec,
                 label=label,
@@ -221,7 +221,7 @@ def get_wf_neb_from_endpoints(
                     user_incar_settings is used to determine how many NEB rounds will be. Default
                     is [{}, {}, {}].
         additional_spec (dict): User spec settings to overwrite default_spec.
-        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at
+        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at
                     least three elements, which is similar to user_incar_settings. For example,
                     [{}, {}, {"grid_density": 100}] for the workflow from the parent structure
                     relaxation, then the endpoint relaxation followed by one-round NEB simulation.
@@ -320,7 +320,7 @@ def get_wf_neb_from_images(
                     user_incar_settings is used to determine how many NEB rounds will be. Default
                     is [{}, {}, {}].
         additional_spec (dict): User spec settings to overwrite default_spec.
-        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at at
+        user_kpoints_settings ([dict]): Additional user_kpoints_settings, which contains at
                     least three elements, which is similar to user_incar_settings. For example,
                     [{}, {}, {"grid_density": 100}] for the workflow from the parent structure
                     relaxation, then the endpoint relaxation followed by one-round NEB simulation.
