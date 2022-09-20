@@ -495,7 +495,7 @@ class RamanTensorToDb(FiretaskBase):
         }
 
         # store the displacement & epsilon for each mode in a dictionary
-        mode_disps = fw_spec["raman_epsilon"].keys()
+        mode_disps = fw_spec["raman_epsilon"]
         modes_eps_dict = defaultdict(list)
         for md in mode_disps:
             modes_eps_dict[fw_spec["raman_epsilon"][md]["mode"]].append(

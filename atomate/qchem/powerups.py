@@ -25,7 +25,7 @@ def use_fake_qchem(original_wf, ref_dirs, input_file="mol.qin"):
         Workflow
     """
     for idx_fw, fw in enumerate(original_wf.fws):
-        for job_type in ref_dirs.keys():
+        for job_type in ref_dirs:
             if job_type == fw.name:
                 for idx_t, t in enumerate(fw.tasks):
                     if "RunQChemCustodian" in str(t) or "RunQChemDirect" in str(t):

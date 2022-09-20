@@ -213,12 +213,8 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("last_updated", doc)
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 4)
-        self.assertEqual(
-            list(doc["calcs_reversed"][0].keys()), list(doc["calcs_reversed"][2].keys())
-        )
-        self.assertEqual(
-            list(doc["calcs_reversed"][1].keys()), list(doc["calcs_reversed"][3].keys())
-        )
+        self.assertEqual(list(doc["calcs_reversed"][0]), list(doc["calcs_reversed"][2]))
+        self.assertEqual(list(doc["calcs_reversed"][1]), list(doc["calcs_reversed"][3]))
 
     def test_assimilate_bad_FF(self):
         drone = QChemDrone(
@@ -327,9 +323,7 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("last_updated", doc)
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 3)
-        self.assertEqual(
-            list(doc["calcs_reversed"][0].keys()), list(doc["calcs_reversed"][2].keys())
-        )
+        self.assertEqual(list(doc["calcs_reversed"][0]), list(doc["calcs_reversed"][2]))
 
     def test_assimilate_bad_ffts(self):
         drone = QChemDrone(

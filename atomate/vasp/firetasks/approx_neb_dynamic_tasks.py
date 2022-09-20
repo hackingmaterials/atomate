@@ -125,11 +125,11 @@ class GetImageFireworks(FiretaskBase):
         elif isinstance(structure_paths, (dict)):
             relax_image_fws = []
             if launch_mode == "all":
-                for key in structure_paths.keys():
+                for key in structure_paths:
                     for path in structure_paths[key]:
                         relax_image_fws.append(self.get_fw(structure_path=path))
             elif launch_mode == "screening":
-                for key in structure_paths.keys():
+                for key in structure_paths:
                     sorted_paths = structure_paths[key]
                     relax_image_fws.extend(
                         self.get_screening_fws(sorted_paths=sorted_paths)
@@ -137,7 +137,7 @@ class GetImageFireworks(FiretaskBase):
 
         # place fws in temporary wf in order to use powerup_by_kwargs
         # to apply powerups to image fireworks
-        if "vasp_powerups" in fw_spec.keys():
+        if "vasp_powerups" in fw_spec:
             temp_wf = Workflow(relax_image_fws)
             powerup_dicts = fw_spec["vasp_powerups"]
             temp_wf = powerup_by_kwargs(temp_wf, powerup_dicts)
@@ -177,7 +177,7 @@ class GetImageFireworks(FiretaskBase):
             add_tags=add_tags,
         )
         if isinstance(add_tags, list):
-            if "tags" in fw.spec.keys():
+            if "tags" in fw.spec:
                 fw.spec["tags"].extend(add_tags)
             else:
                 fw.spec["tags"] = add_tags

@@ -2,14 +2,14 @@
 
 [![Tests](https://github.com/hackingmaterials/atomate/actions/workflows/test.yml/badge.svg)](https://github.com/hackingmaterials/atomate/actions/workflows/test.yml)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/atomate?label=PyPI%20Downloads)](https://pypi.org/project/atomate)
-[![PyPI](https://img.shields.io/pypi/v/atomate?label=PyPI%20Release)](https://pypi.org/project/atomate)
-[![Requires Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg?label=Requires%20Python)](https://python.org/downloads)
+[![PyPI](https://img.shields.io/pypi/v/atomate?logo=pypi&logoColor=white)](https://pypi.org/project/atomate)
+[![Requires Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg?logo=python&logoColor=white)](https://python.org/downloads)
 
 atomate is a software for computational materials science that contains pre-built workflows to compute and analyze the properties of materials.
 
-- **Website (including documentation):** https://hackingmaterials.github.io/atomate/
-- **Help/Support:** https://discuss.matsci.org/c/atomate
-- **Source:** https://github.com/hackingmaterials/atomate
+- **Website (including documentation):** <https://hackingmaterials.github.io/atomate/>
+- **Help/Support:** <https://discuss.matsci.org/c/atomate>
+- **Source:** <https://github.com/hackingmaterials/atomate>
 
 If you find atomate useful, please encourage its development by citing the following paper in your research output:
 
