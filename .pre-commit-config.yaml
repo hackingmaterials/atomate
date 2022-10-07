@@ -9,16 +9,10 @@ default_install_hook_types: [pre-commit, commit-msg]
 exclude: ^(docs/|.*test_files/|.*tests/)
 
 repos:
-  - repo: https://github.com/myint/autoflake
+  - repo: https://github.com/PyCQA/autoflake
     rev: v1.4
     hooks:
       - id: autoflake
-        args:
-          - --in-place
-          - --remove-unused-variables
-          - --remove-all-unused-imports
-          - --expand-star-imports
-          - --ignore-init-module-imports
 
   - repo: https://github.com/psf/black
     rev: 22.6.0
@@ -29,6 +23,7 @@ repos:
     rev: 5.0.4
     hooks:
       - id: flake8
+        additional_dependencies: [flake8-bugbear]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.971
