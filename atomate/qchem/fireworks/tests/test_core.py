@@ -137,19 +137,30 @@ class TestCore(AtomateTest):
         self.assertEqual(firework.name, "special single point")
 
     def test_ProtonEnergyFW(self):
-        H_site = Site("H", [0.0, 0.0, 0.0])
-        H_site_inf = Site("H", [100000.0, 0.0, 0.0])
-        H0_atom = Molecule.from_sites([H_site])
-        H2_plus_mol = Molecule.from_sites([H_site, H_site_inf])
-        H0_atom.set_charge_and_spin(0, 2)
-        H2_plus_mol.set_charge_and_spin(1, 2)
+
+        H_site_1_H2O = Site("H", [0.18338, 2.20176, 0.01351])
+        H_site_2_H2O = Site("H", [-1.09531, 1.61602, 0.70231])
+        O_site_H2O = Site("O", [-0.80595, 2.22952, -0.01914])
+        H2O_molecule = Molecule.from_sites([H_site_1_H2O, H_site_2_H2O, O_site_H2O])
+
+        H_site_1_H3O = Site("H", [0.11550, 2.34733, 0.00157])
+        H_site_2_H3O = Site("H", [-1.17463, 1.77063, 0.67652])
+        H_site_3_H3O = Site("H", [-1.29839, 2.78012, -0.51436])
+        O_site_H3O = Site("O", [-0.78481, 1.99137, -0.20661])
+        H3O_ion = Molecule.from_sites(
+            [H_site_1_H3O, H_site_2_H3O, H_site_3_H3O, O_site_H3O]
+        )
+
+        H2O_molecule.set_charge_and_spin(0, 1)
+        H3O_ion.set_charge_and_spin(1, 1)
+
         firework = ProtonEnergyFW(qchem_input_params={"smd_solvent": "water"})
         self.assertEqual(
             firework.tasks[0].as_dict(),
             WriteInputFromIOSet(
-                molecule=H0_atom,
-                qchem_input_set="SinglePointSet",
-                input_file="H0.qin",
+                molecule=H2O_molecule,
+                qchem_input_set="OptSet",
+                input_file="water.qin",
                 qchem_input_params={"smd_solvent": "water"},
             ).as_dict(),
         )
@@ -158,8 +169,8 @@ class TestCore(AtomateTest):
             RunQChemCustodian(
                 qchem_cmd=">>qchem_cmd<<",
                 multimode=">>multimode<<",
-                input_file="H0.qin",
-                output_file="H0.qout",
+                input_file="water.qin",
+                output_file="water.qout",
                 max_cores=">>max_cores<<",
                 max_errors=5,
                 job_type="normal",
@@ -169,9 +180,9 @@ class TestCore(AtomateTest):
         self.assertEqual(
             firework.tasks[2].as_dict(),
             WriteInputFromIOSet(
-                molecule=H2_plus_mol,
-                qchem_input_set="SinglePointSet",
-                input_file="H2_plus.qin",
+                molecule=H3O_ion,
+                qchem_input_set="OptSet",
+                input_file="hydronium.qin",
                 qchem_input_params={"smd_solvent": "water"},
             ).as_dict(),
         )
@@ -180,8 +191,8 @@ class TestCore(AtomateTest):
             RunQChemCustodian(
                 qchem_cmd=">>qchem_cmd<<",
                 multimode=">>multimode<<",
-                input_file="H2_plus.qin",
-                output_file="H2_plus.qout",
+                input_file="hydronium.qin",
+                output_file="hydronium.qout",
                 max_cores=">>max_cores<<",
                 max_errors=5,
                 job_type="normal",
@@ -192,10 +203,10 @@ class TestCore(AtomateTest):
             firework.tasks[4].as_dict(),
             ProtCalcToDb(
                 db_file=None,
-                input_file_H0="H0.qin",
-                output_file_H0="H0.qout",
-                input_file_H2="H2_plus.qin",
-                output_file_H2="H2_plus.qout",
+                input_file_H2O="water.qin",
+                output_file_H2O="water.qout",
+                input_file_H3O="hydronium.qin",
+                output_file_H3O="hydronium.qout",
                 additional_fields={"task_label": "proton electronic energy"},
             ).as_dict(),
         )

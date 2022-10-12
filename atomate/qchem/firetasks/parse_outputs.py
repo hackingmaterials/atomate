@@ -126,13 +126,13 @@ class ProtCalcToDb(FiretaskBase):
 
     Optional params:
         calc_dir (str): path to dir (on current filesystem) that contains QChem
-            input and output files for both the H0 and H2+. Default: use current working directory.
+            input and output files for both the H2O and H3O+ calculations. Default: use current working directory.
         calc_loc (str OR bool): if True will set most recent calc_loc. If str
             search for the most recent calc_loc with the matching name
-        input_file_H0 (str): name of the QChem input file for H0 calculation
-        output_file_H0 (str): name of the QChem output file for H0 calculation
-        input_file_H2 (str): name of the QChem input file for H2 calculation
-        output_file_H2 (str): name of the QChem output file for H2 calculation
+        input_file_H2O (str): name of the QChem input file for H2O calculation
+        output_file_H2O (str): name of the QChem output file for H2O calculation
+        input_file_H3O (str): name of the QChem input file for H3O+ calculation
+        output_file_H3O (str): name of the QChem output file for H3O+ calculation
         additional_fields (dict): dict of additional fields to add
         db_file (str): path to file containing the database credentials.
             Supports env_chk. Default: write data to JSON file.
@@ -143,10 +143,10 @@ class ProtCalcToDb(FiretaskBase):
     optional_params = [
         "calc_dir",
         "calc_loc",
-        "input_file_H0",
-        "output_file_H0",
-        "input_file_H2",
-        "output_file_H2",
+        "input_file_H2O",
+        "output_file_H2O",
+        "input_file_H3O",
+        "output_file_H3O",
         "additional_fields",
         "db_file",
         "runs",
@@ -159,10 +159,10 @@ class ProtCalcToDb(FiretaskBase):
             calc_dir = self["calc_dir"]
         elif self.get("calc_loc"):
             calc_dir = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])["path"]
-        input_file_H0 = self.get("input_file_H0", "H0.qin")
-        output_file_H0 = self.get("output_file_H0", "H0.qout")
-        input_file_H2 = self.get("input_file_H2", "H2_plus.qin")
-        output_file_H2 = self.get("output_file_H2", "H2_plus.qout")
+        input_file_H2O = self.get("input_file_H2O", "water.qin")
+        output_file_H2O = self.get("output_file_H2O", "water.qout")
+        input_file_H3O = self.get("input_file_H3O", "hydronium.qin")
+        output_file_H3O = self.get("output_file_H3O", "hydronium.qout")
         runs = self.get("runs", None)
 
         # parse the QChem directory
@@ -175,15 +175,15 @@ class ProtCalcToDb(FiretaskBase):
         # assimilate (i.e., parse)
         task_doc_1 = drone.assimilate(
             path=calc_dir,
-            input_file=input_file_H0,
-            output_file=output_file_H0,
+            input_file=input_file_H2O,
+            output_file=output_file_H2O,
             multirun=False,
         )
 
         task_doc_2 = drone.assimilate(
             path=calc_dir,
-            input_file=input_file_H2,
-            output_file=output_file_H2,
+            input_file=input_file_H3O,
+            output_file=output_file_H3O,
             multirun=False,
         )
 
@@ -195,6 +195,12 @@ class ProtCalcToDb(FiretaskBase):
         task_doc_clean["orig"]["molecule"]["spin_multiplicity"] = 1
         task_doc_clean["output"]["initial_molecule"]["charge"] = 1
         task_doc_clean["output"]["initial_molecule"]["spin_multiplicity"] = 1
+        task_doc_clean["output"]["initial_molecule"]["sites"] = [{'name': 'H', 'species': [{'element': 'H', 'occu': 1}], 'xyz': [0.0, 0.0, 0.0], 'properties': {}}]
+        task_doc_clean["output"]["mulliken"] = [+1.000000]
+        task_doc_clean["output"]["resp"] = [+1.000000]
+        task_doc_clean["output"]["optimized_molecule"]["charge"] = 1
+        task_doc_clean["output"]["optimized_molecule"]["spin_multiplicity"] = 1
+        task_doc_clean["output"]["optimized_molecule"]["sites"] = [{'name': 'H', 'species': [{'element': 'H', 'occu': 1}], 'xyz': [0.0, 0.0, 0.0], 'properties': {}}]
         task_doc_clean["output"]["final_energy"] = (
             task_doc_2["output"]["final_energy"] - task_doc_1["output"]["final_energy"]
         )
