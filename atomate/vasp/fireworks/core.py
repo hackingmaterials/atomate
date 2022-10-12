@@ -333,9 +333,10 @@ class StaticFW(Firework):
             vasptodb_kwargs["additional_fields"] = {}
         vasptodb_kwargs["additional_fields"]["task_label"] = name
 
-        formula = structure.composition.reduced_formula if structure else "unknown"
+        formula = structure.composition.reduced_formula if structure is not None else "unknown"
         fw_name = f"{formula}-{name}"
-
+        print(formula,spec_structure_key,type(structure),len(structure.structures))
+        
         if spec_structure_key is not None:
             vasp_input_set = vasp_input_set or MPStaticSet(
                 structure, **vasp_input_set_params
@@ -356,7 +357,8 @@ class StaticFW(Firework):
                     CopyVaspOutputs(calc_loc=prev_calc_loc, contcar_to_poscar=True)
                 )
             t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
-        elif structure:
+        elif structure is not None:
+            print('here')
             vasp_input_set = vasp_input_set or MPStaticSet(
                 structure, **vasp_input_set_params
             )
