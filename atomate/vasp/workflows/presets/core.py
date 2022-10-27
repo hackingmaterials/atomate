@@ -830,6 +830,7 @@ def wf_nudged_elastic_band(structures, parent, c=None):
 def wf_lattice_dynamics(
     structure: Structure,
     separate_fit: bool = False,
+    fit_method: str = False,
     disp_cut: float = None,
     bulk_modulus: float = None,
     c: Optional[dict] = None,
@@ -838,7 +839,8 @@ def wf_lattice_dynamics(
     calculate_lattice_thermal_conductivity=True,
     thermal_conductivity_temperature=None,
     renormalize=False,
-    renormalization_temperature=None,        
+    renormalize_temperature=None,        
+    renormalize_thermal_expansion_iter=False,
     **ld_kwargs
 ) -> Workflow:
     """
@@ -856,18 +858,22 @@ def wf_lattice_dynamics(
     Returns:
         A workflow to calculate lattice thermal conductivity.
     """
+
+    # start with defining the relaxation workflow
     optimize_uis = {
         "LAECHG": False,
         'ENCUT': 600,
         'ADDGRID': True,
+        'EDIFF': 1e-8,
         'EDIFFG': -5e-4,
         'PREC': 'Accurate',
         "LREAL": False,
-        'EDIFF': 1e-8,
-        "ISMEAR": 0,
-        "SIGMA": 0.1,
+        'LASPH': True,
+        'ISPIN': 2,
+        'ISMEAR': 0,
+        'SIGMA': 0.1,
         'LCHARG': False,
-        'LASPH': True
+        'LWAVE': False
     }
     c = c if c is not None else {}
     if "USER_INCAR_SETTINGS" not in c:
@@ -883,21 +889,26 @@ def wf_lattice_dynamics(
         if "VaspToDb" in str(task):
             task.update(vasp_to_db_params)
 
+    # define lattice dynamics workflow
     wf_ld = get_lattice_dynamics_wf(
         structure,
-        separate_fit = separate_fit,
-        disp_cut = disp_cut,
-        bulk_modulus = bulk_modulus,
+        fit_method=fit_method,
+        separate_fit=separate_fit,
+        disp_cut=disp_cut,
+        bulk_modulus=bulk_modulus,
         common_settings=c,
         supercell_matrix_kwargs=supercell_matrix_kwargs,
         num_supercell_kwargs=num_supercell_kwargs,
         calculate_lattice_thermal_conductivity=calculate_lattice_thermal_conductivity,
         thermal_conductivity_temperature=thermal_conductivity_temperature,
         renormalize=renormalize,
-        renormalization_temperature=renormalization_temperature,
+        renormalize_temperature=renormalize_temperature,
+        renormalize_thermal_expansion_iter=bool(renormalize_thermal_expansion_iter and bulk_modulus),
         copy_vasp_outputs=True,
         **ld_kwargs
     )
+
+    # join the workflows
     wf.append_wf(wf_ld, wf.leaf_fw_ids)
 
     formula = structure.composition.reduced_formula
