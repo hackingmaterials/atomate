@@ -22,12 +22,14 @@ from hiphive.cutoffs import is_cutoff_allowed, estimate_maximum_cutoff
 from hiphive.fitting import Optimizer
 from hiphive.renormalization import Renormalization
 from hiphive.utilities import get_displacements
+from hiphive.run_tools import FE_correction
 
 from pymatgen.core.structure import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
 >>>>>>> 8f4f7e37 (gruneisen and CTE)
 from pymatgen.io.phonopy import get_phonopy_structure
 
+from ase.atoms import Atoms
 from ase.cell import Cell
 
 from phonopy import Phonopy
@@ -39,13 +41,19 @@ __email__ = "aganose@lbl.gov, rc564@cornell.edu, jsyony37@lbl.gov"
 
 logger = get_logger(__name__)
 
+# Define some shared constants
 IMAGINARY_TOL = 0.025  # in THz
+MESH_DENSITY = 100.0  # should always be a float 
 
-T_QHA = [i*100 for i in range(16)]
-T_RENORM = [0,100,200,300,500,700,1000,1500]#[i*100 for i in range(0,16)]
-T_KLAT = {"t_min":100,"t_max":1000,"t_step":100} #[i*100 for i in range(0,11)]
+T_QHA = [i*100 for i in range(21)]
+T_RENORM = [0,50,100,200,300,500,700,1000,1500]#[i*100 for i in range(0,16)]
+T_KLAT = {"t_min":100,"t_max":1500,"t_step":100} #[i*100 for i in range(0,11)]
 
-FIT_METHOD = "rfe" #"least-squares"
+FIT_METHOD = "rfe" 
+RENORM_METHOD = 'pseudoinverse'
+RENORM_NCONFIG = 50
+RENORM_CONV_THRESH = 0.1 # meV/atom
+RENORM_MAX_ITER = 20
 
 eV2J = 1.602e-19
 hbar = sp.constants.hbar
@@ -553,7 +561,7 @@ def harmonic_properties(
     free_energy *= 1000/sp.constants.Avogadro/eV2J/natom # kJ/mol to eV/atom
     entropy *= 1/sp.constants.Avogadro/eV2J/natom # J/K/mol to eV/K/atom
     Cv *= 1/sp.constants.Avogadro/eV2J/natom # J/K/mol to eV/K/atom
-    
+
     freq = phonopy.mesh.frequencies # in THz
     # find imaginary modes at gamma
 #    phonopy.run_qpoints([0, 0, 0])
@@ -739,25 +747,32 @@ def thermal_expansion(
             raise ValueError('Designated T does not exist in the temperature array!')
 
 
-def renormalization(
+def run_renormalization(
         structure: Structure,
+        supercell: Atoms,
         supercell_matrix: np.ndarray,
         cs: ClusterSpace,
         fcs: ForceConstants,
         param: np.ndarray,
         T: float,
         nconfig: int,
+        max_iter: int,
         conv_tresh: float,
+        renorm_method: str,
+        fit_method: str,
         bulk_modulus: float = None,
+        phonopy_orig: Phonopy = None,
         imaginary_tol: float = IMAGINARY_TOL,
-        fit_method: str = None
 ) -> Dict:
     """
     Uses the force constants to extract phonon properties. Used for comparing
     the accuracy of force constant fits.
 
     Args:
-        structure: The parent structure.
+        structure: pymatgen Structure
+            The parent structure.
+        supercell : ase Atoms
+            Original supercell object  
         supercell_matrix: The supercell transformation matrix.
         fcs: ForceConstants from previous fitting or renormalization
         imaginary_tol: Tolerance used to decide if a phonon mode is imaginary,
@@ -767,14 +782,14 @@ def renormalization(
         A tuple of the number of imaginary modes at Gamma, the minimum phonon
         frequency at Gamma, and the free energy, entropy, and heat capacity
     """
-    renorm = Renormalization(cs,fcs,param,T,fit_method)
-    fcp, fcs, param = renorm.renormalize(nconfig,'pseudoinverse',conv_tresh)
+    renorm = Renormalization(cs,supercell,fcs,param,T,renorm_method,fit_method)
+    fcp, fcs, param = renorm.renormalize(nconfig,conv_tresh)
 
     renorm_data, phonopy = harmonic_properties(
         structure, supercell_matrix, fcs, [T], imaginary_tol
     )
 
-    if renorm_data["n_imaginary"] ==0:
+    if renorm_data["n_imaginary"] == 0:
         logger.info('Renormalized phonon is completely real at T = {} K!'.format(T))
         anharmonic_data, phonopy = anharmonic_properties(
             phonopy, fcs, [T], thermal_data["heat_capacity"], n_imaginary, bulk_modulus=bulk_modulus
@@ -783,7 +798,14 @@ def renormalization(
         anharmonic_data = dict()
         anharmonic_data["gruneisen"] = np.array([[0,0,0]])
         anharmonic_data["thermal_expansion"] = np.array([[0,0,0]])
+
+    omega0 = phonopy_orig.mesh.frequencies # THz
+    omega_TD = phonopy.mesh.frequencies # THz
+    natom = phonopy.primitive.get_number_of_atoms()
+    correction = FE_correction(omega0,omega_TD,T)/natom # eV/atom
+
     renorm_data.update(anharmonic_data)
+    renorm_data["free_energy_correction"] = correction
     renorm_data["fcp"] = fcp
     renorm_data["fcs"] = fcs
     renorm_data["param"] = param
@@ -792,7 +814,7 @@ def renormalization(
 
 
 
-def setup_TE_renorm(parent_structure,temperatures,dLfracs):
+def setup_TE_iter(cutoffs,parent_structure,temperatures,dLfracs):
     parent_structure_TE = []
     cs_TE = []
     fcs_TE = []
