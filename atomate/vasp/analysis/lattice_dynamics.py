@@ -39,8 +39,12 @@ logger = get_logger(__name__)
 IMAGINARY_TOL = 0.025  # in THz
 MESH_DENSITY = 100.0  # should always be a float 
 
+# Temperature for straight-up phonopy calculation of thermodynamic properties (free energy etc.)
 T_QHA = [i*100 for i in range(21)]
+# Temperature at which renormalization is to be performed
 T_RENORM = [0,50,100,200,300,500,700,1000,1500]#[i*100 for i in range(0,16)]
+# Temperature at which lattice thermal conductivity is calculated
+# If renormalization is performed, T_RENORM overrides T_KLAT for lattice thermal conductivity
 T_KLAT = {"t_min":100,"t_max":1500,"t_step":100} #[i*100 for i in range(0,11)]
 
 FIT_METHOD = "rfe" 
@@ -50,8 +54,8 @@ RENORM_CONV_THRESH = 0.1 # meV/atom
 RENORM_MAX_ITER = 20
 
 eV2J = 1.602e-19
-hbar = sp.constants.hbar
-kB = sp.constants.Boltzmann
+hbar = sp.constants.hbar # J-s
+kB = sp.constants.Boltzmann # J/K
 
 def get_cutoffs(supercell_structure: Structure):
     """
