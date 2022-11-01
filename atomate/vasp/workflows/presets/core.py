@@ -912,7 +912,7 @@ def wf_lattice_dynamics(
     wf.append_wf(wf_ld, wf.leaf_fw_ids)
 
     formula = structure.composition.reduced_formula
-    wf_name = "{} - lattice thermal conductivity".format(formula)
+    wf_name = "{} - lattice dynamics".format(formula)
     wf.name = wf_name
 
     wf = add_common_powerups(wf, c)
