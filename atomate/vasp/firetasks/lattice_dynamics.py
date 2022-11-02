@@ -149,6 +149,13 @@ class RunHiPhive(FiretaskBase):
     @requires(hiphive, "hiphive is required for lattice dynamics workflow")
     def run_task(self, fw_spec):
 
+        all_structures = loadfn("perturbed_structures.json")
+        all_forces = loadfn("perturbed_forces.json")
+        structure_data = loadfn("structure_data.json")
+        parent_structure = structure_data["structure"]
+        supercell_structure = structure_data["supercell_structure"]
+        supercell_matrix = np.array(structure_data["supercell_matrix"])
+
         separate_fit = self.get('separate_fit', False)
         disp_cut = self.get('disp_cut', None)
         cutoffs = self.get("cutoffs") or get_cutoffs(supercell_structure)
@@ -157,13 +164,6 @@ class RunHiPhive(FiretaskBase):
         imaginary_tol = self.get("imaginary_tol")
         bulk_modulus = self.get("bulk_modulus")
         fit_method = self.get("fit_method")
-
-        all_structures = loadfn("perturbed_structures.json")
-        all_forces = loadfn("perturbed_forces.json")
-        structure_data = loadfn("structure_data.json")
-        parent_structure = structure_data["structure"]
-        supercell_structure = structure_data["supercell_structure"]
-        supercell_matrix = np.array(structure_data["supercell_matrix"])
 
         structures = []
         supercell_atoms = AseAtomsAdaptor.get_atoms(supercell_structure)
