@@ -58,6 +58,7 @@ class FitForceConstantsFW(Firework):
         bulk_modulus: float,
         imaginary_tol: float,
         mesh_density: float,
+        temperature_qha: float,
         cutoffs: Optional[List[List[float]]] = None,
         name="Fit Force Constants",
         parents: Optional[Union[Firework, List[Firework]]] = None,
@@ -72,6 +73,7 @@ class FitForceConstantsFW(Firework):
             fit_method=fit_method,
             disp_cut=disp_cut,
             bulk_modulus=bulk_modulus,
+            temperature_qha=temperature_qha,
             imaginary_tol=imaginary_tol,
         )
         to_db = ForceConstantsToDb(
