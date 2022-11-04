@@ -199,6 +199,7 @@ def get_lattice_dynamics_wf(
         fit_method=fit_method,
         disp_cut=disp_cut,
         bulk_modulus=bulk_modulus, 
+        temperature_qha=T_QHA,
         mesh_density=mesh_density,
         imaginary_tol=IMAGINARY_TOL,
         )
