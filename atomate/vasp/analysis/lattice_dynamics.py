@@ -101,6 +101,7 @@ def get_cutoffs(supercell_structure: Structure):
         A list of trial cutoffs.
     """
     # indexed as min_cutoffs[order][period]
+    # DO NOT CHANGE unless you know what you are doing
     min_cutoffs = {
         2: {1: 5.0, 2: 6.0, 3: 7.0, 4: 8.0, 5: 9.0, 6: 10.0, 7: 11.0},
         3: {1: 3.0, 2: 3.5, 3: 4.5, 4: 5.5, 5: 6.0, 6: 6.5, 7: 7.0},
@@ -121,6 +122,7 @@ def get_cutoffs(supercell_structure: Structure):
 
     cutoffs = np.array(list(map(list, product(range_two, range_three, range_four))))
     max_cutoff = estimate_maximum_cutoff(AseAtomsAdaptor.get_atoms(supercell_structure))
+    cutoffs[cutoffs>max_cutoff] = max_cutoff
     logger.info('CUTOFFS \n {}'.format(cutoffs))
     logger.info('MAX_CUTOFF \n {}'.format(max_cutoff))    
     good_cutoffs = np.all(cutoffs < max_cutoff-0.1, axis=1)
