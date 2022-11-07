@@ -159,7 +159,7 @@ class RunHiPhive(FiretaskBase):
         separate_fit = self.get('separate_fit', False)
         disp_cut = self.get('disp_cut', None)
         cutoffs = self.get("cutoffs") or get_cutoffs(supercell_structure)
-        T_qha = np.array(self.get("temperature_qha"))
+        T_qha = self.get("temperature_qha")
         T_qha.sort()
         imaginary_tol = self.get("imaginary_tol")
         bulk_modulus = self.get("bulk_modulus")
