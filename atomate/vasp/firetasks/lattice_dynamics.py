@@ -160,7 +160,7 @@ class RunHiPhive(FiretaskBase):
         separate_fit = self.get('separate_fit', False)
         disp_cut = self.get('disp_cut', None)
         cutoffs = self.get("cutoffs") or get_cutoffs(supercell_structure)
-        T_qha = self.get("temperature_qha")
+        T_qha = self.get("temperature_qha", T_QHA)
         T_qha.sort()
         imaginary_tol = self.get("imaginary_tol")
         bulk_modulus = self.get("bulk_modulus")
@@ -194,10 +194,10 @@ class RunHiPhive(FiretaskBase):
             )
         
         thermal_data, phonopy = harmonic_properties(
-            parent_structure, supercell_matrix, fcs, T_QHA, imaginary_tol
+            parent_structure, supercell_matrix, fcs, T_qha, imaginary_tol
         )
         anharmonic_data, phonopy = anharmonic_properties(
-            phonopy, fcs, T_QHA, thermal_data["heat_capacity"],
+            phonopy, fcs, T_qha, thermal_data["heat_capacity"],
             thermal_data["n_imaginary"], bulk_modulus
         )
 
