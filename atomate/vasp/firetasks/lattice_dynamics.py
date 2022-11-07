@@ -141,6 +141,7 @@ class RunHiPhive(FiretaskBase):
         "cutoffs",
         "separate_fit",
         "disp_cut",
+        "temperature_qha",
         "bulk_modulus",
         "imaginary_tol",
         "fit_method",
