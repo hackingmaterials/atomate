@@ -1,5 +1,7 @@
 from typing import List, Optional, Union, Dict
 
+import os
+
 from atomate.common.firetasks.glue_tasks import (
     CopyFiles,
     CopyFilesFromCalcLoc,
@@ -140,6 +142,7 @@ class LatticeThermalConductivityFW(Firework):
                 copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
             else:
                 copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
+            os.system('mv FORCE_CONSTANTS_2ND_{}K FORCE_CONSTANTS_2ND'.format(temperature))
 
         else: # only the default files are needed
             files = [
