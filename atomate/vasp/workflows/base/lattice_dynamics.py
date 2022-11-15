@@ -163,7 +163,7 @@ def get_lattice_dynamics_wf(
     db_file = common_settings["DB_FILE"]
 
 
-    if calculate_lattice_thermal_conductivity or renormalize:
+    if calculate_lattice_thermal_conductivity:
         if supercell_matrix_kwargs.get("force_diagonal", False):
             warnings.warn(
                 "Diagonal transformation required to calculate lattice thermal "
@@ -227,7 +227,7 @@ def get_lattice_dynamics_wf(
         if renormalize:
             # Because of the way ShengBTE works, a temperature array that is not
             # equally spaced out (T_step) requires submission for each temperature
-            for T in renormalize_temperature:
+            for t,T in enumerate(renormalize_temperature):
                 fw_lattice_conductivity = LatticeThermalConductivityFW(
                     db_file=db_file,
                     shengbte_cmd=shengbte_cmd,
@@ -237,7 +237,7 @@ def get_lattice_dynamics_wf(
                 if shengbte_fworker:
                     fw_lattice_conductivity.spec["_fworker"] = shengbte_fworker
                 wf.append_wf(
-                    Workflow.from_Firework(fw_lattice_conductivity), [wf.fws[-1].fw_id]
+                    Workflow.from_Firework(fw_lattice_conductivity), [wf.fws[-(t+1)].fw_id]
                     )
         else:
             fw_lattice_conductivity = LatticeThermalConductivityFW(
