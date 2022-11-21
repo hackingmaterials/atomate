@@ -43,7 +43,7 @@ from pymatgen.transformations.standard_transformations import (
 
 try:
     import hiphive
-    from hiphive import ForceConstants
+    from hiphive import ForceConstants, ClusterSpace
     from hiphive.utilities import get_displacements
 except ImportError:
     logger.info('Could not import hiphive!')
