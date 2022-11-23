@@ -214,7 +214,7 @@ class RenormalizationFW(Firework):
         if prev_calc_dir:
             copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
         else:
-            copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
+            copy_files = CopyFilesFromCalcLoc(calc_loc="Fit Force Constants", filenames=files)
 
         renorm_force_constants = RunHiPhiveRenorm(
             renorm_temp=temperature,
