@@ -414,7 +414,7 @@ class ForceConstantsToDb(FiretaskBase):
 
             # Get an id for the force constants
             fitting_id = _get_fc_fitting_id(mmdb)
-            metadata = {"fc_fitting_id": fitting_id, "fc_fitting_dir": os.getcwd()}
+            metadata = {"fc_fitting_id": fitting_id, "renormalization_dir": os.getcwd()}
             data.update(metadata)
             data = jsanitize(data,strict=True,allow_bson=True)
             
@@ -599,6 +599,7 @@ class ShengBTEToDb(FiretaskBase):
             "shengbte_dir": os.getcwd(),
             "fc_fitting_id": fw_spec.get("fc_fitting_id", None),
             "fc_fitting_dir": fw_spec.get("fc_fitting_dir", None),
+            "renormalization_dir": fw_spec.get("renormalization_dir", None),
             "created_at": datetime.utcnow(),
         }
         data.update(self.get("additional_fields", {}))
