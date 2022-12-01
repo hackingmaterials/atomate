@@ -228,6 +228,8 @@ def get_lattice_dynamics_wf(
             # Because of the way ShengBTE works, a temperature array that is not
             # equally spaced out (T_step) requires submission for each temperature
             for t,T in enumerate(renormalize_temperature):
+                if T == 0:
+                    continue
                 fw_lattice_conductivity = LatticeThermalConductivityFW(
                     db_file=db_file,
                     shengbte_cmd=shengbte_cmd,

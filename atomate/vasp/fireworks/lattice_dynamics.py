@@ -112,7 +112,7 @@ class LatticeThermalConductivityFW(Firework):
     def __init__(
         self,
         shengbte_cmd: str,
-        temperature: Union[float, dict],
+        temperature: Union[float, int, dict],
         renormalized: bool,
         name="Lattice Thermal Conductivity",
         prev_calc_dir: Optional[str] = None,
@@ -141,7 +141,7 @@ class LatticeThermalConductivityFW(Firework):
             if prev_calc_dir:
                 copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
             else:
-                copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
+                copy_files = CopyFilesFromCalcLoc(calc_loc='Renormalization', filenames=files)
             os.system('mv FORCE_CONSTANTS_2ND_{}K FORCE_CONSTANTS_2ND'.format(temperature))
 
         else: # only the default files are needed
@@ -153,7 +153,7 @@ class LatticeThermalConductivityFW(Firework):
             if prev_calc_dir:
                 copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
             else:
-                copy_files = CopyFilesFromCalcLoc(calc_loc=True, filenames=files)
+                copy_files = CopyFilesFromCalcLoc(calc_loc='Fit Force Constants', filenames=files)
 
         run_shengbte = RunShengBTE(
             shengbte_cmd=shengbte_cmd,
@@ -211,10 +211,10 @@ class RenormalizationFW(Firework):
         files = ["cluster_space.cs","parameters.txt","force_constants.fcs",
                  "structure_data.json","fitting_data.json","phonopy_params.yaml"]
         
-        if prev_calc_dir:
-            copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
-        else:
-            copy_files = CopyFilesFromCalcLoc(calc_loc="Fit Force Constants", filenames=files)
+#        if prev_calc_dir:
+#            copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
+#        else:
+        copy_files = CopyFilesFromCalcLoc(calc_loc="Fit Force Constants", filenames=files)
 
         renorm_force_constants = RunHiPhiveRenorm(
             renorm_temp=temperature,
