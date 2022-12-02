@@ -631,6 +631,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
         db_file=None,
         parents=None,
         max_errors=20,
+        save_scratch=False,
         **kwargs
     ):
         """
@@ -719,6 +720,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 linked=linked,
                 freq_before_opt=freq_before_opt,
                 max_errors=max_errors,
+                save_scratch=save_scratch,
             )
         )
         t.append(
