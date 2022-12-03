@@ -1,7 +1,7 @@
 # This module defines firetasks for writing QChem input files
 
 import os
-
+import shutil
 from fireworks import FiretaskBase, explicit_serialize
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
@@ -70,6 +70,32 @@ class WriteInputFromIOSet(FiretaskBase):
         # if a full QChemDictSet object was provided
         if hasattr(self["qchem_input_set"], "write_file"):
             qcin = self["qchem_input_set"]
+
+        # modify mem_total, if set, based on compute node total memory
+        if "overwrite_inputs" in qchem_input_params:
+            if "rem" in qchem_input_params["overwrite_inputs"]:
+                if "mem_total" in qchem_input_params["overwrite_inputs"]["rem"]:
+                    mem_file = os.path.join(self.get("write_to_dir", ""), "mem_file")
+                    if os.path.exists(mem_file):
+                        shutil.rmtree(mem_file)
+                    os.system("free > " + mem_file)
+                    with open(mem_file) as f:
+                        lines = f.readlines()
+                        mem_total = int(lines[1].split()[1])
+                        if (
+                            mem_total
+                            < qchem_input_params["overwrite_inputs"]["rem"]["mem_total"]
+                            * 1000
+                        ):
+                            orig_mem_total = copy.deepcopy(
+                                qchem_input_params["overwrite_inputs"]["rem"][
+                                    "mem_total"
+                                ]
+                            )
+                            qchem_input_params["overwrite_inputs"]["rem"][
+                                "mem_total"
+                            ] = (int(mem_total / 1000) - 10000)
+
         # if a molecule is being passed through fw_spec
         elif fw_spec.get("prev_calc_molecule"):
             prev_calc_mol = fw_spec.get("prev_calc_molecule")
