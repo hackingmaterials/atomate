@@ -67,10 +67,6 @@ class WriteInputFromIOSet(FiretaskBase):
             geom_opt = qchem_input_params.pop("new_geom_opt")
             qchem_input_params["geom_opt"] = geom_opt
 
-        # if a full QChemDictSet object was provided
-        if hasattr(self["qchem_input_set"], "write_file"):
-            qcin = self["qchem_input_set"]
-
         # modify mem_total, if set, based on compute node total memory
         if "overwrite_inputs" in qchem_input_params:
             if "rem" in qchem_input_params["overwrite_inputs"]:
@@ -94,6 +90,10 @@ class WriteInputFromIOSet(FiretaskBase):
                             qchem_input_params["overwrite_inputs"]["rem"][
                                 "mem_total"
                             ] = str(int(mem_total / 1000) - 10000)
+
+        # if a full QChemDictSet object was provided
+        if hasattr(self["qchem_input_set"], "write_file"):
+            qcin = self["qchem_input_set"]
 
         # if a molecule is being passed through fw_spec
         elif fw_spec.get("prev_calc_molecule"):
