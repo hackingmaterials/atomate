@@ -89,7 +89,7 @@ class WriteInputFromIOSet(FiretaskBase):
                         ):
                             qchem_input_params["overwrite_inputs"]["rem"][
                                 "mem_total"
-                            ] = str(int(mem_total / 1000) - 10000)
+                            ] = str(int(mem_total / 1000) - 20000)
 
         # if a full QChemDictSet object was provided
         if hasattr(self["qchem_input_set"], "write_file"):
