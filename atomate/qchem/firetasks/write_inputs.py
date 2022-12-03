@@ -84,17 +84,16 @@ class WriteInputFromIOSet(FiretaskBase):
                         mem_total = int(lines[1].split()[1])
                         if (
                             mem_total
-                            < qchem_input_params["overwrite_inputs"]["rem"]["mem_total"]
-                            * 1000
-                        ):
-                            orig_mem_total = copy.deepcopy(
+                            < int(
                                 qchem_input_params["overwrite_inputs"]["rem"][
                                     "mem_total"
                                 ]
                             )
+                            * 1000
+                        ):
                             qchem_input_params["overwrite_inputs"]["rem"][
                                 "mem_total"
-                            ] = (int(mem_total / 1000) - 10000)
+                            ] = str(int(mem_total / 1000) - 10000)
 
         # if a molecule is being passed through fw_spec
         elif fw_spec.get("prev_calc_molecule"):
