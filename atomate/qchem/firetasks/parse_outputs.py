@@ -53,6 +53,7 @@ class QChemToDb(FiretaskBase):
         "input_file",
         "output_file",
         "parse_grad_file",
+        "parse_hess_file",
         "additional_fields",
         "db_file",
         "fw_spec_field",
@@ -90,14 +91,14 @@ class QChemToDb(FiretaskBase):
         # parse the GRAD file, if desired and if it is present
         if self.get("parse_grad_file", False):
             grad_file = None
-            if os.path.exists(os.path.join(calc_dir,"GRAD.gz")):
-                grad_file = os.path.join(calc_dir,"GRAD.gz")
-            elif os.path.exists(os.path.join(calc_dir,"GRAD")):
-                grad_file = os.path.join(calc_dir,"GRAD")
-            elif os.path.exists(os.path.join(calc_dir,"scratch/GRAD.gz")):
-                grad_file = os.path.join(calc_dir,"scratch/GRAD.gz")
-            elif os.path.exists(os.path.join(calc_dir,"scratch/GRAD")):
-                grad_file = os.path.join(calc_dir,"scratch/GRAD")
+            if os.path.exists(os.path.join(calc_dir, "GRAD.gz")):
+                grad_file = os.path.join(calc_dir, "GRAD.gz")
+            elif os.path.exists(os.path.join(calc_dir, "GRAD")):
+                grad_file = os.path.join(calc_dir, "GRAD")
+            elif os.path.exists(os.path.join(calc_dir, "scratch/GRAD.gz")):
+                grad_file = os.path.join(calc_dir, "scratch/GRAD.gz")
+            elif os.path.exists(os.path.join(calc_dir, "scratch/GRAD")):
+                grad_file = os.path.join(calc_dir, "scratch/GRAD")
 
             if grad_file is None:
                 task_doc["warnings"]["grad_file_missing"] = True
@@ -108,11 +109,42 @@ class QChemToDb(FiretaskBase):
                     for line in lines:
                         split_line = line.split()
                         if len(split_line) == 3:
-                            grad.append([float(split_line[0]), float(split_line[1]), float(split_line[2])])
+                            grad.append(
+                                [
+                                    float(split_line[0]),
+                                    float(split_line[1]),
+                                    float(split_line[2]),
+                                ]
+                            )
                 task_doc["output"]["precise_gradients"] = grad
-                if os.path.exists(os.path.join(calc_dir,"scratch")):
-                    shutil.rmtree(os.path.join(calc_dir,"scratch"))
+                if os.path.exists(os.path.join(calc_dir, "scratch")):
+                    shutil.rmtree(os.path.join(calc_dir, "scratch"))
 
+        # parse the HESS file(s), if desired and if one or multiple are present
+        if self.get("parse_hess_file", False):
+            hess_files = []
+            for filename in os.listdir(calc_dir):
+                if "HESS" in filename:
+                    hess_files.append(filename)
+                elif filename == "scratch":
+                    for subfilename in os.listdir(os.path.join(calc_dir, "scratch")):
+                        if "HESS" in subfilename:
+                            hess_files.append("scratch/" + subfilename)
+
+            if len(hess_files) == 0:
+                task_doc["warnings"]["hess_file_missing"] = True
+            else:
+                hess_data = {}
+                for hess_name in hess_files:
+                    with zopen(
+                        os.path.join(calc_dir, hess_name),
+                        mode="rt",
+                        encoding="ISO-8859-1",
+                    ) as f:
+                        hess_data[hess_name] = f.readlines()
+                task_doc["output"]["hess_data"] = hess_data
+                if os.path.exists(os.path.join(calc_dir, "scratch")):
+                    shutil.rmtree(os.path.join(calc_dir, "scratch"))
 
         # Check for additional keys to set based on the fw_spec
         if self.get("fw_spec_field"):
