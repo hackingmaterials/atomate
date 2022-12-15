@@ -54,7 +54,7 @@ class WriteInputFromIOSet(FiretaskBase):
     """
 
     required_params = ["qchem_input_set"]
-    optional_params = ["molecule", "qchem_input_params", "input_file", "write_to_dir"]
+    optional_params = ["molecule", "qchem_input_params", "input_file", "write_to_dir", "prev_hess"]
 
     def run_task(self, fw_spec):
         input_file = os.path.join(
@@ -134,6 +134,9 @@ class WriteInputFromIOSet(FiretaskBase):
                 "No molecule present, add as an optional param or check fw_spec"
             )
         qcin.write(input_file)
+        if self.get("prev_hess"):
+            with zopen(os.path.join(os.path.dirname(input_file), "HESS"), "wt") as f:
+                f.write(self.get("prev_hess"))
 
 
 @explicit_serialize

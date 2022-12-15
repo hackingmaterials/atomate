@@ -622,6 +622,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
         max_cores=">>max_cores<<",
         qchem_input_params=None,
         max_iterations=10,
+        prev_hess=None,
         max_molecule_perturb_scale=0.3,
         linked=True,
         freq_before_opt=False,
@@ -703,6 +704,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                     qchem_input_set="OptSet",
                     input_file=input_file,
                     qchem_input_params=qchem_input_params,
+                    prev_hess=prev_hess,
                 )
             )
 
