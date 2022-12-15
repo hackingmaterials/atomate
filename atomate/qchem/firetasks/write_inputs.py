@@ -2,6 +2,7 @@
 
 import os
 import shutil
+from monty.io import zopen
 from fireworks import FiretaskBase, explicit_serialize
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
