@@ -2,6 +2,7 @@
 
 import os
 import shutil
+import struct
 from monty.io import zopen
 from fireworks import FiretaskBase, explicit_serialize
 from pymatgen.analysis.graphs import MoleculeGraph
