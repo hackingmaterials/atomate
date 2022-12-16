@@ -136,8 +136,10 @@ class WriteInputFromIOSet(FiretaskBase):
             )
         qcin.write(input_file)
         if self.get("prev_hess"):
-            with zopen(os.path.join(os.path.dirname(input_file), "HESS"), "wt") as f:
-                f.writelines(self.get("prev_hess"))
+            with open(os.path.join(os.path.dirname(input_file), "132.0"), mode="wb") as file:
+                for val in self.get("prev_hess"):
+                    data = struct.pack("d", val)
+                    file.write(data)
 
 
 @explicit_serialize

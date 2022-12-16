@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import struct
 from monty.io import zopen
 
 from fireworks import FiretaskBase, FWAction, explicit_serialize
@@ -130,18 +131,28 @@ class QChemToDb(FiretaskBase):
                     for subfilename in os.listdir(os.path.join(calc_dir, "scratch")):
                         if "HESS" in subfilename:
                             hess_files.append("scratch/" + subfilename)
+                        elif subfilename == "132.0":
+                            hess_files.append("scratch/" + subfilename)
 
             if len(hess_files) == 0:
                 task_doc["warnings"]["hess_file_missing"] = True
             else:
                 hess_data = {}
                 for hess_name in hess_files:
-                    with zopen(
-                        os.path.join(calc_dir, hess_name),
-                        mode="rt",
-                        encoding="ISO-8859-1",
-                    ) as f:
-                        hess_data[hess_name] = f.readlines()
+                    if hess_name[-5:] == "132.0":
+                        tmp_hess_data = []
+                        with open(os.path.join(calc_dir, hess_name), mode="rb") as file:
+                            binary = file.read()
+                            for ii in range(int(len(binary)/8)):
+                                tmp_hess_data.append(struct.unpack("d",binary[ii*8:(ii+1)*8])[0])
+                        hess_data[hess_name] = tmp_hess_data
+                    else:
+                        with zopen(
+                            os.path.join(calc_dir, hess_name),
+                            mode="rt",
+                            encoding="ISO-8859-1",
+                        ) as f:
+                            hess_data[hess_name] = f.readlines()
                 task_doc["output"]["hess_data"] = hess_data
                 if os.path.exists(os.path.join(calc_dir, "scratch")):
                     shutil.rmtree(os.path.join(calc_dir, "scratch"))
