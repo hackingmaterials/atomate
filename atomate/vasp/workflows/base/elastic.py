@@ -82,6 +82,8 @@ def get_wf_elastic_constant(
     strains = []
     if strain_states is None:
         strain_states = get_default_strain_states(order)
+    if stencils is None and int(order) == 2:
+        stencils = np.array([0.02, 0.01, -0.01, -0.02])    
     if stencils is None:
         stencils = [np.linspace(-0.01, 0.01, 5 + (order - 2) * 2)] * len(strain_states)
     if np.array(stencils).ndim == 1:
@@ -92,9 +94,9 @@ def get_wf_elastic_constant(
     # Remove zero strains
     strains = [strain for strain in strains if not (abs(strain) < 1e-10).all()]
     vstrains = [strain.voigt for strain in strains]
-    if np.linalg.matrix_rank(vstrains) < 6:
-        # TODO: check for sufficiency of input for nth order
-        raise ValueError("Strain list is insufficient to fit an elastic tensor")
+ #   if np.linalg.matrix_rank(vstrains) < 6:
+ #       # TODO: check for sufficiency of input for nth order
+ #       raise ValueError("Strain list is insufficient to fit an elastic tensor")
 
     deformations = [s.get_deformation_matrix() for s in strains]
 

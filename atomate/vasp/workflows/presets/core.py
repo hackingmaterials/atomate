@@ -2,7 +2,9 @@ from uuid import uuid4
 
 import numpy as np
 from pymatgen.io.vasp.inputs import Kpoints
-from pymatgen.io.vasp.sets import MPHSERelaxSet, MPRelaxSet, MPStaticSet
+from pymatgen.io.vasp.sets import MPHSERelaxSet
+from pymatgen.io.vasp.sets import RelaxSetOne as MPRelaxSet
+from pymatgen.io.vasp.sets import StaticSetOne as MPStaticSet
 
 from atomate.vasp.config import (
     ADD_WF_METADATA,
@@ -310,7 +312,7 @@ def wf_nmr(structure, c=None):
     return wf
 
 
-def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
+def wf_elastic_constant(structure, c=None, order=2, sym_reduce=True, strain_states=None):
 
     c = c or {}
     vasp_cmd = c.get("VASP_CMD", VASP_CMD)
@@ -333,7 +335,8 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
         kpts_settings = Kpoints.automatic_density(structure, 40000, force_gamma=True)
         stencils = np.linspace(-0.075, 0.075, 7)
     else:
-        kpts_settings = {"grid_density": 7000}
+ #       kpts_settings = {"grid_density": 7000}
+        kpts_settings = Kpoints.automatic_density_by_lengths(structure, length_densities=[120.0, 120.0, 120.0], force_gamma=False)
         stencils = None
 
     uis_static = uis_optimize.copy()
@@ -343,8 +346,8 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
     vis_relax = MPRelaxSet(
         structure,
         force_gamma=True,
-        user_incar_settings=uis_optimize,
-        user_kpoints_settings=kpts_settings,
+#       user_incar_settings=uis_optimize,
+#       user_kpoints_settings=kpts_settings,
     )
 
     # optimization only workflow
@@ -364,14 +367,16 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
     vis_static = MPStaticSet(
         structure,
         force_gamma=True,
-        lepsilon=False,
-        user_kpoints_settings=kpts_settings,
-        user_incar_settings=uis_static,
-    )
+        #lepsilon=False,
+#       user_kpoints_settings=kpts_settings,
+#       user_incar_settings=uis_static,
+        user_incar_settings={"ISTART": 1} 
+   )
 
     # deformations workflow for elasticity calculation
     wf_elastic = get_wf_elastic_constant(
         structure,
+        strain_states=strain_states,
         vasp_cmd=vasp_cmd,
         db_file=db_file,
         order=order,
