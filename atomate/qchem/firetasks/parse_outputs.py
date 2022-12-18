@@ -131,7 +131,7 @@ class QChemToDb(FiretaskBase):
                     for subfilename in os.listdir(os.path.join(calc_dir, "scratch")):
                         if "HESS" in subfilename:
                             hess_files.append("scratch/" + subfilename)
-                        elif subfilename == "132.0":
+                        elif subfilename == "132.0" or subfilename == "132.0.gz":
                             hess_files.append("scratch/" + subfilename)
 
             if len(hess_files) == 0:
@@ -139,9 +139,9 @@ class QChemToDb(FiretaskBase):
             else:
                 hess_data = {}
                 for hess_name in hess_files:
-                    if hess_name[-5:] == "132.0":
+                    if hess_name[-5:] == "132.0" or hess_name[-8:] == "132.0.gz":
                         tmp_hess_data = []
-                        with open(os.path.join(calc_dir, hess_name), mode="rb") as file:
+                        with zopen(os.path.join(calc_dir, hess_name), mode="rb") as file:
                             binary = file.read()
                             for ii in range(int(len(binary)/8)):
                                 tmp_hess_data.append(struct.unpack("d",binary[ii*8:(ii+1)*8])[0])
