@@ -259,7 +259,7 @@ class ScanOptimizeFW(Firework):
             )
             # Update the INCAR for the PBESol GGA preconditioning step
             metagga_type = vasp_input_set.incar.get("METAGGA",
-                       vasp_input_set_params.get("METAGGA", "R2SCAN"))
+                       vasp_input_set_params.get("METAGGA", "R2scan"))
             pre_opt_settings = {"_set": {"GGA": "Ps", "EDIFFG": -0.05},
                                 "_unset": {"METAGGA": metagga_type}}
 
