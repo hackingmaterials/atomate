@@ -587,8 +587,6 @@ class TestScanOptimizeWorkflow(AtomateTest):
                 self.assertEqual(incar[p], 0.22)
             elif p == "ICHARG" or p == "ISTART":
                 self.assertEqual(incar[p], 1)
-            elif p == "METAGGA":
-                self.assertEqual(incar[p], "None")
             elif p == "GGA":
                 self.assertEqual(incar[p], "Ps")
             elif p == "EDIFFG":
@@ -644,8 +642,6 @@ class TestScanOptimizeWorkflow(AtomateTest):
                 self.assertEqual(incar[p], 0.22)
             elif p == "ICHARG" or p == "ISTART":
                 self.assertEqual(incar[p], 1)
-            elif p == "METAGGA":
-                self.assertEqual(incar[p], "None")
             elif p == "GGA":
                 self.assertEqual(incar[p], "Ps")
             elif p == "EDIFFG":
@@ -703,8 +699,6 @@ class TestScanOptimizeWorkflow(AtomateTest):
                 self.assertEqual(incar[p], 0.22)
             elif p == "ICHARG" or p == "ISTART":
                 self.assertEqual(incar[p], 1)
-            elif p == "METAGGA":
-                self.assertEqual(incar[p], "None")
             elif p == "GGA":
                 self.assertEqual(incar[p], "Ps")
             elif p == "EDIFFG":
@@ -780,8 +774,6 @@ class TestScanOptimizeWorkflow(AtomateTest):
                 self.assertEqual(incar[p], 0.22)
             elif p == "ICHARG":
                 self.assertEqual(incar[p], 1)
-            elif p == "METAGGA":
-                self.assertEqual(incar[p], "None")
             elif p == "GGA":
                 self.assertEqual(incar[p], "Ps")
             elif p == "EDIFFG":
