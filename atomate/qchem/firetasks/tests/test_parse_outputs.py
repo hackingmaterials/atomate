@@ -16,13 +16,13 @@ __email__ = "samblau1@gmail.com"
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 
-class TestParseOutputQChem(AtomateTest):
+class TestParseOutputQChem_grads(AtomateTest):
     def setUp(self, lpad=False):
         super().setUp(lpad=False)
 
     def tearDown(self):
         pass
-        
+
     def test_parse_grad_good(self):
         my_calc_dir = os.path.join(module_dir, "..", "..", "test_files","parse_grad_good")
         ft = QChemToDb(calc_dir=my_calc_dir, parse_grad_file=True)
@@ -52,6 +52,34 @@ class TestParseOutputQChem(AtomateTest):
         task_doc = loadfn(os.path.join(my_calc_dir,"task.json"))
         self.assertEqual(task_doc["warnings"]["grad_file_missing"], True)
         os.remove(os.path.join(my_calc_dir, "task.json"))
+
+
+class TestParseOutputQChem_hess(AtomateTest):
+    def setUp(self, lpad=False):
+        os.makedirs(os.path.join(module_dir, "..", "..", "test_files", "freq_save_hess", "scratch"))
+        shutil.copyfile(
+            os.path.join(module_dir, "..", "..", "test_files", "freq_save_hess", "BUP_scratch", "132.0"),
+            os.path.join(module_dir, "..", "..", "test_files", "freq_save_hess", "scratch", "132.0"),
+        )
+        shutil.copyfile(
+            os.path.join(module_dir, "..", "..", "test_files", "freq_save_hess", "BUP_scratch", "HESS"),
+            os.path.join(module_dir, "..", "..", "test_files", "freq_save_hess", "scratch", "HESS"),
+        )
+        super().setUp(lpad=False)
+
+    def test_parse_hess(self):
+        my_calc_dir = os.path.join(module_dir, "..", "..", "test_files","freq_save_hess")
+        ft = QChemToDb(calc_dir=my_calc_dir, parse_hess_file=True)
+        ft.run_task({})
+        task_doc = loadfn(os.path.join(my_calc_dir,"task.json"))
+        self.assertEqual(task_doc["output"]["final_energy"], -151.3244603665)
+        self.assertEqual(task_doc["output"]["hess_data"]["scratch/132.0"][0],0.12636293260949633)
+        self.assertEqual(task_doc["output"]["hess_data"]["scratch/132.0"][-2],-0.2025032138024329)
+        self.assertEqual(task_doc["output"]["hess_data"]["scratch/HESS"][-2], ' -0.175476533300377      -0.202503213802433       0.205623571433770     \n')
+        os.remove(os.path.join(my_calc_dir, "task.json"))
+
+    def tearDown(self):
+        pass
 
 if __name__ == "__main__":
     unittest.main()
