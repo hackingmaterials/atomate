@@ -100,23 +100,47 @@ class QChemToDb(FiretaskBase):
                 grad_file = os.path.join(calc_dir, "scratch/GRAD.gz")
             elif os.path.exists(os.path.join(calc_dir, "scratch/GRAD")):
                 grad_file = os.path.join(calc_dir, "scratch/GRAD")
+            elif os.path.exists(os.path.join(calc_dir, "131.0.gz")):
+                grad_file = os.path.join(calc_dir, "131.0.gz")
+            elif os.path.exists(os.path.join(calc_dir, "131.0")):
+                grad_file = os.path.join(calc_dir, "131.0")
+            elif os.path.exists(os.path.join(calc_dir, "scratch/131.0.gz")):
+                grad_file = os.path.join(calc_dir, "scratch/131.0.gz")
+            elif os.path.exists(os.path.join(calc_dir, "scratch/131.0")):
+                grad_file = os.path.join(calc_dir, "scratch/131.0")
 
             if grad_file is None:
                 task_doc["warnings"]["grad_file_missing"] = True
             else:
                 grad = []
-                with zopen(grad_file, mode="rt", encoding="ISO-8859-1") as f:
-                    lines = f.readlines()
-                    for line in lines:
-                        split_line = line.split()
-                        if len(split_line) == 3:
-                            grad.append(
-                                [
-                                    float(split_line[0]),
-                                    float(split_line[1]),
-                                    float(split_line[2]),
-                                ]
-                            )
+                if grad_file[-5:] == "131.0" or grad_file[-8:] == "131.0.gz":
+                    tmp_grad_data = []
+                    with zopen(grad_file, mode="rb") as file:
+                        binary = file.read()
+                        for ii in range(int(len(binary)/8)):
+                            tmp_grad_data.append(struct.unpack("d",binary[ii*8:(ii+1)*8])[0])
+                    grad = []
+                    for ii in range(int(len(tmp_grad_data)/3)):
+                        grad.append(
+                            [
+                                float(tmp_grad_data[ii*3]),
+                                float(tmp_grad_data[ii*3+1]),
+                                float(tmp_grad_data[ii*3+2])
+                            ]
+                        )
+                else:
+                    with zopen(grad_file, mode="rt", encoding="ISO-8859-1") as f:
+                        lines = f.readlines()
+                        for line in lines:
+                            split_line = line.split()
+                            if len(split_line) == 3:
+                                grad.append(
+                                    [
+                                        float(split_line[0]),
+                                        float(split_line[1]),
+                                        float(split_line[2]),
+                                    ]
+                                )
                 task_doc["output"]["precise_gradients"] = grad
                 if os.path.exists(os.path.join(calc_dir, "scratch")):
                     shutil.rmtree(os.path.join(calc_dir, "scratch"))

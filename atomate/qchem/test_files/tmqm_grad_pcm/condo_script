@@ -1,0 +1,21 @@
+#!/bin/bash -l
+#SBATCH --qos=condo_blau
+#SBATCH -p lr6
+#SBATCH --time=24:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=40
+#SBATCH --account=lr_blau
+##SBATCH -C lr6_m192
+##SBATCH --mem=185G
+#SBATCH -J direct
+
+module load qchem/6.0.2
+export QCTHREADS=40
+export OMP_NUM_THREADS=40
+export QCSCRATCH=/global/home/groups/lr_mp/smblau/direct_testing/tmqm_grad_pcm
+export QCLOCALSCR=/tmp
+export KMP_INIT_AT_FORK=FALSE
+export NBOEXE=/clusterfs/mp/software/nbo7/bin/nbo7.i4.exe
+rm -rf /tmp/scratch
+qchem -save -nt 40 mol.qin mol.out scratch
+
