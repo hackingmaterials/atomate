@@ -663,6 +663,19 @@ class QChemDroneTest(unittest.TestCase):
         critic2_drone_ref = loadfn(os.path.join(crit_ex_path, "critic2_drone_ref.json"))
         self.assertEqual(doc["critic2"], critic2_drone_ref)
 
+    def test_assimilate_gap_force(self):
+        drone = QChemDrone()
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "gap_force"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False,
+        )
+        self.assertEqual(doc["output"]["dipoles"]["total"], 10.5686)
+        self.assertEqual(doc["output"]["dipoles"]["dipole"][0], 4.0212)
+        self.assertEqual(doc["output"]["gap_info"]["beta_LUMO"], -0.0105686)
+        self.assertEqual(doc["output"]["gap_info"]["KSgap"], 0.3287354)
+
 
 if __name__ == "__main__":
     unittest.main()
