@@ -293,7 +293,7 @@ class MagneticOrderingsWF:
             user_incar_settings.update({"LAECHG": True})
         user_incar_settings.update(c.get("user_incar_settings", {}))
         c["user_incar_settings"] = user_incar_settings
-        print(len(ordered_structures))
+
         for idx, ordered_structure in enumerate(ordered_structures):
 
             analyzer = CollinearMagneticStructureAnalyzer(ordered_structure)

@@ -335,7 +335,6 @@ class StaticFW(Firework):
 
         formula = structure.composition.reduced_formula if structure is not None else "unknown"
         fw_name = f"{formula}-{name}"
-        print(formula,spec_structure_key,type(structure),len(structure.structures))
         
         if spec_structure_key is not None:
             vasp_input_set = vasp_input_set or MPStaticSet(
@@ -358,7 +357,6 @@ class StaticFW(Firework):
                 )
             t.append(WriteVaspStaticFromPrev(other_params=vasp_input_set_params))
         elif structure is not None:
-            print('here')
             vasp_input_set = vasp_input_set or MPStaticSet(
                 structure, **vasp_input_set_params
             )
