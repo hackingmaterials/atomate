@@ -1376,9 +1376,6 @@ class MagneticOrderingsToDb(FiretaskBase):
                         {"wf_meta.wf_uuid": uuid, "task_label": optimize_task_label}
                     )
                 )
-                #input_structure = Structure.from_dict(optimize_task["input"]["structure"])
-                #input_magmoms = optimize_task["input"]["incar"]["MAGMOM"]
-                #input_structure.add_site_property("magmom", input_magmoms)
 
                 # used to determine if ordering changed during relaxation
                 # stored for checking suitable convergence is reached
@@ -1388,14 +1385,12 @@ class MagneticOrderingsToDb(FiretaskBase):
                 )
             else:
                 energy_diff_relax_static = None
-                #initial_structure = Structure.from_dict(d["output"]["structure"])
-                #initial_magmoms = initial_structure.site_properties["magmom"]
                 optimize_task = d
 
             input_structure = Structure.from_dict(optimize_task["input"]["structure"])
             input_magmoms = optimize_task["input"]["incar"]["MAGMOM"]
             input_structure.add_site_property("magmom", input_magmoms)
-            
+
             final_structure = Structure.from_dict(d["output"]["structure"])
 
             # picking a fairly large threshold so that default 0.6 µB magmoms don't
