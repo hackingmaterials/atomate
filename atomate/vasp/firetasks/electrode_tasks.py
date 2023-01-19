@@ -1,6 +1,7 @@
 import math
 
 from fireworks import FiretaskBase, Firework, FWAction, Workflow, explicit_serialize
+from pymatgen.analysis.defects.utils import ChargeInsertionAnalyzer
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core import Structure
 
@@ -10,7 +11,6 @@ from atomate.vasp.config import DB_FILE
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.firetasks import pass_vasp_result
 from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
-from pymatgen.analysis.defects.utils import ChargeInsertionAnalyzer
 
 __author__ = "Jimmy Shen"
 __email__ = "jmmshn@lbl.gov"

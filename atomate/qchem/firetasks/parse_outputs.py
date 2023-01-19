@@ -195,12 +195,26 @@ class ProtCalcToDb(FiretaskBase):
         task_doc_clean["orig"]["molecule"]["spin_multiplicity"] = 1
         task_doc_clean["output"]["initial_molecule"]["charge"] = 1
         task_doc_clean["output"]["initial_molecule"]["spin_multiplicity"] = 1
-        task_doc_clean["output"]["initial_molecule"]["sites"] = [{'name': 'H', 'species': [{'element': 'H', 'occu': 1}], 'xyz': [0.0, 0.0, 0.0], 'properties': {}}]
+        task_doc_clean["output"]["initial_molecule"]["sites"] = [
+            {
+                "name": "H",
+                "species": [{"element": "H", "occu": 1}],
+                "xyz": [0.0, 0.0, 0.0],
+                "properties": {},
+            }
+        ]
         task_doc_clean["output"]["mulliken"] = [+1.000000]
         task_doc_clean["output"]["resp"] = [+1.000000]
         task_doc_clean["output"]["optimized_molecule"]["charge"] = 1
         task_doc_clean["output"]["optimized_molecule"]["spin_multiplicity"] = 1
-        task_doc_clean["output"]["optimized_molecule"]["sites"] = [{'name': 'H', 'species': [{'element': 'H', 'occu': 1}], 'xyz': [0.0, 0.0, 0.0], 'properties': {}}]
+        task_doc_clean["output"]["optimized_molecule"]["sites"] = [
+            {
+                "name": "H",
+                "species": [{"element": "H", "occu": 1}],
+                "xyz": [0.0, 0.0, 0.0],
+                "properties": {},
+            }
+        ]
         task_doc_clean["output"]["final_energy"] = (
             task_doc_2["output"]["final_energy"] - task_doc_1["output"]["final_energy"]
         )
