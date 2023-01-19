@@ -36,6 +36,8 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 def get_wf_hubbard_hund_linresp(
     structure,
     user_incar_settings=None,
+    user_potcar_settings=None,
+    user_potcar_functional=None,
     relax_nonmagnetic=True,
     spin_polarized=True,
     applied_potential_range=(-0.2, 0.2),
@@ -161,7 +163,7 @@ def get_wf_hubbard_hund_linresp(
 
     # setup VASP input sets
     uis_gs, uis_ldau, val_dict, vis_ldau = init_linresp_input_sets(
-        user_incar_settings, structure, num_perturb
+        user_incar_settings, user_potcar_settings, user_potcar_functional, structure, num_perturb
     )
 
     fws = []
@@ -174,6 +176,8 @@ def get_wf_hubbard_hund_linresp(
     append_linresp_ground_state_fws(
         fws,
         structure,
+        user_potcar_settings,
+        user_potcar_functional,
         num_perturb,
         index_fw_gs,
         uis_gs,
@@ -207,6 +211,8 @@ def get_wf_hubbard_hund_linresp(
                 v,
                 fws,
                 structure,
+                user_potcar_settings,
+                user_potcar_functional,
                 counter_perturb,
                 num_perturb,
                 index_fw_gs,
@@ -300,6 +306,8 @@ def find_closest_sites(struct, species_perturb):
 
 def init_linresp_input_sets(
     user_incar_settings,
+    user_potcar_settings,
+    user_potcar_functional,
     structure,
     num_perturb,
 ):
@@ -331,7 +339,7 @@ def init_linresp_input_sets(
     uis_ldau.update({"LDAU": True, "LDAUTYPE": 3, "LDAUPRINT": 2})
 
     # Initialize vasp input set
-    vis_params = {"user_incar_settings": uis_ldau.copy()}
+    vis_params = {"user_incar_settings": uis_ldau.copy(), "user_potcar_settings": user_potcar_settings, "user_potcar_functional": user_potcar_functional}
     vis_ldau = HubbardHundLinRespSet(
         structure=structure, num_perturb=num_perturb, **vis_params.copy()
     )
@@ -352,7 +360,7 @@ def init_linresp_input_sets(
                 v = 0
                 val_dict[k].update({s: v})
         uis_ldau.update({k: val_dict[k].copy()})
-    vis_params = {"user_incar_settings": uis_ldau.copy()}
+    vis_params = {"user_incar_settings": uis_ldau.copy(), "user_potcar_settings": user_potcar_settings, "user_potcar_functional": user_potcar_functional}
     vis_ldau = HubbardHundLinRespSet(
         structure=structure, num_perturb=num_perturb, **vis_params.copy()
     )
@@ -365,6 +373,8 @@ def init_linresp_input_sets(
 def append_linresp_ground_state_fws(
     fws,
     structure,
+    user_potcar_settings,
+    user_potcar_functional,
     num_perturb,
     index_fw_gs,
     uis_gs,
@@ -380,7 +390,7 @@ def append_linresp_ground_state_fws(
         uis_gs.update({"ISPIN": 1, "EDIFF": ediff_default})
     else:
         uis_gs.update({"ISPIN": 2, "EDIFF": ediff_tight})
-    vis_params = {"user_incar_settings": uis_gs.copy()}
+    vis_params = {"user_incar_settings": uis_gs.copy(), "user_potcar_settings": user_potcar_settings, "user_potcar_functional": user_potcar_functional}
     vis_gs = HubbardHundLinRespSet(
         structure=structure, num_perturb=num_perturb, **vis_params.copy()
     )
@@ -398,7 +408,7 @@ def append_linresp_ground_state_fws(
         index_fw_gs[0] += 1
         uis_gs.update({"ISPIN": 2, "ICHARG": 1, "EDIFF": ediff_tight})
         additional_files = ["WAVECAR", "CHGCAR"]
-        vis_params = {"user_incar_settings": uis_gs.copy()}
+        vis_params = {"user_incar_settings": uis_gs.copy(), "user_potcar_settings": user_potcar_settings, "user_potcar_functional": user_potcar_functional}
         vis_gs = HubbardHundLinRespSet(
             structure=structure, num_perturb=num_perturb, **vis_params.copy()
         )
@@ -419,6 +429,8 @@ def append_linresp_perturb_fws(
     applied_pot,
     fws,
     structure,
+    user_potcar_settings,
+    user_potcar_functional,
     counter_perturb,
     num_perturb,
     index_fw_gs,
@@ -473,7 +485,7 @@ def append_linresp_perturb_fws(
         # Non-SCF runs
         uis_ldau.update({"ISTART": 1, "ICHARG": 11, "ISPIN": 2, "EDIFF": ediff_default})
 
-        vis_params = {"user_incar_settings": uis_ldau.copy()}
+        vis_params = {"user_incar_settings": uis_ldau.copy(), "user_potcar_settings": user_potcar_settings, "user_potcar_functional": user_potcar_functional}
         vis_ldau = HubbardHundLinRespSet(
             structure=structure, num_perturb=num_perturb, **vis_params.copy()
         )
@@ -506,7 +518,7 @@ def append_linresp_perturb_fws(
         else:
             uis_ldau.update({"ISPIN": 2, "EDIFF": ediff_tight})
 
-        vis_params = {"user_incar_settings": uis_ldau.copy()}
+        vis_params = {"user_incar_settings": uis_ldau.copy(), "user_potcar_settings": user_potcar_settings, "user_potcar_functional": user_potcar_functional}
         vis_ldau = HubbardHundLinRespSet(
             structure=structure, num_perturb=num_perturb, **vis_params.copy()
         )
@@ -541,7 +553,7 @@ def append_linresp_perturb_fws(
                 {"ISTART": 1, "ICHARG": 1, "ISPIN": 2, "EDIFF": ediff_tight}
             )
 
-            vis_params = {"user_incar_settings": uis_ldau.copy()}
+            vis_params = {"user_incar_settings": uis_ldau.copy(), "user_potcar_settings": user_potcar_settings, "user_potcar_functional": user_potcar_functional}
             vis_ldau = HubbardHundLinRespSet(
                 structure=structure, num_perturb=num_perturb, **vis_params.copy()
             )
