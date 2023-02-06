@@ -56,7 +56,13 @@ class WriteInputFromIOSet(FiretaskBase):
     """
 
     required_params = ["qchem_input_set"]
-    optional_params = ["molecule", "qchem_input_params", "input_file", "write_to_dir", "prev_hess"]
+    optional_params = [
+        "molecule",
+        "qchem_input_params",
+        "input_file",
+        "write_to_dir",
+        "prev_hess",
+    ]
 
     def run_task(self, fw_spec):
         input_file = os.path.join(
@@ -137,10 +143,13 @@ class WriteInputFromIOSet(FiretaskBase):
             )
         qcin.write(input_file)
         if self.get("prev_hess"):
-            with open(os.path.join(os.path.dirname(input_file), "132.0"), mode="wb") as file:
-                for val in self.get("prev_hess"):
-                    data = struct.pack("d", val)
-                    file.write(data)
+            if self.get("prev_hess") != []:
+                with open(
+                    os.path.join(os.path.dirname(input_file), "132.0"), mode="wb"
+                ) as file:
+                    for val in self.get("prev_hess"):
+                        data = struct.pack("d", val)
+                        file.write(data)
 
 
 @explicit_serialize
