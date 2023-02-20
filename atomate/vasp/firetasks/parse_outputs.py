@@ -1461,10 +1461,10 @@ class MagneticOrderingsToDb(FiretaskBase):
                 d["calcs_reversed"][0]["output"]["outcar"]["total_magnetization"]
             )
             num_formula_units = sum(
-                d["calcs_reversed"][0]["composition_reduced"].values()
-            ) / sum(d["calcs_reversed"][0]["composition_unit_cell"].values())
+                d["calcs_reversed"][0]["composition_unit_cell"].values()
+            ) / sum(d["calcs_reversed"][0]["composition_reduced"].values())
             total_magnetization_per_formula_unit = (
-                total_magnetization * num_formula_units
+                total_magnetization / num_formula_units
             )
             total_magnetization_per_unit_volume = (
                 total_magnetization / final_structure.volume
