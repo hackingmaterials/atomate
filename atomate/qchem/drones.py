@@ -231,7 +231,7 @@ class QChemDrone(AbstractDrone):
                         float(d_calc_final["opt_constraint"][6]),
                     ]
             if d["output"]["job_type"] in ["freq", "frequency"]:
-                if len(d_calc_final["initial_molecule"]["sites"]) != 1:
+                if len(d_calc_final["initial_molecule"]) != 1:
                     d["output"]["frequencies"] = d_calc_final["frequencies"]
                     d["output"]["frequency_modes"] = d_calc_final["frequency_mode_vectors"]
                 d["output"]["enthalpy"] = d_calc_final["total_enthalpy"]
