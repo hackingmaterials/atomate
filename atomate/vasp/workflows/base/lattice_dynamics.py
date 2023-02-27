@@ -27,7 +27,7 @@ from atomate.vasp.fireworks.lattice_dynamics import (
     LatticeThermalConductivityFW,
     RenormalizationFW,
 )
-from atomate.vasp.powerups import add_additional_fields_to_taskdocs
+from atomate.common.powerups import add_additional_fields_to_taskdocs
 from fireworks import Workflow
 from pymatgen.core.structure import Structure
 from pymatgen.io.vasp.sets import MPStaticSet, VaspInputSet
