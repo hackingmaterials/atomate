@@ -1,4 +1,4 @@
-pymatgen==2023.2.28
+pymatgen==2023.2.22
 FireWorks==2.0.3
 maggma==0.48.1
 monty==2022.9.9
