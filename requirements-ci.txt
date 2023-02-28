@@ -1,4 +1,4 @@
-pymatgen=2023.2.22
+pymatgen==2023.2.22
 git+https://github.com/samblau/custodian@qchem#egg=custodian
 boto3==1.17.97
 Flask==2.1.3
