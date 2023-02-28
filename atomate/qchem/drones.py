@@ -231,9 +231,9 @@ class QChemDrone(AbstractDrone):
                         float(d_calc_final["opt_constraint"][6]),
                     ]
             if d["output"]["job_type"] in ["freq", "frequency"]:
-                if len(d_calc_final["initial_molecule"]) != 1:
-                    d["output"]["frequencies"] = d_calc_final["frequencies"]
-                    d["output"]["frequency_modes"] = d_calc_final["frequency_mode_vectors"]
+                d["output"]["frequencies"] = d_calc_final["frequencies"]
+                # Note: for single-atom freq calcs, this key may not exist
+                d["output"]["frequency_modes"] = d_calc_final.get("frequency_mode_vectors", [])
                 d["output"]["enthalpy"] = d_calc_final["total_enthalpy"]
                 d["output"]["entropy"] = d_calc_final["total_entropy"]
                 if d["input"]["job_type"] in ["opt", "optimization", "ts"]:
@@ -507,7 +507,7 @@ class QChemDrone(AbstractDrone):
         to pass validation is unfortunately unlikely to be noticed by a user.
         """
         for k, v in self.schema.items():
-            diff = v.difference(set(d.get(k, d).keys()))
+            diff = v - set(d.get(k, d).keys())
             if diff:
                 logger.warning(f"The keys {diff} in {k} not set")
 

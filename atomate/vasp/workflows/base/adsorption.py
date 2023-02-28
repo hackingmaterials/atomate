@@ -30,7 +30,7 @@ def get_slab_fw(
     add_slab_metadata=True,
 ):
     """
-    Function to generate a a slab firework.  Returns a TransmuterFW if
+    Function to generate a slab firework.  Returns a TransmuterFW if
     bulk_structure is specified, constructing the necessary transformations
     from the slab and slab generator parameters, or an OptimizeFW if only a
     slab is specified.

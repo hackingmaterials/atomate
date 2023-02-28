@@ -33,6 +33,7 @@ if __name__ == "__main__":
             "paramiko",
             "pydash>=4.1.0",
             "pymatgen-analysis-diffusion",
+            "pymatgen-analysis-defects>=2022.9.14",
             "pymatgen",
             "pymongo",
             "pyyaml>=5.1.2",
