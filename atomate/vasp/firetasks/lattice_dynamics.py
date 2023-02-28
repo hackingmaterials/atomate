@@ -273,7 +273,7 @@ class RunHiPhiveRenorm(FiretaskBase):
         # First renormalization with DFT lattice 
         renorm_data = Parallel(n_jobs=4, backend="multiprocessing")(delayed(run_renormalization)(
             parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, T, nconfig, max_iter,
-            conv_thresh, bulk_modulus, phonopy_orig) for t, T in enumerate(renorm_temp))
+            conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_orig) for t, T in enumerate(renorm_temp))
 
         # Additional renormalization with thermal expansion - optional - just single "iteration" for now
         if renorm_TE_iter:
@@ -304,10 +304,13 @@ class RunHiPhiveRenorm(FiretaskBase):
 
                 parent_structure_TE, cs_TE, fcs_TE = setup_TE_iter(cutoffs,parent_structure,T_real,dLfrac_real)
                 param_TE = copy(param_real)
-                
+                prim_TE_atoms = AseAtomsAdaptor.get_atoms(parent_structure_TE)
+                prim_phonopy_TE = PhonopyAtoms(symbols=prim_TE_atoms.get_chemical_symbols(), 
+                                               scaled_positions=prim_TE_atoms.get_scaled_positions(), cell=prim_TE_atoms.cell)
+                phonopy_TE = Phonopy(prim_phonopy_TE, supercell_matrix=scmat, primitive_matrix=None)
                 renorm_data = Parallel(n_jobs=4, backend="multiprocessing")(delayed(run_renormalization)(
                     parent_structure_TE[t], supercell_atoms_TE[t], supercell_matrix, cs_TE[t], fcs_TE[t], param_TE[t],
-                    T, nconfig, max_iter, conv_thresh, bulk_modulus
+                    T, nconfig, max_iter, conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_TE
                     ) for t, T in enumerate(T_real)
                 )
 
