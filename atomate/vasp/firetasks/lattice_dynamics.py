@@ -270,10 +270,21 @@ class RunHiPhiveRenorm(FiretaskBase):
         renorm_TE_iter = self.get("renorm_TE_iter")
         bulk_modulus = self.get("bulk_modulus")
 
-        # First renormalization with DFT lattice 
-        renorm_data = Parallel(n_jobs=4, backend="multiprocessing")(delayed(run_renormalization)(
-            parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, T, nconfig, max_iter,
-            conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_orig) for t, T in enumerate(renorm_temp))
+        # Renormalization with DFT lattice 
+
+        # Parallel version
+#        renorm_data = Parallel(n_jobs=len(renorm_temp), backend="multiprocessing")(delayed(run_renormalization)(
+#            parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, T, nconfig, max_iter,
+#            conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_orig) for t, T in enumerate(renorm_temp))
+
+        # Serial version - likely better because it allows parallelization over A matrix construction,
+        # which takes most of the time during renormalization, and leaves no process idling around when 
+        # low temperature renormalizations finish early
+        renorm_data = []
+        for t, T in enumerate(renorm_temp):
+            data_T = run_renormalization(parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, T, nconfig, 
+                                max_iter, conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_orig)
+            renorm_data.append(data_T)
 
         # Additional renormalization with thermal expansion - optional - just single "iteration" for now
         if renorm_TE_iter:
@@ -308,14 +319,24 @@ class RunHiPhiveRenorm(FiretaskBase):
                 prim_phonopy_TE = PhonopyAtoms(symbols=prim_TE_atoms.get_chemical_symbols(), 
                                                scaled_positions=prim_TE_atoms.get_scaled_positions(), cell=prim_TE_atoms.cell)
                 phonopy_TE = Phonopy(prim_phonopy_TE, supercell_matrix=scmat, primitive_matrix=None)
-                renorm_data = Parallel(n_jobs=4, backend="multiprocessing")(delayed(run_renormalization)(
-                    parent_structure_TE[t], supercell_atoms_TE[t], supercell_matrix, cs_TE[t], fcs_TE[t], param_TE[t],
-                    T, nconfig, max_iter, conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_TE
-                    ) for t, T in enumerate(T_real)
-                )
 
+                # Parallel
+#                renorm_data = Parallel(n_jobs=len(T_real), backend="multiprocessing")(delayed(run_renormalization)(
+#                    parent_structure_TE[t], supercell_atoms_TE[t], supercell_matrix, cs_TE[t], fcs_TE[t], param_TE[t],
+#                    T, nconfig, max_iter, conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_TE
+#                    ) for t, T in enumerate(T_real)
+#                )
+
+                # Serial
+                renorm_data_TE = []
+                for t, T in enumerate(T_real):
+                    data_T = run_renormalization(parent_structure_TE[t], supercell_atoms_TE[t], supercell_matrix, 
+                                                 cs_TE[t], fcs_TE[t], param_TE[t], T, nconfig, max_iter, conv_thresh,
+                                                 renorm_method, fit_method, bulk_modulus, phonopy_TE)
+                    renorm_data_TE.append(data_T)
+                    
             if len(T_real) > 0:
-                for t, result in enumerate(renorm_data):
+                for t, result in enumerate(renorm_data_TE):
                     temp_index = np.where(renorm_temp==T_real[t])[0][0]
                     renorm_data[temp_index] = result
 
