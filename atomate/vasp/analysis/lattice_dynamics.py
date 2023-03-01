@@ -13,11 +13,12 @@ from atomate.utils.utils import get_logger
 from hiphive import (ForceConstants, ForceConstantPotential,
                      enforce_rotational_sum_rules, ClusterSpace,
                      StructureContainer)
+from hiphive.force_constant_model import ForceConstantModel
 from hiphive.cutoffs import is_cutoff_allowed, estimate_maximum_cutoff
 from hiphive.fitting import Optimizer
 from hiphive.renormalization import Renormalization
 from hiphive.utilities import get_displacements
-from hiphive.run_tools import FE_correction
+from hiphive.run_tools import _clean_data, FE_correction
 
 from pymatgen.core.structure import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
@@ -248,6 +249,75 @@ def fit_force_constants(
     return best_fit["force_constants"], best_fit["parameters"], best_fit["cluster_space"], fitting_data
 
 
+def _get_fit_data(
+        cs: ClusterSpace,
+        supercell: Atoms,
+        structures: List["Atoms"],
+        separate_fit: bool,
+        disp_cut: float,
+        ncut: int,
+        param2: np.ndarray = None
+) -> "List":
+    """ Constructs structure container of atom-displaced supercells
+    Args: 
+    cs: ClusterSpace
+    supercell: Atoms
+      Original undisplaced supercell
+    structures: A list of ase atoms objects with the "forces" and                                                                                                                                  
+      "displacements" arrays included.                                                                                                                                                           
+    separate_fit: Boolean to determine whether harmonic and anharmonic fitting                                                                                                                     
+      are to be done separately (True) or in one shot (False)                                                                                                                                    
+    disp_cut: if separate_fit true, determines the mean displacement of perturbed                                                                                                                  
+      structure to be included in harmonic (<) or anharmonic (>) fitting                                                                                                                         
+    ncut: the parameter index where fitting separation occurs                                                                                                                                      
+      param2: previously fit parameter array (harmonic only for now, hence 2)                                                                                                                        
+
+    Returns:
+    fit_data: List[A_mat,f_vec] 
+    """
+
+    saved_structures = []
+    fcm = ForceConstantModel(supercell,cs)
+    natom = supercell.get_global_number_of_atoms()
+    nrow_per = natom*3
+    nrow_all = nrow_per*len(saved_structures)
+    A_mat = np.memmap('A_mat_memmap', dtype=float, shape=(nrow_all,cs.n_dofs), mode='w+')
+    f_vec = np.memmap('f_vec_memmap', dtype=float, shape=(nrow_all), mode='w+')
+
+    for i, structure in enumerate(structures):
+        displacements = structure.get_array('displacements')
+        mean_displacements = np.linalg.norm(displacements,axis=1).mean()
+        logger.info('Mean displacements: {}'.format(mean_displacements))
+        if not separate_fit: # fit all
+            saved_structures.append(structure)
+        else: # fit separately
+            if param2 is None: # for harmonic fitting
+                if mean_displacements < disp_cut:
+                    saved_structures.append(structure)
+            else: # for anharmonic fitting
+                if mean_displacements >= disp_cut:
+                    saved_structures.append(structure)
+
+    Parallel(n_jobs=min(os.cpu_count(),max(1,len(saved_structures))))(#,prefer="threads")(
+        delayed(construct_fit_data)(fcm,structure,A_mat,f_vec,nrow_per,s,param=None)
+        for s,structure in enumerate(saved_structures)
+    )
+
+    if param2 is not None:
+        force_anh = f_vec - np.dot(A_mat[:,:ncut],param2) # subtract harmonic force from total
+        for i, structure in enumerate(saved_structures):
+            structure.set_array('forces', force_anh[i*nrow_per:(i+1)*nrow_per].reshape(natom,3))
+        Parallel(n_jobs=min(os.cpu_count(),max(1,len(saved_structures))))(#,prefer="threads")(
+            delayed(construct_fit_data)(fcm,structure,A_mat,f_vec,nrow_per,s,param=None)
+            for s,structure in enumerate(saved_structures)
+        )
+    os.remove('A_mat_memmap')
+    os.remove('f_vec_memmap')
+    logger.info('Fit_data dimensions: {}'.format(A_mat.shape))
+    fit_data = _clean_data(A_mat,f_vec,nrow_per)
+    return fit_data
+
+
 def _run_cutoffs(
     i,
     cutoffs,
@@ -280,6 +350,8 @@ def _run_cutoffs(
     
     if separate_fit:
         logger.info('Fitting harmonic force constants separately')
+#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+#                                disp_cut, ncut=n2nd, param2=None)
         sc = get_structure_container(cs, structures, separate_fit, disp_cut,
                                      ncut=n2nd, param2=None)
         opt = Optimizer(sc.get_fit_data(),
@@ -290,6 +362,8 @@ def _run_cutoffs(
         param_harmonic = opt.parameters # harmonic force constant parameters
         
         logger.info('Fitting anharmonic force constants separately')
+#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+#                                disp_cut, ncut=n2nd, param2=param_harmonic)
         sc = get_structure_container(cs, structures, separate_fit, disp_cut,
                                      ncut=n2nd, param2=param_harmonic)
         opt = Optimizer(sc.get_fit_data(),
@@ -305,6 +379,8 @@ def _run_cutoffs(
         
     else:
         logger.info('Fitting all force constants in one shot')
+#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+#                                disp_cut=None, ncut=None, param2=None)
         sc = get_structure_container(cs, structures, separate_fit, disp_cut=None,
                                      ncut=None, param2=None)
         opt = Optimizer(sc.get_fit_data(),
@@ -347,7 +423,7 @@ def get_structure_container(
     Get a hiPhive StructureContainer from cutoffs and a list of atoms objects.
 
     Args:
-        cutoffs: Cutoff radii for different orders starting with second order.
+        cs: ClusterSpace 
         structures: A list of ase atoms objects with the "forces" and
             "displacements" arrays included.
         separate_fit: Boolean to determine whether harmonic and anharmonic fitting
@@ -673,11 +749,11 @@ def run_renormalization(
 
     omega0 = phonopy_orig.mesh.frequencies # THz
     omega_TD = phonopy.mesh.frequencies # THz
-    natom = phonopy.primitive.get_number_of_atoms()
-    correction = FE_correction(omega0,omega_TD,T)/natom # eV/atom
+#    natom = phonopy.primitive.get_number_of_atoms()
+    correction_S, correction_4 = FE_correction(omega0,omega_TD,T) # eV/atom
 
     renorm_data.update(anharmonic_data)
-    renorm_data["free_energy_correction"] = correction
+    renorm_data["free_energy_correction_S"] = correction_S[0]
     renorm_data["fcp"] = fcp
     renorm_data["fcs"] = fcs
     renorm_data["param"] = param
