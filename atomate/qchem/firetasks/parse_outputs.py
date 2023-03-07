@@ -226,6 +226,7 @@ class QChemToDb(FiretaskBase):
         else:
             logger.info("Connecting to QChemCalcDb")
             mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
+            logger.info("Starting task_doc insert")
             t_id = mmdb.insert(task_doc)
             logger.info(f"Finished parsing with task_id: {t_id}")
 
