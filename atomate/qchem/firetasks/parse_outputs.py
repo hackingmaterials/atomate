@@ -89,6 +89,8 @@ class QChemToDb(FiretaskBase):
             multirun=multirun,
         )
 
+        logger.info("Drone finished!")
+
         # parse the GRAD file, if desired and if it is present
         if self.get("parse_grad_file", False):
             grad_file = None
@@ -112,23 +114,28 @@ class QChemToDb(FiretaskBase):
             if grad_file is None:
                 task_doc["warnings"]["grad_file_missing"] = True
             else:
+                logger.info("Parsing gradient file")
                 grad = []
                 if grad_file[-5:] == "131.0" or grad_file[-8:] == "131.0.gz":
                     tmp_grad_data = []
+                    logger.info("Gradient file is binary")
                     with zopen(grad_file, mode="rb") as file:
                         binary = file.read()
-                        for ii in range(int(len(binary)/8)):
-                            tmp_grad_data.append(struct.unpack("d",binary[ii*8:(ii+1)*8])[0])
+                        for ii in range(int(len(binary) / 8)):
+                            tmp_grad_data.append(
+                                struct.unpack("d", binary[ii * 8 : (ii + 1) * 8])[0]
+                            )
                     grad = []
-                    for ii in range(int(len(tmp_grad_data)/3)):
+                    for ii in range(int(len(tmp_grad_data) / 3)):
                         grad.append(
                             [
-                                float(tmp_grad_data[ii*3]),
-                                float(tmp_grad_data[ii*3+1]),
-                                float(tmp_grad_data[ii*3+2])
+                                float(tmp_grad_data[ii * 3]),
+                                float(tmp_grad_data[ii * 3 + 1]),
+                                float(tmp_grad_data[ii * 3 + 2]),
                             ]
                         )
                 else:
+                    logger.info("Gradient file is text")
                     with zopen(grad_file, mode="rt", encoding="ISO-8859-1") as f:
                         lines = f.readlines()
                         for line in lines:
@@ -142,6 +149,7 @@ class QChemToDb(FiretaskBase):
                                     ]
                                 )
                 task_doc["output"]["precise_gradients"] = grad
+                logger.info("Done parsing gradient. Now removing scratch directory")
                 if os.path.exists(os.path.join(calc_dir, "scratch")):
                     shutil.rmtree(os.path.join(calc_dir, "scratch"))
 
@@ -161,16 +169,23 @@ class QChemToDb(FiretaskBase):
             if len(hess_files) == 0:
                 task_doc["warnings"]["hess_file_missing"] = True
             else:
+                logger.info("Parsing Hessian file")
                 hess_data = {}
                 for hess_name in hess_files:
                     if hess_name[-5:] == "132.0" or hess_name[-8:] == "132.0.gz":
+                        logger.info("Hessian file is binary")
                         tmp_hess_data = []
-                        with zopen(os.path.join(calc_dir, hess_name), mode="rb") as file:
+                        with zopen(
+                            os.path.join(calc_dir, hess_name), mode="rb"
+                        ) as file:
                             binary = file.read()
-                            for ii in range(int(len(binary)/8)):
-                                tmp_hess_data.append(struct.unpack("d",binary[ii*8:(ii+1)*8])[0])
+                            for ii in range(int(len(binary) / 8)):
+                                tmp_hess_data.append(
+                                    struct.unpack("d", binary[ii * 8 : (ii + 1) * 8])[0]
+                                )
                         hess_data[hess_name] = tmp_hess_data
                     else:
+                        logger.info("Hessian file is text")
                         with zopen(
                             os.path.join(calc_dir, hess_name),
                             mode="rt",
@@ -178,6 +193,7 @@ class QChemToDb(FiretaskBase):
                         ) as f:
                             hess_data[hess_name] = f.readlines()
                 task_doc["output"]["hess_data"] = hess_data
+                logger.info("Done parsing Hessian. Now removing scratch directory")
                 if os.path.exists(os.path.join(calc_dir, "scratch")):
                     shutil.rmtree(os.path.join(calc_dir, "scratch"))
 
