@@ -198,12 +198,14 @@ class QChemToDb(FiretaskBase):
                     shutil.rmtree(os.path.join(calc_dir, "scratch"))
 
         # Check for additional keys to set based on the fw_spec
+        logger.info("Updating fw_spec_field")
         if self.get("fw_spec_field"):
             task_doc.update(
                 {self.get("fw_spec_field"): fw_spec.get(self.get("fw_spec_field"))}
             )
 
         # Update fw_spec with final/optimized structure
+        logger.info("Updating charges in spec")
         update_spec = {}
         if task_doc.get("output").get("optimized_molecule"):
             update_spec["prev_calc_molecule"] = task_doc["output"]["optimized_molecule"]
@@ -214,6 +216,7 @@ class QChemToDb(FiretaskBase):
                 update_spec["prev_calc_esp"] = task_doc["output"]["ESP"]
 
         # get the database connection
+        logger.info("Get database connection")
         db_file = env_chk(self.get("db_file"), fw_spec)
 
         # db insertion or taskdoc dump
@@ -221,6 +224,7 @@ class QChemToDb(FiretaskBase):
             with open(os.path.join(calc_dir, "task.json"), "w") as f:
                 f.write(json.dumps(task_doc, default=DATETIME_HANDLER))
         else:
+            logger.info("Connecting to QChemCalcDb")
             mmdb = QChemCalcDb.from_db_file(db_file, admin=True)
             t_id = mmdb.insert(task_doc)
             logger.info(f"Finished parsing with task_id: {t_id}")
@@ -308,12 +312,26 @@ class ProtCalcToDb(FiretaskBase):
         task_doc_clean["orig"]["molecule"]["spin_multiplicity"] = 1
         task_doc_clean["output"]["initial_molecule"]["charge"] = 1
         task_doc_clean["output"]["initial_molecule"]["spin_multiplicity"] = 1
-        task_doc_clean["output"]["initial_molecule"]["sites"] = [{'name': 'H', 'species': [{'element': 'H', 'occu': 1}], 'xyz': [0.0, 0.0, 0.0], 'properties': {}}]
+        task_doc_clean["output"]["initial_molecule"]["sites"] = [
+            {
+                "name": "H",
+                "species": [{"element": "H", "occu": 1}],
+                "xyz": [0.0, 0.0, 0.0],
+                "properties": {},
+            }
+        ]
         task_doc_clean["output"]["mulliken"] = [+1.000000]
         task_doc_clean["output"]["resp"] = [+1.000000]
         task_doc_clean["output"]["optimized_molecule"]["charge"] = 1
         task_doc_clean["output"]["optimized_molecule"]["spin_multiplicity"] = 1
-        task_doc_clean["output"]["optimized_molecule"]["sites"] = [{'name': 'H', 'species': [{'element': 'H', 'occu': 1}], 'xyz': [0.0, 0.0, 0.0], 'properties': {}}]
+        task_doc_clean["output"]["optimized_molecule"]["sites"] = [
+            {
+                "name": "H",
+                "species": [{"element": "H", "occu": 1}],
+                "xyz": [0.0, 0.0, 0.0],
+                "properties": {},
+            }
+        ]
         task_doc_clean["output"]["final_energy"] = (
             task_doc_2["output"]["final_energy"] - task_doc_1["output"]["final_energy"]
         )
