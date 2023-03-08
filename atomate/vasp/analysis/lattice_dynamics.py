@@ -301,7 +301,7 @@ def fit_force_constants(
     return best_fit["force_constants"], best_fit["parameters"], best_fit["cluster_space"], fitting_data
 
 
-def _get_fit_data(
+def get_fit_data(
         cs: ClusterSpace,
         supercell: Atoms,
         structures: List["Atoms"],
@@ -315,14 +315,14 @@ def _get_fit_data(
     cs: ClusterSpace
     supercell: Atoms
       Original undisplaced supercell
-    structures: A list of ase atoms objects with the "forces" and                                                                                                                                  
-      "displacements" arrays included.                                                                                                                                                           
-    separate_fit: Boolean to determine whether harmonic and anharmonic fitting                                                                                                                     
-      are to be done separately (True) or in one shot (False)                                                                                                                                    
-    disp_cut: if separate_fit true, determines the mean displacement of perturbed                                                                                                                  
-      structure to be included in harmonic (<) or anharmonic (>) fitting                                                                                                                         
-    ncut: the parameter index where fitting separation occurs                                                                                                                                      
-      param2: previously fit parameter array (harmonic only for now, hence 2)                                                                                                                        
+    structures: A list of ase atoms objects with the "forces" and
+      "displacements" arrays included.
+    separate_fit: Boolean to determine whether harmonic and anharmonic fitting
+      are to be done separately (True) or in one shot (False)
+    disp_cut: if separate_fit true, determines the mean displacement of perturbed
+      structure to be included in harmonic (<) or anharmonic (>) fitting
+    ncut: the parameter index where fitting separation occurs
+      param2: previously fit parameter array (harmonic only for now, hence 2)
 
     Returns:
     fit_data: List[A_mat,f_vec] 
@@ -333,8 +333,8 @@ def _get_fit_data(
     natom = supercell.get_global_number_of_atoms()
     nrow_per = natom*3
     nrow_all = nrow_per*len(saved_structures)
-    A_mat = np.memmap('A_mat_memmap', dtype=float, shape=(nrow_all,cs.n_dofs), mode='w+')
-    f_vec = np.memmap('f_vec_memmap', dtype=float, shape=(nrow_all), mode='w+')
+    A_mat = np.zeros((nrow_all,cs.n_dofs))
+    f_vec = np.zeros(nrow_all)
 
     for i, structure in enumerate(structures):
         displacements = structure.get_array('displacements')
@@ -350,21 +350,16 @@ def _get_fit_data(
                 if mean_displacements >= disp_cut:
                     saved_structures.append(structure)
 
-    Parallel(n_jobs=min(os.cpu_count(),max(1,len(saved_structures))))(#,prefer="threads")(
-        delayed(construct_fit_data)(fcm,structure,A_mat,f_vec,nrow_per,s,param=None)
+    fit_data_tmp = Parallel(n_jobs=min(os.cpu_count(),max(1,len(saved_structures))))(#,prefer="threads")(
+        delayed(construct_fit_data)(fcm,structure,s)
         for s,structure in enumerate(saved_structures)
     )
+    for s,data in enumerate(fit_data_tmp)
+        A_mat[s*nrow_per:(s+1)*nrow_per] = data[0]
+        f_vec[s*nrow_per:(s+1)*nrow_per] = data[1]
 
     if param2 is not None:
-        force_anh = f_vec - np.dot(A_mat[:,:ncut],param2) # subtract harmonic force from total
-        for i, structure in enumerate(saved_structures):
-            structure.set_array('forces', force_anh[i*nrow_per:(i+1)*nrow_per].reshape(natom,3))
-        Parallel(n_jobs=min(os.cpu_count(),max(1,len(saved_structures))))(#,prefer="threads")(
-            delayed(construct_fit_data)(fcm,structure,A_mat,f_vec,nrow_per,s,param=None)
-            for s,structure in enumerate(saved_structures)
-        )
-    os.remove('A_mat_memmap')
-    os.remove('f_vec_memmap')
+        f_vec -= np.dot(A_mat[:,:ncut],param2) # subtract harmonic force from total
     logger.info('Fit_data dimensions: {}'.format(A_mat.shape))
     fit_data = _clean_data(A_mat,f_vec,nrow_per)
     return fit_data
@@ -413,11 +408,11 @@ def _run_cutoffs(
     
     if separate_fit:
         logger.info('Fitting harmonic force constants separately')
-#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
-#                                disp_cut, ncut=n2nd, param2=None)
-        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
-                                     ncut=n2nd, param2=None)
-        opt = Optimizer(sc.get_fit_data(),
+        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+                                disp_cut, ncut=n2nd, param2=None)
+#        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
+#                                     ncut=n2nd, param2=None)
+        opt = Optimizer(fit_data,#sc.get_fit_data(),
                         fit_method,
                         [0,n2nd],
                         **fit_kwargs)
@@ -430,11 +425,11 @@ def _run_cutoffs(
         param_harmonic = opt.parameters # harmonic force constant parameters
         
         logger.info('Fitting anharmonic force constants separately')
-#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
-#                                disp_cut, ncut=n2nd, param2=param_harmonic)
-        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
-                                     ncut=n2nd, param2=param_harmonic)
-        opt = Optimizer(sc.get_fit_data(),
+        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+                                disp_cut, ncut=n2nd, param2=param_harmonic)
+#        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
+#                                     ncut=n2nd, param2=param_harmonic)
+        opt = Optimizer(fit_data,#sc.get_fit_data(),
                         fit_method,
                         [n2nd,nall],
                         **fit_kwargs)
@@ -515,11 +510,11 @@ def get_structure_container(
         
     else:
         logger.info('Fitting all force constants in one shot')
-#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
-#                                disp_cut=None, ncut=None, param2=None)
-        sc = get_structure_container(cs, structures, separate_fit, disp_cut=None,
-                                     ncut=None, param2=None)
-        opt = Optimizer(sc.get_fit_data(),
+        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+                                disp_cut=None, ncut=None, param2=None)
+#        sc = get_structure_container(cs, structures, separate_fit, disp_cut=None,
+#                                     ncut=None, param2=None)
+        opt = Optimizer(fit_data,#sc.get_fit_data(),
                         fit_method,
                         [0,nall],
                         **fit_kwargs)
@@ -593,7 +588,7 @@ def get_structure_container(
     if separate_fit and param2 is not None: # do after anharmonic fitting
         A_mat = sc.get_fit_data()[0] # displacement matrix
         f_vec = sc.get_fit_data()[1] # force vector
-        anh_force = f_vec - np.dot(A_mat[:,:ncut],param2) # subtract harmonic forces
+        f_vec -= np.dot(A_mat[:,:ncut],param2) # subtract harmonic forces
         sc.delete_all_structures()
         for i, structure in enumerate(saved_structures):
             natoms = structure.get_global_number_of_atoms()
@@ -861,7 +856,7 @@ def run_renormalization(
         supercell_matrix: The supercell transformation matrix.
         fcs: ForceConstants from previous fitting or renormalization
         imaginary_tol: Tolerance used to decide if a phonon mode is imaginary,
-            in THz.                                                                                                                                                                                        
+            in THz.
 
     Returns:
         A tuple of the number of imaginary modes at Gamma, the minimum phonon
