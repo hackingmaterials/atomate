@@ -597,7 +597,9 @@ class ShengBTEToDb(FiretaskBase):
         structure = control.get_structure()
         supercell_matrix = np.diag(control["scell"])
 
-        if Path("BTE.KappaTensorVsT_CONV").exists():
+        if Path("BTE.KappaTotalTensorVsT_CONV").exists():
+            filename = "BTE.KappaTotalTensorVsT_CONV"
+        elif Path("BTE.KappaTensorVsT_CONV").exists():
             filename = "BTE.KappaTensorVsT_CONV"
         elif Path("BTE.KappaTensorVsT_RTA").exists():
             filename = "BTE.KappaTensorVsT_RTA"
