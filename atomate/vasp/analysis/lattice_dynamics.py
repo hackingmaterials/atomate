@@ -302,7 +302,7 @@ def get_fit_data(
         delayed(construct_fit_data)(fcm,structure,s)
         for s,structure in enumerate(saved_structures)
     )
-    for s,data in enumerate(fit_data_tmp)
+    for s,data in enumerate(fit_data_tmp):
         A_mat[s*nrow_per:(s+1)*nrow_per] = data[0]
         f_vec[s*nrow_per:(s+1)*nrow_per] = data[1]
 
