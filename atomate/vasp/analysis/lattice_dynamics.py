@@ -158,7 +158,7 @@ def get_cutoffs(structure: Structure):
 =======
     cutoffs = np.array(list(map(list, product(range_two, range_three, range_four))))
     max_cutoff = estimate_maximum_cutoff(AseAtomsAdaptor.get_atoms(supercell_structure))
-    cutoffs[cutoffs>max_cutoff] = max_cutoff
+    cutoffs[cutoffs>max_cutoff] = max_cutoff-0.2
     logger.info('CUTOFFS \n {}'.format(cutoffs))
     logger.info('MAX_CUTOFF \n {}'.format(max_cutoff))    
     good_cutoffs = np.all(cutoffs < max_cutoff-0.1, axis=1)

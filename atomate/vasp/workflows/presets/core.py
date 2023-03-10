@@ -33,7 +33,11 @@ from atomate.vasp.powerups import (
     add_stability_check,
     add_wf_metadata,
 )
+<<<<<<< HEAD
 from atomate.vasp.workflows.base.bulk_modulus import get_wf_bulk_modulus
+=======
+from atomate.vasp.analysis.lattice_dynamics import FIT_METHOD
+>>>>>>> 0da85957 (small fix for cutoffs and fit_method)
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
 from atomate.vasp.workflows.base.gibbs import get_wf_gibbs_free_energy
@@ -851,7 +855,7 @@ def wf_nudged_elastic_band(structures, parent, c=None):
 def wf_lattice_dynamics(
     structure: Structure,
     separate_fit: bool = False,
-    fit_method: str = False,
+    fit_method: str = FIT_METHOD,
     disp_cut: float = None,
     bulk_modulus: float = None,
     c: Optional[dict] = None,
