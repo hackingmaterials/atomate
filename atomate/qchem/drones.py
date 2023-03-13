@@ -233,7 +233,9 @@ class QChemDrone(AbstractDrone):
             if d["output"]["job_type"] in ["freq", "frequency"]:
                 d["output"]["frequencies"] = d_calc_final["frequencies"]
                 # Note: for single-atom freq calcs, this key may not exist
-                d["output"]["frequency_modes"] = d_calc_final.get("frequency_mode_vectors", [])
+                d["output"]["frequency_modes"] = d_calc_final.get(
+                    "frequency_mode_vectors", []
+                )
                 d["output"]["enthalpy"] = d_calc_final["total_enthalpy"]
                 d["output"]["entropy"] = d_calc_final["total_entropy"]
                 if d["input"]["job_type"] in ["opt", "optimization", "ts"]:
@@ -450,7 +452,7 @@ class QChemDrone(AbstractDrone):
                 qchem_input_file = os.path.join(dir_name, input_files.get(key))
                 qchem_output_file = os.path.join(dir_name, output_files.get(key))
                 multi_out = QCOutput.multiple_outputs_from_file(
-                    QCOutput, qchem_output_file, keep_sub_files=False
+                    filename=qchem_output_file, keep_sub_files=False
                 )
                 multi_in = QCInput.from_multi_jobs_file(qchem_input_file)
                 for ii, out in enumerate(multi_out):
