@@ -184,7 +184,7 @@ def get_wf_hubbard_hund_linresp(
 
     # generate list of applied on-site potentials in linear response
     applied_potential_value_list = []
-    for counter_perturb in range(num_perturb):
+    for _ in range(num_perturb):
         applied_potential_values = np.linspace(
             applied_potential_range[0], applied_potential_range[1], num_evals
         )
@@ -264,11 +264,11 @@ def find_closest_sites(struct, species_perturb):
     n_species = {}
     for site in struct:
         k = str(site.specie)
-        if k not in n_species.keys():
+        if k not in n_species:
             n_species.update({k: 0})
         n_species[k] += 1
 
-    n_s = len(n_species.keys())
+    n_s = len(n_species)
     n_config = 1
     for k in n_species:
         n_config *= n_species[k]
@@ -278,10 +278,10 @@ def find_closest_sites(struct, species_perturb):
     for k in range(n_config):
         denom = 1
         for j in range(n_s):
-            n = n_species[list(n_species.keys())[j]]
+            n = n_species[list(n_species)[j]]
             indices[j] = np.mod(k // denom, n)
             denom *= n
-        nn_s = [n_species[list(n_species.keys())[j]] for j in range(n_s)]
+        nn_s = [n_species[list(n_species)[j]] for j in range(n_s)]
         iindxs = [indices[j] + int(np.sum(nn_s[0:j])) for j in range(n_s)]
         indxs = []
         for j, jk in enumerate(n_species):
@@ -309,7 +309,7 @@ def init_linresp_input_sets(
     """
 
     # set LMAXMIX in user_incar_settings
-    if "LMAXMIX" not in user_incar_settings.keys():
+    if "LMAXMIX" not in user_incar_settings:
         lmaxmix_dict = {"p": 2, "d": 4, "f": 6}
         lmm = "p"
         for site in structure:
@@ -679,9 +679,9 @@ class HubbardHundLinRespSet(MPStaticSet):
             incar.update({"LDAUU": self.kwargs.get("user_incar_settings")["LDAUU"]})
             incar.update({"LDAUJ": self.kwargs.get("user_incar_settings")["LDAUJ"]})
 
-            incar["LDAUL"] = [incar["LDAUL"][key] for key in incar["LDAUL"].keys()]
-            incar["LDAUU"] = [incar["LDAUU"][key] for key in incar["LDAUU"].keys()]
-            incar["LDAUJ"] = [incar["LDAUJ"][key] for key in incar["LDAUJ"].keys()]
+            incar["LDAUL"] = [incar["LDAUL"][key] for key in incar["LDAUL"]]
+            incar["LDAUU"] = [incar["LDAUU"][key] for key in incar["LDAUU"]]
+            incar["LDAUJ"] = [incar["LDAUJ"][key] for key in incar["LDAUJ"]]
 
             incar["LDAU"] = self.kwargs.get("user_incar_settings")["LDAU"]
             incar["LDAUTYPE"] = self.kwargs.get("user_incar_settings")["LDAUTYPE"]

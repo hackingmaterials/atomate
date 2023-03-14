@@ -83,7 +83,7 @@ class TasksMaterialsBuilder(AbstractBuilder):
         q = {"state": "successful", "task_label": {"$in": self.supported_task_labels}}
 
         if self.query:
-            common_keys = [k for k in q.keys() if k in self.query.keys()]
+            common_keys = [k for k in q if k in self.query]
             if common_keys:
                 raise ValueError(
                     f"User query parameter cannot contain key(s): {common_keys}"
