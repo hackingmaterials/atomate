@@ -465,6 +465,7 @@ class TestCore(AtomateTest):
                 qchem_input_set="OptSet",
                 input_file="mol.qin",
                 qchem_input_params={},
+                prev_hess=None,
             ).as_dict(),
         )
         self.assertEqual(
@@ -481,6 +482,7 @@ class TestCore(AtomateTest):
                 linked=True,
                 freq_before_opt=False,
                 max_errors=20,
+                save_scratch=True,
             ).as_dict(),
         )
         self.assertEqual(
@@ -489,6 +491,7 @@ class TestCore(AtomateTest):
                 db_file=None,
                 input_file="mol.qin",
                 output_file="mol.qout",
+                parse_hess_file=True,
                 additional_fields={
                     "task_label": "frequency flattening structure optimization",
                     "special_run_type": "frequency_flattener",
@@ -547,6 +550,7 @@ class TestCore(AtomateTest):
                 linked=False,
                 freq_before_opt=True,
                 max_errors=20,
+                save_scratch=True,
             ).as_dict(),
         )
         self.assertEqual(
@@ -555,6 +559,7 @@ class TestCore(AtomateTest):
                 db_file=db_file,
                 input_file="mol.qin",
                 output_file="mol.qout",
+                parse_hess_file=True,
                 additional_fields={
                     "task_label": "special frequency flattening structure optimization",
                     "special_run_type": "frequency_flattener",

@@ -233,7 +233,9 @@ class QChemDrone(AbstractDrone):
             if d["output"]["job_type"] in ["freq", "frequency"]:
                 d["output"]["frequencies"] = d_calc_final["frequencies"]
                 # Note: for single-atom freq calcs, this key may not exist
-                d["output"]["frequency_modes"] = d_calc_final.get("frequency_mode_vectors", [])
+                d["output"]["frequency_modes"] = d_calc_final.get(
+                    "frequency_mode_vectors", []
+                )
                 d["output"]["enthalpy"] = d_calc_final["total_enthalpy"]
                 d["output"]["entropy"] = d_calc_final["total_entropy"]
                 if d["input"]["job_type"] in ["opt", "optimization", "ts"]:
@@ -275,12 +277,11 @@ class QChemDrone(AbstractDrone):
                 if d_calc_final["CDS_gradients"] is not None:
                     d["output"]["CDS_gradients"] = d_calc_final["CDS_gradients"][0]
 
-            if d["output"]["job_type"] == "force":
-                d["output"]["gradients"] = d_calc_final["gradients"][0]
-                if d_calc_final["pcm_gradients"] is not None:
-                    d["output"]["pcm_gradients"] = d_calc_final["pcm_gradients"][0]
-                if d_calc_final["CDS_gradients"] is not None:
-                    d["output"]["CDS_gradients"] = d_calc_final["CDS_gradients"][0]
+            if d["output"]["job_type"] in ["force", "sp"]:
+                d["output"]["dipoles"] = d_calc_final["dipoles"]
+                if "gap_info" in d_calc_final:
+                    if d_calc_final["gap_info"] is not None:
+                        d["output"]["gap_info"] = d_calc_final["gap_info"]
 
             opt_trajectory = []
             calcs = copy.deepcopy(d["calcs_reversed"])
@@ -451,7 +452,7 @@ class QChemDrone(AbstractDrone):
                 qchem_input_file = os.path.join(dir_name, input_files.get(key))
                 qchem_output_file = os.path.join(dir_name, output_files.get(key))
                 multi_out = QCOutput.multiple_outputs_from_file(
-                    QCOutput, qchem_output_file, keep_sub_files=False
+                    filename=qchem_output_file, keep_sub_files=False
                 )
                 multi_in = QCInput.from_multi_jobs_file(qchem_input_file)
                 for ii, out in enumerate(multi_out):

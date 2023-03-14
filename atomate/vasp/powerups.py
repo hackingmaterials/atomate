@@ -114,7 +114,7 @@ def use_no_vasp(original_wf, ref_dirs):
         Workflow
     """
     for idx_fw, fw in enumerate(original_wf.fws):
-        for job_type in ref_dirs.keys():
+        for job_type in ref_dirs:
             if job_type in fw.name:
                 for idx_t, t in enumerate(fw.tasks):
                     if "RunVasp" in str(t):
@@ -171,7 +171,7 @@ def use_fake_vasp(
         ]
 
     for idx_fw, fw in enumerate(original_wf.fws):
-        for job_type in ref_dirs.keys():
+        for job_type in ref_dirs:
             if job_type in fw.name:
                 for idx_t, t in enumerate(fw.tasks):
                     t_str = str(t)
@@ -384,7 +384,7 @@ def modify_to_soc(
         fw_name_constraint=fw_name_constraint,
         task_name_constraint="RunBoltztrap",
     )
-    for idx_fw, idx_t in run_boltztrap_list:
+    for idx_fw, _idx_t in run_boltztrap_list:
         original_wf.fws[idx_fw].name += " soc"
 
     return original_wf
@@ -457,7 +457,7 @@ def set_queue_options(
         task_name_constraint=task_name_constraint,
     )
 
-    for idx_fw, idx_t in idx_list:
+    for idx_fw, _idx_t in idx_list:
         original_wf.fws[idx_fw].spec.update({"_queueadapter": qsettings})
 
     return original_wf
@@ -525,7 +525,7 @@ def add_stability_check(
         fw_name_constraint=fw_name_constraint,
         task_name_constraint="VaspToDb",
     )
-    for idx_fw, idx_t in idx_list:
+    for idx_fw, _idx_t in idx_list:
         original_wf.fws[idx_fw].tasks.append(CheckStability(**check_stability_params))
     return original_wf
 
@@ -551,7 +551,7 @@ def add_bandgap_check(original_wf, check_bandgap_params=None, fw_name_constraint
         fw_name_constraint=fw_name_constraint,
         task_name_constraint="VaspToDb",
     )
-    for idx_fw, idx_t in idx_list:
+    for idx_fw, _idx_t in idx_list:
         original_wf.fws[idx_fw].tasks.append(CheckBandgap(**check_bandgap_params))
     return original_wf
 
@@ -812,7 +812,7 @@ def use_fake_lobster(original_wf, ref_dirs, params_to_check=None):
     if not params_to_check:
         params_to_check = ["basisSet", "cohpGenerator", "basisfunctions"]
     for idx_fw, fw in enumerate(original_wf.fws):
-        for job_type in ref_dirs.keys():
+        for job_type in ref_dirs:
             if job_type in fw.name:
                 for idx_t, t in enumerate(fw.tasks):
                     if "RunLobster" in str(t):

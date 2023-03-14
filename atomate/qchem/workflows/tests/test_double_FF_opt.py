@@ -44,7 +44,7 @@ class TestDoubleFFOpt(AtomateTest):
             qchem_input_params={
                 "basis_set": "6-311++g**",
                 "scf_algorithm": "diis",
-                "overwrite_inputs": {"rem": {"sym_ignore": "true"}},
+                "overwrite_inputs": {"rem": {"sym_ignore": "true", "method": "wb97xd"}},
             },
         )
         # use powerup to replace run with fake run
