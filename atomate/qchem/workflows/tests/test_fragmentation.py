@@ -65,7 +65,11 @@ class TestFragmentation(AtomateTest):
                 molecule=initial_mol,
                 depth=0,
                 do_triplets=False,
-                qchem_input_params={"scf_algorithm": "gdm", "basis_set": "6-311++g*"},
+                qchem_input_params={
+                    "scf_algorithm": "gdm",
+                    "basis_set": "6-311++g*",
+                    "overwrite_inputs": {"rem": {"method": "wb97xd"}},
+                },
             )
             # use powerup to replace run with fake run
             ref_dirs = {

@@ -117,11 +117,11 @@ class ProtonEnergyFW(Firework):
         """
         For this custom Firework the electronic energy of a proton in a specific solvent environment is approximated.
         Since a proton has 0 electrons,running a QChem job would yield an error. The energy can be approximated by
-        calculating the electronic energy of a proton and a hydrogen atom at infinite separation and then subtracting
-        the electronic energy of a hydrogen atom. This Firework combines these two calculations and adds a task doc to the
+        calculating the electronic energy of a hydronium ion and a water molecule and then subtracting
+        the respective electronic energies. This Firework combines these two calculations and adds a task doc to the
         DB with the separate calculation details and the effective energy after subtraction.
 
-        Args:
+        Arg
             name (str): Name for the Firework.
             qchem_cmd (str): Command to run QChem. Supports env_chk.
             multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
@@ -150,21 +150,31 @@ class ProtonEnergyFW(Firework):
 
         qchem_input_params = qchem_input_params or {}
 
-        H_site = Site("H", [0.0, 0.0, 0.0])
-        H_site_inf = Site("H", [100000.0, 0.0, 0.0])
-        H0_atom = Molecule.from_sites([H_site])
-        H2_plus_mol = Molecule.from_sites([H_site, H_site_inf])
-        H0_atom.set_charge_and_spin(0, 2)
-        H2_plus_mol.set_charge_and_spin(1, 2)
-        input_file_1 = "H0.qin"
-        output_file_1 = "H0.qout"
-        input_file_2 = "H2_plus.qin"
-        output_file_2 = "H2_plus.qout"
+        H_site_1_H2O = Site("H", [0.18338, 2.20176, 0.01351])
+        H_site_2_H2O = Site("H", [-1.09531, 1.61602, 0.70231])
+        O_site_H2O = Site("O", [-0.80595, 2.22952, -0.01914])
+        H2O_molecule = Molecule.from_sites([H_site_1_H2O, H_site_2_H2O, O_site_H2O])
+
+        H_site_1_H3O = Site("H", [0.11550, 2.34733, 0.00157])
+        H_site_2_H3O = Site("H", [-1.17463, 1.77063, 0.67652])
+        H_site_3_H3O = Site("H", [-1.29839, 2.78012, -0.51436])
+        O_site_H3O = Site("O", [-0.78481, 1.99137, -0.20661])
+        H3O_ion = Molecule.from_sites(
+            [H_site_1_H3O, H_site_2_H3O, H_site_3_H3O, O_site_H3O]
+        )
+
+        H2O_molecule.set_charge_and_spin(0, 1)
+        H3O_ion.set_charge_and_spin(1, 1)
+
+        input_file_1 = "water.qin"
+        output_file_1 = "water.qout"
+        input_file_2 = "hydronium.qin"
+        output_file_2 = "hydronium.qout"
         t = []
         t.append(
             WriteInputFromIOSet(
-                molecule=H0_atom,
-                qchem_input_set="SinglePointSet",
+                molecule=H2O_molecule,
+                qchem_input_set="OptSet",
                 input_file=input_file_1,
                 qchem_input_params=qchem_input_params,
             )
@@ -184,8 +194,8 @@ class ProtonEnergyFW(Firework):
 
         t.append(
             WriteInputFromIOSet(
-                molecule=H2_plus_mol,
-                qchem_input_set="SinglePointSet",
+                molecule=H3O_ion,
+                qchem_input_set="OptSet",
                 input_file=input_file_2,
                 qchem_input_params=qchem_input_params,
             )
@@ -205,10 +215,10 @@ class ProtonEnergyFW(Firework):
         t.append(
             ProtCalcToDb(
                 db_file=db_file,
-                input_file_H0=input_file_1,
-                output_file_H0=output_file_1,
-                input_file_H2=input_file_2,
-                output_file_H2=output_file_2,
+                input_file_H2O=input_file_1,
+                output_file_H2O=output_file_1,
+                input_file_H3O=input_file_2,
+                output_file_H3O=output_file_2,
                 additional_fields={"task_label": name},
             )
         )
@@ -279,6 +289,7 @@ class ForceFW(Firework):
                 max_cores=max_cores,
                 max_errors=max_errors,
                 job_type="normal",
+                save_scratch=True,
             )
         )
         t.append(
@@ -286,6 +297,7 @@ class ForceFW(Firework):
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
+                parse_grad_file=True,
                 additional_fields={"task_label": name},
             )
         )
@@ -620,6 +632,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
         max_cores=">>max_cores<<",
         qchem_input_params=None,
         max_iterations=10,
+        prev_hess=None,
         max_molecule_perturb_scale=0.3,
         linked=True,
         freq_before_opt=False,
@@ -701,6 +714,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                     qchem_input_set="OptSet",
                     input_file=input_file,
                     qchem_input_params=qchem_input_params,
+                    prev_hess=prev_hess,
                 )
             )
 
@@ -717,6 +731,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 linked=linked,
                 freq_before_opt=freq_before_opt,
                 max_errors=max_errors,
+                save_scratch=True,
             )
         )
         t.append(
@@ -724,6 +739,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
+                parse_hess_file=True,
                 additional_fields={
                     "task_label": name,
                     "special_run_type": "frequency_flattener",

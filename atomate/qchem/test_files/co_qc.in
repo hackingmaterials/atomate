@@ -6,9 +6,9 @@ $end
 
 $rem
    job_type = opt
-   basis = def2-tzvppd
+   basis = def2-svpd
    max_scf_cycles = 100
-   method = wB97xd
+   method = wB97mv
    geom_opt_max_cycles = 200
    gen_scfman = True
    scf_algorithm = diis

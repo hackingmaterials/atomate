@@ -14,7 +14,7 @@ $end
 
 $rem
    job_type = sp
-   basis = def2-tzvppd
+   basis = def2-tzvpd
    max_scf_cycles = 100
    gen_scfman = true
    xc_grid = 3
@@ -22,9 +22,8 @@ $rem
    resp_charges = true
    symmetry = false
    sym_ignore = true
-   method = wb97xv
+   method = wb97mv
    solvent_method = smd
-   ideriv = 1
    plots = true
    make_cube_files = true
    thresh = 14

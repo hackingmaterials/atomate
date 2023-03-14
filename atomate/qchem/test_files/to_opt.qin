@@ -12,8 +12,8 @@ $molecule
 $end
 
 $rem
-   BASIS  =  def2-tzvppd
-   METHOD  =  wb97xd
+   BASIS  =  def2-svpd
+   METHOD  =  wb97mv
    JOB_TYPE  =  Opt
    gen_scfman = True
    scf_algorithm = diis

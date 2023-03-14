@@ -133,12 +133,14 @@ class CalcDb(metaclass=ABCMeta):
             d (dict): task document
             update_duplicates (bool): whether to update the duplicates
         """
+        logger.info("Executing find_one to check for duplicate")
         result = self.collection.find_one(
             {"dir_name": d["dir_name"]}, ["dir_name", "task_id"]
         )
         if result is None or update_duplicates:
             d["last_updated"] = datetime.datetime.utcnow()
             if result is None:
+                logger.info("No duplicate!")
                 if ("task_id" not in d) or (not d["task_id"]):
                     d["task_id"] = self.db.counter.find_one_and_update(
                         {"_id": "taskid"},
