@@ -15,7 +15,7 @@ jobs:
             export PATH=$HOME/miniconda3/bin:$PATH
             conda create --name test_env python=3.8
             source activate test_env
-            conda install -c conda-forge openbabel pymatgen
+            conda install -c conda-forge openbabel gcc_linux-64
             pip install -r requirements-ci.txt
             pip install .
           no_output_timeout: 1h

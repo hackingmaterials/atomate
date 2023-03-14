@@ -543,10 +543,14 @@ class TestFakeRunQChem(AtomateTest):
         ).data
         this_out = QCOutput("mol.qout").data
         for key in ref_out:
-            try:
-                self.assertEqual(ref_out[key], this_out[key])
-            except ValueError:
-                np.testing.assert_array_equal(ref_out[key], this_out[key])
+            if key == "dipoles":
+                self.assertEqual(ref_out[key]["total"], this_out[key]["total"])
+                np.testing.assert_array_equal(ref_out[key]["dipole"], this_out[key]["dipole"])
+            else:
+                try:
+                    self.assertEqual(ref_out[key], this_out[key])
+                except ValueError:
+                    np.testing.assert_array_equal(ref_out[key], this_out[key])
         for filename in os.listdir(
             os.path.join(module_dir, "..", "..", "test_files", "real_run")
         ):

@@ -289,6 +289,7 @@ class ForceFW(Firework):
                 max_cores=max_cores,
                 max_errors=max_errors,
                 job_type="normal",
+                save_scratch=True,
             )
         )
         t.append(
@@ -296,6 +297,7 @@ class ForceFW(Firework):
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
+                parse_grad_file=True,
                 additional_fields={"task_label": name},
             )
         )
@@ -630,6 +632,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
         max_cores=">>max_cores<<",
         qchem_input_params=None,
         max_iterations=10,
+        prev_hess=None,
         max_molecule_perturb_scale=0.3,
         linked=True,
         freq_before_opt=False,
@@ -711,6 +714,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                     qchem_input_set="OptSet",
                     input_file=input_file,
                     qchem_input_params=qchem_input_params,
+                    prev_hess=prev_hess,
                 )
             )
 
@@ -727,6 +731,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 linked=linked,
                 freq_before_opt=freq_before_opt,
                 max_errors=max_errors,
+                save_scratch=True,
             )
         )
         t.append(
@@ -734,6 +739,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
+                parse_hess_file=True,
                 additional_fields={
                     "task_label": name,
                     "special_run_type": "frequency_flattener",
