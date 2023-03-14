@@ -18,7 +18,7 @@ from hiphive.cutoffs import is_cutoff_allowed, estimate_maximum_cutoff
 from hiphive.fitting import Optimizer
 from hiphive.renormalization import Renormalization
 from hiphive.utilities import get_displacements
-from hiphive.run_tools import _clean_data, FE_correction
+from hiphive.run_tools import _clean_data, FE_correction, construct_fit_data
 
 from pymatgen.core.structure import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
