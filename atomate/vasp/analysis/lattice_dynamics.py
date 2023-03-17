@@ -355,7 +355,7 @@ def get_fit_data(
         for s,structure in enumerate(saved_structures)
     )
     for s,data in enumerate(fit_data_tmp):
-        A_mat[s*nrow_per:(s+1)*nrow_per] = data[0]
+        A_mat[s*nrow_per:(s+1)*nrow_per,:] = data[0]
         f_vec[s*nrow_per:(s+1)*nrow_per] = data[1]
 
     if param2 is not None:
