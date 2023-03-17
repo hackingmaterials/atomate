@@ -303,7 +303,7 @@ def get_fit_data(
         for s,structure in enumerate(saved_structures)
     )
     for s,data in enumerate(fit_data_tmp):
-        print(s,ndim)
+        print(s,data)
         A_mat[s*ndim:(s+1)*ndim] = data[0]
         f_vec[s*ndim:(s+1)*ndim] = data[1]
 
