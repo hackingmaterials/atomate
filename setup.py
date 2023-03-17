@@ -8,9 +8,10 @@ module_dir = dirname(abspath(__file__))
 if __name__ == "__main__":
     setup(
         name="atomate",
-        version="1.0.2",
+        version="1.0.3",
         description="atomate has implementations of FireWorks workflows for Materials Science",
         long_description=open(join(module_dir, "README.md")).read(),
+        long_description_content_type="text/markdown",
         url="https://github.com/hackingmaterials/atomate",
         author="Anubhav Jain, Kiran Mathew",
         author_email="anubhavster@gmail.com, kmathew@lbl.gov",
@@ -23,8 +24,8 @@ if __name__ == "__main__":
         zip_safe=False,
         install_requires=[
             "custodian>=2019.8.24",
-            "FireWorks>=1.4.0",
-            "maggma>=0.26.0",
+            "FireWorks>=2.0.3",
+            "maggma>=0.44.0",
             "monty>=2.0.6",
             "networkx",
             "numpy",
@@ -32,8 +33,9 @@ if __name__ == "__main__":
             "paramiko",
             "pydash>=4.1.0",
             "pymatgen-analysis-diffusion",
+            "pymatgen-analysis-defects>=2022.9.14",
             "pymatgen",
-            "pymongo<4.0.0",
+            "pymongo",
             "pyyaml>=5.1.2",
             "ruamel.yaml",
             "scipy",
@@ -43,10 +45,12 @@ if __name__ == "__main__":
             "plotting": ["matplotlib>=1.5.2"],
             "phonons": ["phonopy>=1.10.8"],
             "qchem": ["openbabel"],
+            "defects": ["pymatgen-analysis-defects"],
             "complete": [
                 "matplotlib>=1.5.2",
                 "phonopy>=1.10.8",
                 "openbabel",
+                "pymatgen-analysis-defects",
             ],
         },
         classifiers=[

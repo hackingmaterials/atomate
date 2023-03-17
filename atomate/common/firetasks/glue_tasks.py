@@ -95,10 +95,17 @@ class CopyFilesFromCalcLoc(FiretaskBase):
         name_append (str): string to append to destination filenames.
         exclude_files (list): list of file names to be excluded. Accepts glob
             patterns.
+        decompress (bool): if True, files are decompressed after copy.
     """
 
     required_params = ["calc_loc"]
-    optional_params = ["filenames", "name_prepend", "name_append", "exclude_files"]
+    optional_params = [
+        "filenames",
+        "name_prepend",
+        "name_append",
+        "exclude_files",
+        "decompress",
+    ]
 
     def run_task(self, fw_spec=None):
         calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])
@@ -142,10 +149,15 @@ class CopyFilesFromCalcLoc(FiretaskBase):
 
         for f in files_to_copy:
             prev_path_full = os.path.join(calc_dir, f)
-            dest_fname = self.get("name_prepend", "") + f + self.get("name_append", "")
+            f, ext = os.path.splitext(f)
+            dest_fname = (
+                self.get("name_prepend", "") + f + self.get("name_append", "") + ext
+            )
             dest_path = os.path.join(os.getcwd(), dest_fname)
 
             fileclient.copy(prev_path_full, dest_path)
+            if self.get("decompress", False):
+                monty.shutil.decompress_file(dest_path)
 
 
 @explicit_serialize

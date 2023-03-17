@@ -4,7 +4,6 @@ import glob
 import json
 import os
 import traceback
-from collections import OrderedDict
 from fnmatch import fnmatch
 from itertools import chain
 
@@ -119,10 +118,10 @@ class QChemDrone(AbstractDrone):
             file_pattern (string): base files to be searched for
 
         Returns:
-            OrderedDict of the names of the files to be processed further.
-            The key is set from list of run types: self.runs
+            dict: names of the files to be processed further. The key is set from list
+                of run types: self.runs
         """
-        processed_files = OrderedDict()
+        processed_files = {}
         files = os.listdir(path)
         for r in self.runs:
             # try subfolder schema
@@ -233,7 +232,10 @@ class QChemDrone(AbstractDrone):
                     ]
             if d["output"]["job_type"] in ["freq", "frequency"]:
                 d["output"]["frequencies"] = d_calc_final["frequencies"]
-                d["output"]["frequency_modes"] = d_calc_final["frequency_mode_vectors"]
+                # Note: for single-atom freq calcs, this key may not exist
+                d["output"]["frequency_modes"] = d_calc_final.get(
+                    "frequency_mode_vectors", []
+                )
                 d["output"]["enthalpy"] = d_calc_final["total_enthalpy"]
                 d["output"]["entropy"] = d_calc_final["total_entropy"]
                 if d["input"]["job_type"] in ["opt", "optimization", "ts"]:
@@ -274,6 +276,12 @@ class QChemDrone(AbstractDrone):
                     d["output"]["pcm_gradients"] = d_calc_final["pcm_gradients"][0]
                 if d_calc_final["CDS_gradients"] is not None:
                     d["output"]["CDS_gradients"] = d_calc_final["CDS_gradients"][0]
+
+            if d["output"]["job_type"] in ["force", "sp"]:
+                d["output"]["dipoles"] = d_calc_final["dipoles"]
+                if "gap_info" in d_calc_final:
+                    if d_calc_final["gap_info"] is not None:
+                        d["output"]["gap_info"] = d_calc_final["gap_info"]
 
             opt_trajectory = []
             calcs = copy.deepcopy(d["calcs_reversed"])
@@ -444,7 +452,7 @@ class QChemDrone(AbstractDrone):
                 qchem_input_file = os.path.join(dir_name, input_files.get(key))
                 qchem_output_file = os.path.join(dir_name, output_files.get(key))
                 multi_out = QCOutput.multiple_outputs_from_file(
-                    QCOutput, qchem_output_file, keep_sub_files=False
+                    filename=qchem_output_file, keep_sub_files=False
                 )
                 multi_in = QCInput.from_multi_jobs_file(qchem_input_file)
                 for ii, out in enumerate(multi_out):
@@ -501,7 +509,7 @@ class QChemDrone(AbstractDrone):
         to pass validation is unfortunately unlikely to be noticed by a user.
         """
         for k, v in self.schema.items():
-            diff = v.difference(set(d.get(k, d).keys()))
+            diff = v - set(d.get(k, d).keys())
             if diff:
                 logger.warning(f"The keys {diff} in {k} not set")
 

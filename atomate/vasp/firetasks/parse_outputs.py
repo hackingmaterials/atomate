@@ -495,7 +495,7 @@ class RamanTensorToDb(FiretaskBase):
         }
 
         # store the displacement & epsilon for each mode in a dictionary
-        mode_disps = fw_spec["raman_epsilon"].keys()
+        mode_disps = fw_spec["raman_epsilon"]
         modes_eps_dict = defaultdict(list)
         for md in mode_disps:
             modes_eps_dict[fw_spec["raman_epsilon"][md]["mode"]].append(
@@ -1281,7 +1281,7 @@ class HubbardHundLinRespToDb(FiretaskBase):
         summaries.append(summary)
 
         mmdb.collection = mmdb.db["hubbard_hund_linresp"]
-        mmdb.collection.insert(summaries)
+        mmdb.collection.insert_many(summaries)
 
         logger.info("Hubbard-Hund linear response analysis is complete.")
 
@@ -1509,7 +1509,7 @@ class MagneticOrderingsToDb(FiretaskBase):
             summaries.append(summary)
 
         mmdb.collection = mmdb.db["magnetic_orderings"]
-        mmdb.collection.insert(summaries)
+        mmdb.collection.insert_many(summaries)
 
         logger.info("Magnetic orderings calculation complete.")
 

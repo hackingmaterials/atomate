@@ -106,11 +106,13 @@ $end
 $rem
 job_type = opt
 basis = 6-311++g*
-max_scf_cycles = 200
+max_scf_cycles = 100
 gen_scfman = true
 scf_algorithm = gdm
 method = wb97xd
 geom_opt_max_cycles = 200
+thresh = 14
+s2thresh = 16
 $end
 --------------------------------------------------------------
  ----------------------------------------------------------------

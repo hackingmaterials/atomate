@@ -2,8 +2,8 @@ import json
 import os
 import shutil
 import unittest
+from shutil import which
 
-from monty.os.path import which
 from pymatgen.io.qchem.outputs import QCOutput
 
 from atomate.qchem.firetasks.critic2 import ProcessCritic2, RunCritic2

@@ -46,12 +46,10 @@ ref_dirs_si = {
 
 _fworker = FWorker(env={"db_file": os.path.join(db_dir, "db.json")})
 
-DEBUG_MODE = (
-    False  # If true, retains the database and output dirs at the end of the test
-)
-VASP_CMD = (
-    None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-)
+# If DEBUG_MODE = true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False
+# If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+VASP_CMD = None
 
 decoder = MontyDecoder()
 
@@ -421,7 +419,7 @@ class TestVaspWorkflows(AtomateTest):
             assert compress_type == "zlib"
             doc["task_id"] = "mp-1"
             _, _ = mmdb.insert_maggma_store(doc, "store2", oid="2")
-            assert set(mmdb._maggma_stores.keys()) == {"store1", "store2"}
+            assert set(mmdb._maggma_stores) == {"store1", "store2"}
             with mmdb._maggma_stores["store1"] as store:
                 self.assertTrue(store.compress)
                 self.assertTrue(
@@ -471,7 +469,7 @@ class TestVaspWorkflows(AtomateTest):
                 res = store.query_one()
                 self.assertTrue(res["data"]["@class"] == "BandStructure")
 
-            # print(mmdb.collection.find_one({'task_id' : t_id})["calcs_reversed"][0].keys())
+            # print(mmdb.collection.find_one({'task_id' : t_id})["calcs_reversed"][0])
             # complex check that the data is the same
             res = mmdb.get_band_structure(task_id=t_id)
             self.assertTrue(isinstance(res, BandStructure))
@@ -584,7 +582,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
             os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_Al/inputs", "INCAR")
         )
         incar = Incar.from_file(os.path.join(self._get_launch_dir()[0], "INCAR.gz"))
-        for p in incar.keys():
+        for p in incar:
             if p == "KSPACING":
                 self.assertEqual(incar[p], 0.22)
             elif p == "ICHARG" or p == "ISTART":
@@ -609,7 +607,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
             )
         )
         incar = Incar.from_file(os.path.join(self._get_launch_dir()[1], "INCAR.gz"))
-        for p in incar.keys():
+        for p in incar:
             if p == "KSPACING":
                 self.assertEqual(incar[p], 0.22)
             elif p == "ICHARG":
@@ -641,7 +639,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
             os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiH/inputs", "INCAR")
         )
         incar = Incar.from_file(os.path.join(self._get_launch_dir()[0], "INCAR.gz"))
-        for p in incar.keys():
+        for p in incar:
             if p == "KSPACING":
                 self.assertEqual(incar[p], 0.22)
             elif p == "ICHARG" or p == "ISTART":
@@ -666,7 +664,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
             )
         )
         incar = Incar.from_file(os.path.join(self._get_launch_dir()[1], "INCAR.gz"))
-        for p in incar.keys():
+        for p in incar:
             if p == "KSPACING":
                 self.assertAlmostEqual(incar[p], 0.40503, 4)
             elif p == "SIGMA":
@@ -700,7 +698,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
             os.path.join(reference_dir, "PBESol_pre_opt_for_SCAN_LiF/inputs", "INCAR")
         )
         incar = Incar.from_file(os.path.join(self._get_launch_dir()[0], "INCAR.gz"))
-        for p in incar.keys():
+        for p in incar:
             if p == "KSPACING":
                 self.assertEqual(incar[p], 0.22)
             elif p == "ICHARG" or p == "ISTART":
@@ -725,7 +723,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
             )
         )
         incar = Incar.from_file(os.path.join(self._get_launch_dir()[1], "INCAR.gz"))
-        for p in incar.keys():
+        for p in incar:
             if p == "KSPACING":
                 self.assertEqual(incar[p], 0.44)
             elif p == "SIGMA":
@@ -777,7 +775,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         self.assertIsNone(incar.get("LUSE_VDW", None))
         self.assertIsNone(incar.get("BPARAM", None))
 
-        for p in incar.keys():
+        for p in incar:
             if p == "KSPACING":
                 self.assertEqual(incar[p], 0.22)
             elif p == "ICHARG":
@@ -803,7 +801,7 @@ class TestScanOptimizeWorkflow(AtomateTest):
         )
         incar = Incar.from_file(os.path.join(self._get_launch_dir()[1], "INCAR.gz"))
 
-        for p in incar.keys():
+        for p in incar:
             if p == "KSPACING":
                 self.assertEqual(incar[p], 0.44)
             elif p == "SIGMA":

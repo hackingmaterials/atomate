@@ -20,9 +20,8 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 DEBUG_MODE = (
     True  # If True, retains the database and output dirs at the end of the test
 )
-VASP_CMD = (
-    None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-)
+# If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+VASP_CMD = None
 _write_task_docs = (
     True  # Test developer option: defaults to False, need to be True only once
 )
@@ -102,13 +101,13 @@ class TestWFLobster(AtomateTest):
         self.assertEqual(d["state"], "successful")
 
         if mode in ["lobsternormal", "lobsternormal_delete_wavecars"]:
-            self.assertListEqual(d["output"]["chargespilling"], [0.0147, 0.0147])
+            self.assertListEqual(d["output"]["charge_spilling"], [0.0147, 0.0147])
             self.assertListEqual(d["output"]["elements"], ["Si"])
-            self.assertListEqual(d["output"]["basistype"], ["pbeVaspFit2015"])
+            self.assertListEqual(d["output"]["basis_type"], ["pbeVaspFit2015"])
             self.assertListEqual(
-                d["output"]["basisfunctions"], [["3s", "3p_y", "3p_z", "3p_x"]]
+                d["output"]["basis_functions"], [["3s", "3p_y", "3p_z", "3p_x"]]
             )
-            self.assertTrue(d["output"]["hasDOSCAR"])
+            self.assertTrue(d["output"]["has_doscar"])
             if database:
                 self.assertNotIn("cohpcar_id", d)
                 self.assertIn("icooplist_id", d)
@@ -253,13 +252,13 @@ class TestWFLobsterTestBasis(AtomateTest):
         self.assertEqual(d["state"], "successful")
 
         if mode in ["lobsternormal"]:
-            self.assertListEqual(d["output"]["chargespilling"], [0.0027, 0.0027])
+            self.assertListEqual(d["output"]["charge_spilling"], [0.0027, 0.0027])
             self.assertListEqual(d["output"]["elements"], ["F", "Cd"])
             self.assertListEqual(
-                d["output"]["basistype"], ["pbeVaspFit2015", "pbeVaspFit2015"]
+                d["output"]["basis_type"], ["pbeVaspFit2015", "pbeVaspFit2015"]
             )
             self.assertListEqual(
-                d["output"]["basisfunctions"],
+                d["output"]["basis_functions"],
                 [
                     ["2s", "2p_y", "2p_z", "2p_x"],
                     [
@@ -275,7 +274,7 @@ class TestWFLobsterTestBasis(AtomateTest):
                     ],
                 ],
             )
-            self.assertTrue(d["output"]["hasDOSCAR"])
+            self.assertTrue(d["output"]["has_doscar"])
 
     def _single_vasp_lobster(self, fake=True):
         # add the workflow

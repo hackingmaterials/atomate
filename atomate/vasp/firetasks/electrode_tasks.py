@@ -1,7 +1,6 @@
 import math
 
 from fireworks import FiretaskBase, Firework, FWAction, Workflow, explicit_serialize
-from pymatgen.analysis.defects.utils import ChargeInsertionAnalyzer
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core import Structure
 
@@ -11,6 +10,7 @@ from atomate.vasp.config import DB_FILE
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.firetasks import pass_vasp_result
 from atomate.vasp.fireworks.core import OptimizeFW, StaticFW
+from pymatgen.analysis.defects.utils import ChargeInsertionAnalyzer
 
 __author__ = "Jimmy Shen"
 __email__ = "jmmshn@lbl.gov"
@@ -21,7 +21,7 @@ Should only be used by the `get_ion_insertion_wf` function.
 
 Note:
 The workflow passes data to fw_spec extensively and requires specific fields in the spec to be updated.
-Example, the base_taks_id must be stored and the spec and updated as the workflow runs so you have to set
+Example, the base_task_id must be stored and the spec and updated as the workflow runs so you have to set
 ```
 {
     "store_volumetric_data": vasptodb_kwargs_vol_data[volumetric_data_type],

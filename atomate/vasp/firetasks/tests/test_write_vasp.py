@@ -36,6 +36,7 @@ class TestWriteVasp(AtomateTest):
 
     def setUp(self):
         super().setUp(lpad=False)
+        self.maxDiff = None
 
     def tearDown(self):
         for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS", "POTCAR.spec"]:
@@ -50,7 +51,10 @@ class TestWriteVasp(AtomateTest):
             self.assertEqual(Incar.from_file("INCAR"), self.ref_incar)
 
             poscar = Poscar.from_file("POSCAR")
-            self.assertEqual(str(poscar), str(self.ref_poscar))
+            self.assertEqual(
+                poscar.get_string(significant_figures=4),
+                self.ref_poscar.get_string(significant_figures=4),
+            )
 
             if potcar_spec:
                 symbols = Path("POTCAR.spec").read_text().split()

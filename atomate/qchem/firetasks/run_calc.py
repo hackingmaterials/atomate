@@ -71,6 +71,7 @@ class RunQChemCustodian(FiretaskBase):
         calc_loc (str): Path where Q-Chem should run. Will env_chk by default. If not in
                         environment, will be set to None, in which case Q-Chem will run in
                         the system-defined QCLOCALSCR.
+        nboexe (str): Path to the NBO7 executable.
         save_scratch (bool): Whether to save scratch directory contents. Defaults to False.
         max_errors (int): Maximum # of errors to fix before giving up (default=5)
         job_type (str): Choose from "normal" (default) and "opt_with_frequency_flattener"
@@ -98,6 +99,7 @@ class RunQChemCustodian(FiretaskBase):
         "qclog_file",
         "suffix",
         "calc_loc",
+        "nboexe",
         "save_scratch",
         "max_errors",
         "job_type",
@@ -128,7 +130,8 @@ class RunQChemCustodian(FiretaskBase):
         max_cores = env_chk(self["max_cores"], fw_spec)
         qclog_file = self.get("qclog_file", "mol.qclog")
         suffix = self.get("suffix", "")
-        calc_loc = env_chk(self.get("calc_loc"), fw_spec)
+        calc_loc = self.get("calc_loc", env_chk(">>calc_loc<<", fw_spec, strict=False))
+        nboexe = self.get("nboexe", env_chk(">>nboexe<<", fw_spec, strict=False))
         save_scratch = self.get("save_scratch", False)
         max_errors = self.get("max_errors", 5)
         max_iterations = self.get("max_iterations", 10)
@@ -159,6 +162,7 @@ class RunQChemCustodian(FiretaskBase):
                     qclog_file=qclog_file,
                     suffix=suffix,
                     calc_loc=calc_loc,
+                    nboexe=nboexe,
                     save_scratch=save_scratch,
                     backup=backup,
                 )
@@ -178,6 +182,7 @@ class RunQChemCustodian(FiretaskBase):
                     save_final_scratch=save_scratch,
                     max_cores=max_cores,
                     calc_loc=calc_loc,
+                    nboexe=nboexe,
                 )
             else:
                 jobs = QCJob.opt_with_frequency_flattener(
@@ -194,6 +199,7 @@ class RunQChemCustodian(FiretaskBase):
                     save_final_scratch=save_scratch,
                     max_cores=max_cores,
                     calc_loc=calc_loc,
+                    nboexe=nboexe,
                 )
 
         else:

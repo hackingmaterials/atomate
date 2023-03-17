@@ -110,7 +110,7 @@ class TestApproxNEBWorkflow(AtomateTest):
         self.assertEqual(len(aneb_doc["end_points"]), 2)
         for e in aneb_doc["end_points"]:
             self.assertIn("output", e)
-        self.assertEqual(len(aneb_doc["pathfinder"].keys()), 1)
+        self.assertEqual(len(aneb_doc["pathfinder"]), 1)
         self.assertIn("0+1", aneb_doc["pathfinder"])
         self.assertIn("0+1", aneb_doc["images"])
         self.assertEqual(len(aneb_doc["images"]["0+1"]), 3)

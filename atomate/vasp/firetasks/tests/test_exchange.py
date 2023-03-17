@@ -1,8 +1,8 @@
 import os
 import unittest
+from shutil import which
 
 import pandas as pd
-from monty.os.path import which
 from pymatgen.core import Structure
 
 from atomate.utils.testing import AtomateTest

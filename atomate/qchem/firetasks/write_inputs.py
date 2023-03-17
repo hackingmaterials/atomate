@@ -1,7 +1,9 @@
 # This module defines firetasks for writing QChem input files
 
 import os
-
+import shutil
+import struct
+from monty.io import zopen
 from fireworks import FiretaskBase, explicit_serialize
 from pymatgen.analysis.graphs import MoleculeGraph
 from pymatgen.analysis.local_env import OpenBabelNN
@@ -9,14 +11,14 @@ from pymatgen.io.qchem.inputs import QCInput
 
 from atomate.utils.utils import load_class
 
-__author__ = "Brandon Wood"
+__author__ = "Brandon Wood, Samuel Blau"
 __copyright__ = "Copyright 2018, The Materials Project"
 __version__ = "0.1"
-__maintainer__ = "Brandon Wood"
-__email__ = "b.wood@berkeley.edu"
+__maintainer__ = "Samuel Blau"
+__email__ = "samblau1@gmail.com"
 __status__ = "Alpha"
 __date__ = "5/20/18"
-__credits__ = "Sam Blau, Shyam Dwaraknath"
+__credits__ = "Shyam Dwaraknath"
 
 
 @explicit_serialize
@@ -54,16 +56,53 @@ class WriteInputFromIOSet(FiretaskBase):
     """
 
     required_params = ["qchem_input_set"]
-    optional_params = ["molecule", "qchem_input_params", "input_file", "write_to_dir"]
+    optional_params = [
+        "molecule",
+        "qchem_input_params",
+        "input_file",
+        "write_to_dir",
+        "prev_hess",
+    ]
 
     def run_task(self, fw_spec):
         input_file = os.path.join(
             self.get("write_to_dir", ""), self.get("input_file", "mol.qin")
         )
 
+        # Fix deprecated input parameters
+        qchem_input_params = self.get("qchem_input_params", {})
+        if "new_geom_opt" in qchem_input_params:
+            geom_opt = qchem_input_params.pop("new_geom_opt")
+            qchem_input_params["geom_opt"] = geom_opt
+
+        # modify mem_total, if set, based on compute node total memory
+        if "overwrite_inputs" in qchem_input_params:
+            if "rem" in qchem_input_params["overwrite_inputs"]:
+                if "mem_total" in qchem_input_params["overwrite_inputs"]["rem"]:
+                    mem_file = os.path.join(self.get("write_to_dir", ""), "mem_file")
+                    if os.path.exists(mem_file):
+                        shutil.rmtree(mem_file)
+                    os.system("free > " + mem_file)
+                    with open(mem_file) as f:
+                        lines = f.readlines()
+                        mem_total = int(lines[1].split()[1])
+                        if (
+                            mem_total
+                            < int(
+                                qchem_input_params["overwrite_inputs"]["rem"][
+                                    "mem_total"
+                                ]
+                            )
+                            * 1000
+                        ):
+                            qchem_input_params["overwrite_inputs"]["rem"][
+                                "mem_total"
+                            ] = str(int(mem_total / 1000) - 20000)
+
         # if a full QChemDictSet object was provided
         if hasattr(self["qchem_input_set"], "write_file"):
             qcin = self["qchem_input_set"]
+
         # if a molecule is being passed through fw_spec
         elif fw_spec.get("prev_calc_molecule"):
             prev_calc_mol = fw_spec.get("prev_calc_molecule")
@@ -92,17 +131,25 @@ class WriteInputFromIOSet(FiretaskBase):
                 mol = prev_calc_mol
 
             qcin_cls = load_class("pymatgen.io.qchem.sets", self["qchem_input_set"])
-            qcin = qcin_cls(mol, **self.get("qchem_input_params", {}))
+            qcin = qcin_cls(mol, **qchem_input_params)
         # if a molecule is only included as an optional parameter
         elif self.get("molecule"):
             qcin_cls = load_class("pymatgen.io.qchem.sets", self["qchem_input_set"])
-            qcin = qcin_cls(self.get("molecule"), **self.get("qchem_input_params", {}))
+            qcin = qcin_cls(self.get("molecule"), **qchem_input_params)
         # if no molecule is present raise an error
         else:
             raise KeyError(
                 "No molecule present, add as an optional param or check fw_spec"
             )
         qcin.write(input_file)
+        if self.get("prev_hess"):
+            if self.get("prev_hess") != []:
+                with open(
+                    os.path.join(os.path.dirname(input_file), "132.0"), mode="wb"
+                ) as file:
+                    for val in self.get("prev_hess"):
+                        data = struct.pack("d", val)
+                        file.write(data)
 
 
 @explicit_serialize
