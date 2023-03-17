@@ -90,7 +90,7 @@ class HostToDb(FiretaskBase):
         additional_fields = self.get("additional_fields", {})
         if isinstance(additional_fields, dict):
             for key, value in additional_fields.items():
-                if key not in approx_neb_doc.keys():
+                if key not in approx_neb_doc:
                     approx_neb_doc[key] = value
 
         tags = self.get("tags")
@@ -156,7 +156,7 @@ class PassFromDb(FiretaskBase):
         # pulls desired fields from approx_neb collection and stores in pulled_fields
         pulled_doc = mmdb.collection.find_one({"wf_uuid": wf_uuid})
         pulled_fields = dict()
-        for key in fields_to_pull.keys():
+        for key in fields_to_pull:
             pulled_fields[key] = get(pulled_doc, fields_to_pull[key])
 
         # update fw_spec with pulled fields (labeled according to fields_to_pass)
@@ -230,7 +230,7 @@ class InsertSites(FiretaskBase):
         structure = Structure.from_dict(structure_doc["output"]["structure"])
         # removes site properties to avoid error
         if structure.site_properties != {}:
-            for p in structure.site_properties.keys():
+            for p in structure.site_properties:
                 structure.remove_site_property(p)
 
         # insert site(s) in structure and stores corresponding site index in inserted_site_indexes
@@ -559,7 +559,7 @@ class PathfinderToDb(FiretaskBase):
         pf_subdoc = mmdb.collection.find_one(
             {"wf_uuid": wf_uuid}, {"pathfinder": 1, "_id": 0}
         )
-        if "pathfinder" not in pf_subdoc.keys():
+        if "pathfinder" not in pf_subdoc:
             pf_subdoc = {}
         else:
             pf_subdoc = pf_subdoc["pathfinder"]
@@ -655,7 +655,7 @@ class AddSelectiveDynamics(FiretaskBase):
             )
 
         # store images output in approx_neb collection
-        if "images" not in approx_neb_doc.keys():
+        if "images" not in approx_neb_doc:
             images_subdoc = {}
         else:
             images_subdoc = approx_neb_doc["images"]
@@ -738,7 +738,7 @@ class AddSelectiveDynamics(FiretaskBase):
 
         # removes site properties to avoid error
         if structure.site_properties != {}:
-            for p in structure.site_properties.keys():
+            for p in structure.site_properties:
                 structure.remove_site_property(p)
 
         sd_structure = structure.copy()

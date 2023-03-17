@@ -114,7 +114,7 @@ class ProcessCritic2(FiretaskBase):
                 coords.append((val + centering_vector[jj]) * bohr_to_ang)
             if str(molecule[ii].specie) != specie:
                 raise RuntimeError("Atom ordering different!")
-            if molecule[ii].distance_from_point(coords) > 1 * 10 ** -5:
+            if molecule[ii].distance_from_point(coords) > 1 * 10**-5:
                 raise RuntimeError("Atom position " + str(ii) + " inconsistent!")
 
         if (

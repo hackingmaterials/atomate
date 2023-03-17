@@ -16,7 +16,7 @@ This guide will get you up and running in an environment for running high-throug
 
 Details about how atomate is designed can be found in the `atomate paper`_ and an overview of how these different pieces interact are in a `Slideshare presentation`_. Running and writing your own workflows are covered in later tutorials. For now, these topics will be covered in enough depth to get you set up and to help you know where to troubleshoot if you are having problems.
 
-It is assumed that you are comfortable with basic Linux shell commands and navigation. If not, `Linux Journey`_ and `Linux Command`_ breifly cover enough to get you started. It will also be helpful if you are familiar with Python, but it is not strictly required for installation.
+It is assumed that you are comfortable with basic Linux shell commands and navigation. If not, `Linux Journey`_ and `Linux Command`_ briefly cover enough to get you started. It will also be helpful if you are familiar with Python, but it is not strictly required for installation.
 
 Note that this installation tutorial is VASP-centric since almost all functionality currently in atomate pertains to VASP.
 
@@ -618,9 +618,9 @@ Q: I made a mistake using reservation mode, how do I cancel my job?
 
         lpad rerun_fws -i 1
 
-    where `-i 1` means to make perfom the operations on the FireWork at index 1. Run ``lpad -h`` to see all of the options.
+    where `-i 1` means to make perform the operations on the FireWork at index 1. Run ``lpad -h`` to see all of the options.
 
-The non-reservation mode for qlaunching requires a little less maintenance with certain tradeoffs, which are detailed in the FireWorks documentation.
+The non-reservation mode for ``qlaunch`` requires a little less maintenance with certain tradeoffs, which are detailed in the FireWorks documentation.
 
 Q: I honestly tried everything I can to solve my problem. I still need help!
 ----------------------------------------------------------------------------

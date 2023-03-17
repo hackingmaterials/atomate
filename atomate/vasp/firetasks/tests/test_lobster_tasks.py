@@ -54,6 +54,7 @@ class TestWriteLobsterinputfromIO(AtomateTest):
             potcar_path="POTCAR.gz",
             incar_path="INCAR.gz",
             option="standard",
+            user_lobsterin_settings={"COHPEndEnergy": 5.0, "COHPStartEnergy": -15.0},
         )
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
@@ -69,7 +70,7 @@ class TestWriteLobsterinputfromIO(AtomateTest):
             potcar_path="POTCAR.gz",
             incar_path="INCAR.gz",
             option="standard",
-            user_lobsterin_settings={"COHPEndEnergy": 10.0},
+            user_lobsterin_settings={"COHPEndEnergy": 10.0, "COHPStartEnergy": -15.0},
         )
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
@@ -110,7 +111,7 @@ class TestLobsterRunToDb(AtomateTest):
         with open("task_lobster.json") as f:
             load_dict = json.load(f)
         self.assertEqual(load_dict["formula_pretty"], "K2Sn2O3")
-        self.assertListEqual(load_dict["output"]["chargespilling"], [0.008, 0.008])
+        self.assertListEqual(load_dict["output"]["charge_spilling"], [0.008, 0.008])
 
     def test_mongodb(self):
         try:
@@ -127,7 +128,7 @@ class TestLobsterRunToDb(AtomateTest):
         coll = self.get_task_collection("lobster")
         load_dict = coll.find_one({"formula_pretty": "K2Sn2O3"})
         self.assertEqual(load_dict["formula_pretty"], "K2Sn2O3")
-        self.assertListEqual(load_dict["output"]["chargespilling"], [0.008, 0.008])
+        self.assertListEqual(load_dict["output"]["charge_spilling"], [0.008, 0.008])
         self.assertNotIn("lobster_icohplist", load_dict)
 
     def test_mongodb_more_files(self):
@@ -154,7 +155,7 @@ class TestLobsterRunToDb(AtomateTest):
         coll = self.get_task_collection("lobster")
         load_dict = coll.find_one({"formula_pretty": "K2Sn2O3"})
         self.assertEqual(load_dict["formula_pretty"], "K2Sn2O3")
-        self.assertListEqual(load_dict["output"]["chargespilling"], [0.008, 0.008])
+        self.assertListEqual(load_dict["output"]["charge_spilling"], [0.008, 0.008])
         db = self.get_task_database()
         gfs = gridfs.GridFS(db, "lobster_files")
         results = gfs.find({})
@@ -171,7 +172,7 @@ class TestLobsterRunToDb(AtomateTest):
         with open("task_lobster.json") as f:
             load_dict = json.load(f)
         self.assertEqual(load_dict["formula_pretty"], "Si")
-        self.assertListEqual(load_dict["output"]["chargespilling"], [0.0147, 0.0147])
+        self.assertListEqual(load_dict["output"]["charge_spilling"], [0.0147, 0.0147])
 
 
 class TestRunLobster(AtomateTest):

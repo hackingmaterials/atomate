@@ -1,4 +1,5 @@
 import os
+import unittest
 from pathlib import Path
 
 from fireworks.core.fworker import FWorker
@@ -10,6 +11,12 @@ from atomate.utils.testing import AtomateTest
 from atomate.vasp.powerups import add_modify_incar, use_fake_vasp, use_potcar_spec
 from atomate.vasp.workflows.base.electrode import get_ion_insertion_wf
 
+try:
+    from pymatgen.analysis.defects.utils import ChargeInsertionAnalyzer
+except ImportError:
+    ChargeInsertionAnalyzer = None
+
+
 __author__ = "Jimmy Shen"
 __email__ = "jmmshn@gmail.com"
 
@@ -19,12 +26,14 @@ ref_dir = module_dir / "../../test_files"
 wf_dir = ref_dir / "insertion_wf"
 
 
+@unittest.skipIf(
+    ChargeInsertionAnalyzer is None, "pymatgen.analysis.defects not installed"
+)
 class TestInsertionWorkflow(AtomateTest):
     def setUp(self):
         super().setUp()
-        input_output_dirs = ref_dir / "insertion_wf"
-        names = os.walk(input_output_dirs).__next__()[1]
-        calc_dirs = {n_: input_output_dirs / n_ for n_ in names}
+        names = os.walk(wf_dir).__next__()[1]
+        calc_dirs = {n_: wf_dir / n_ for n_ in names}
         base_struct = Structure.from_file(wf_dir / "YPO4-static/inputs/POSCAR")
         sm = StructureMatcher(ltol=0.6, stol=0.6, angle_tol=9)
 

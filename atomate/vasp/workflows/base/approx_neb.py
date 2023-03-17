@@ -161,7 +161,7 @@ def get_aneb_wf(
     )
 
     # modifies incar settings needed for end point and image structure relaxations
-    if "user_incar_settings" not in approx_neb_params.keys():
+    if "user_incar_settings" not in approx_neb_params:
         approx_neb_params = {"user_incar_settings": {}}
     approx_neb_params["user_incar_settings"]["ISIF"] = 2
     approx_neb_params["user_incar_settings"]["ISYM"] = 0

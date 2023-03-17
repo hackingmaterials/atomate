@@ -84,7 +84,7 @@ def get_gibbs(
     # other eos options: birch_murnaghan, murnaghan
     # The physical units of V and T are \AA^3 and K, respectively.
     # The unit of eV for Helmholtz and Gibbs energies,
-    # J/K/mol for C_V and entropy, GPa for for bulk modulus and pressure are used.
+    # J/K/mol for C_V and entropy, GPa for bulk modulus and pressure are used.
     from phonopy import PhonopyQHA
 
     phonon = get_phonopy(structure)

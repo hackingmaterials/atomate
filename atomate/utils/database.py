@@ -35,7 +35,7 @@ class CalcDb(metaclass=ABCMeta):
         **kwargs,
     ):
         """
-        Obeject to handle storing calculation data to MongoDB databases.
+        Object to handle storing calculation data to MongoDB databases.
         The results of calculations will be parsed by a Drone and
         CalcDb is only responsible for putting that data into the database
 
@@ -50,7 +50,7 @@ class CalcDb(metaclass=ABCMeta):
                         other authentication information will be ignored
             maggma_store_kwargs: additional kwargs for mongodb login.
                 Currently supports:
-                    S3 store kwarges:
+                    S3 store kwargs:
                         "bucket" : the S3 bucket where the data is stored
                         "s3_profile" : the S3 profile that contains the login information
                                         typically found at ~/.aws/credentials
@@ -133,12 +133,14 @@ class CalcDb(metaclass=ABCMeta):
             d (dict): task document
             update_duplicates (bool): whether to update the duplicates
         """
+        logger.info("Executing find_one to check for duplicate")
         result = self.collection.find_one(
             {"dir_name": d["dir_name"]}, ["dir_name", "task_id"]
         )
         if result is None or update_duplicates:
             d["last_updated"] = datetime.datetime.utcnow()
             if result is None:
+                logger.info("No duplicate!")
                 if ("task_id" not in d) or (not d["task_id"]):
                     d["task_id"] = self.db.counter.find_one_and_update(
                         {"_id": "taskid"},
@@ -255,7 +257,7 @@ class CalcDb(metaclass=ABCMeta):
         and the store_name will double as the sub_dir name.
 
         Args:
-            store_name: correspond to the the key within calcs_reversed.0 that will be stored
+            store_name: correspond to the key within calcs_reversed.0 that will be stored
         """
         if self.host_uri is not None:
             index_store_ = MongoURIStore(

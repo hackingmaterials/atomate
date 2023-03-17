@@ -15,9 +15,8 @@ ref_dir = os.path.join(module_dir, "..", "..", "test_files")
 DEBUG_MODE = (
     True  # If true, retains the database and output dirs at the end of the test
 )
-VASP_CMD = (
-    None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
-)
+# If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+VASP_CMD = None
 
 
 class TestFerroelectricWorkflow(AtomateTest):
@@ -34,9 +33,9 @@ class TestFerroelectricWorkflow(AtomateTest):
 
         coll = bson.decode_all(coll_raw)
 
-        db = self.get_task_collection()
+        task_coll = self.get_task_collection()
         for c in coll:
-            db.insert(c)
+            task_coll.insert_one(c)
 
         new_fw_spec = {
             "_fw_env": {"db_file": os.path.join(db_dir, "db.json")},

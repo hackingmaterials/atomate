@@ -213,12 +213,8 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("last_updated", doc)
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 4)
-        self.assertEqual(
-            list(doc["calcs_reversed"][0].keys()), list(doc["calcs_reversed"][2].keys())
-        )
-        self.assertEqual(
-            list(doc["calcs_reversed"][1].keys()), list(doc["calcs_reversed"][3].keys())
-        )
+        self.assertEqual(list(doc["calcs_reversed"][0]), list(doc["calcs_reversed"][2]))
+        self.assertEqual(list(doc["calcs_reversed"][1]), list(doc["calcs_reversed"][3]))
 
     def test_assimilate_bad_FF(self):
         drone = QChemDrone(
@@ -327,9 +323,7 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("last_updated", doc)
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 3)
-        self.assertEqual(
-            list(doc["calcs_reversed"][0].keys()), list(doc["calcs_reversed"][2].keys())
-        )
+        self.assertEqual(list(doc["calcs_reversed"][0]), list(doc["calcs_reversed"][2]))
 
     def test_assimilate_bad_ffts(self):
         drone = QChemDrone(
@@ -543,6 +537,25 @@ class QChemDroneTest(unittest.TestCase):
         self.assertIn("dir_name", doc)
         self.assertEqual(len(doc["calcs_reversed"]), 1)
 
+    def test_assimilate_nbo(self):
+        drone = QChemDrone()
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "launcher_nbo"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False,
+        )
+        self.assertEqual(doc["input"]["job_type"], "opt")
+        self.assertEqual(doc["output"]["job_type"], "opt")
+        self.assertIn("nbo", doc["output"])
+        self.assertIn("custodian", doc)
+        self.assertIn("calcs_reversed", doc)
+        self.assertIn("initial_molecule", doc["input"])
+        self.assertIn("initial_molecule", doc["output"])
+        self.assertIn("last_updated", doc)
+        self.assertIn("dir_name", doc)
+        self.assertEqual(len(doc["calcs_reversed"]), 1)
+
     def test_sp_with_orig(self):
         drone = QChemDrone()
         doc = drone.assimilate(
@@ -643,6 +656,19 @@ class QChemDroneTest(unittest.TestCase):
         # dumpfn(doc["critic2"],os.path.join(crit_ex_path, "critic2_drone_ref.json"))
         critic2_drone_ref = loadfn(os.path.join(crit_ex_path, "critic2_drone_ref.json"))
         self.assertEqual(doc["critic2"], critic2_drone_ref)
+
+    def test_assimilate_gap_force(self):
+        drone = QChemDrone()
+        doc = drone.assimilate(
+            path=os.path.join(module_dir, "..", "test_files", "gap_force"),
+            input_file="mol.qin",
+            output_file="mol.qout",
+            multirun=False,
+        )
+        self.assertEqual(doc["output"]["dipoles"]["total"], 10.5686)
+        self.assertEqual(doc["output"]["dipoles"]["dipole"][0], 4.0212)
+        self.assertEqual(doc["output"]["gap_info"]["beta_LUMO"], -0.0105686)
+        self.assertEqual(doc["output"]["gap_info"]["KSgap"], 0.3287354)
 
 
 if __name__ == "__main__":

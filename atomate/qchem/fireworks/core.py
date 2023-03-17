@@ -5,11 +5,13 @@ import copy
 from itertools import chain
 
 from fireworks import Firework
+from pymatgen.core.sites import Site
+from pymatgen.core.structure import Molecule
 
 from atomate.qchem.firetasks.critic2 import ProcessCritic2, RunCritic2
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
 from atomate.qchem.firetasks.geo_transformations import PerturbGeometry
-from atomate.qchem.firetasks.parse_outputs import QChemToDb
+from atomate.qchem.firetasks.parse_outputs import ProtCalcToDb, QChemToDb
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 
@@ -34,6 +36,7 @@ class SinglePointFW(Firework):
         qchem_input_params=None,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -83,6 +86,7 @@ class SinglePointFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )
@@ -97,6 +101,131 @@ class SinglePointFW(Firework):
         super().__init__(t, parents=parents, name=name, **kwargs)
 
 
+class ProtonEnergyFW(Firework):
+    def __init__(
+        self,
+        name="proton electronic energy",
+        qchem_cmd=">>qchem_cmd<<",
+        multimode=">>multimode<<",
+        max_cores=">>max_cores<<",
+        qchem_input_params=None,
+        db_file=None,
+        parents=None,
+        max_errors=5,
+        **kwargs
+    ):
+        """
+        For this custom Firework the electronic energy of a proton in a specific solvent environment is approximated.
+        Since a proton has 0 electrons,running a QChem job would yield an error. The energy can be approximated by
+        calculating the electronic energy of a hydronium ion and a water molecule and then subtracting
+        the respective electronic energies. This Firework combines these two calculations and adds a task doc to the
+        DB with the separate calculation details and the effective energy after subtraction.
+
+        Arg
+            name (str): Name for the Firework.
+            qchem_cmd (str): Command to run QChem. Supports env_chk.
+            multimode (str): Parallelization scheme, either openmp or mpi. Supports env_chk.
+            max_cores (int): Maximum number of cores to parallelize over. Supports env_chk.
+            qchem_input_params (dict): Specify kwargs for instantiating the input set parameters
+                calculating the electronic energy of the proton in a specific solvent environment.
+                The energy of the proton will be effectively zero in vacuum. Use either pcm_dieletric
+                or some smd_solvent.Basic uses would be to modify the default inputs of the set,
+                such as dft_rung, basis_set, pcm_dielectric, scf_algorithm, or max_scf_cycles.
+                See pymatgen/io/qchem/sets.py for default values of all input parameters. For
+                instance, if a user wanted to use a more advanced DFT functional, include a pcm
+                with a dielectric of 30, and use a larger basis, the user would set
+                qchem_input_params = {"dft_rung": 5, "pcm_dielectric": 30, "basis_set":
+                "6-311++g**"}. However, more advanced customization of the input is also
+                possible through the overwrite_inputs key which allows the user to directly
+                modify the rem, pcm, smd, and solvent dictionaries that QChemDictSet passes to
+                inputs.py to print an actual input file. For instance, if a user wanted to set
+                the sym_ignore flag in the rem section of the input file to true, then they
+                would set qchem_input_params = {"overwrite_inputs": "rem": {"sym_ignore":
+                "true"}}. Of course, overwrite_inputs could be used in conjunction with more
+                typical modifications, as seen in the test_double_FF_opt workflow test.
+            db_file (str): Path to file specifying db credentials to place output parsing.
+            parents ([Firework]): Parents of this particular Firework.
+            **kwargs: Other kwargs that are passed to Firework.__init__.
+        """
+
+        qchem_input_params = qchem_input_params or {}
+
+        H_site_1_H2O = Site("H", [0.18338, 2.20176, 0.01351])
+        H_site_2_H2O = Site("H", [-1.09531, 1.61602, 0.70231])
+        O_site_H2O = Site("O", [-0.80595, 2.22952, -0.01914])
+        H2O_molecule = Molecule.from_sites([H_site_1_H2O, H_site_2_H2O, O_site_H2O])
+
+        H_site_1_H3O = Site("H", [0.11550, 2.34733, 0.00157])
+        H_site_2_H3O = Site("H", [-1.17463, 1.77063, 0.67652])
+        H_site_3_H3O = Site("H", [-1.29839, 2.78012, -0.51436])
+        O_site_H3O = Site("O", [-0.78481, 1.99137, -0.20661])
+        H3O_ion = Molecule.from_sites(
+            [H_site_1_H3O, H_site_2_H3O, H_site_3_H3O, O_site_H3O]
+        )
+
+        H2O_molecule.set_charge_and_spin(0, 1)
+        H3O_ion.set_charge_and_spin(1, 1)
+
+        input_file_1 = "water.qin"
+        output_file_1 = "water.qout"
+        input_file_2 = "hydronium.qin"
+        output_file_2 = "hydronium.qout"
+        t = []
+        t.append(
+            WriteInputFromIOSet(
+                molecule=H2O_molecule,
+                qchem_input_set="OptSet",
+                input_file=input_file_1,
+                qchem_input_params=qchem_input_params,
+            )
+        )
+        t.append(
+            RunQChemCustodian(
+                qchem_cmd=qchem_cmd,
+                multimode=multimode,
+                input_file=input_file_1,
+                output_file=output_file_1,
+                max_cores=max_cores,
+                max_errors=max_errors,
+                job_type="normal",
+                gzipped_output=False,
+            )
+        )
+
+        t.append(
+            WriteInputFromIOSet(
+                molecule=H3O_ion,
+                qchem_input_set="OptSet",
+                input_file=input_file_2,
+                qchem_input_params=qchem_input_params,
+            )
+        )
+        t.append(
+            RunQChemCustodian(
+                qchem_cmd=qchem_cmd,
+                multimode=multimode,
+                input_file=input_file_2,
+                output_file=output_file_2,
+                max_cores=max_cores,
+                max_errors=max_errors,
+                job_type="normal",
+                gzipped_output=False,
+            )
+        )
+        t.append(
+            ProtCalcToDb(
+                db_file=db_file,
+                input_file_H2O=input_file_1,
+                output_file_H2O=output_file_1,
+                input_file_H3O=input_file_2,
+                output_file_H3O=output_file_2,
+                additional_fields={"task_label": name},
+            )
+        )
+
+        super().__init__(t, parents=parents, name=name, **kwargs)
+
+
 class ForceFW(Firework):
     def __init__(
         self,
@@ -108,6 +237,7 @@ class ForceFW(Firework):
         qchem_input_params=None,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -157,7 +287,9 @@ class ForceFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
+                save_scratch=True,
             )
         )
         t.append(
@@ -165,6 +297,7 @@ class ForceFW(Firework):
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
+                parse_grad_file=True,
                 additional_fields={"task_label": name},
             )
         )
@@ -182,6 +315,7 @@ class OptimizeFW(Firework):
         qchem_input_params=None,
         db_file=None,
         parents=None,
+        max_errors=20,
         **kwargs
     ):
         """
@@ -232,6 +366,7 @@ class OptimizeFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )
@@ -257,6 +392,7 @@ class TransitionStateFW(Firework):
         qchem_input_params=None,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -307,6 +443,7 @@ class TransitionStateFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )
@@ -332,6 +469,7 @@ class FrequencyFW(Firework):
         qchem_input_params=None,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -382,6 +520,7 @@ class FrequencyFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )
@@ -408,6 +547,7 @@ class PESScanFW(Firework):
         scan_variables=None,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -467,6 +607,7 @@ class PESScanFW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )
@@ -491,6 +632,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
         max_cores=">>max_cores<<",
         qchem_input_params=None,
         max_iterations=10,
+        prev_hess=None,
         max_molecule_perturb_scale=0.3,
         linked=True,
         freq_before_opt=False,
@@ -499,6 +641,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
         scale=1.0,
         db_file=None,
         parents=None,
+        max_errors=20,
         **kwargs
     ):
         """
@@ -571,6 +714,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                     qchem_input_set="OptSet",
                     input_file=input_file,
                     qchem_input_params=qchem_input_params,
+                    prev_hess=prev_hess,
                 )
             )
 
@@ -586,6 +730,8 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 max_molecule_perturb_scale=max_molecule_perturb_scale,
                 linked=linked,
                 freq_before_opt=freq_before_opt,
+                max_errors=max_errors,
+                save_scratch=True,
             )
         )
         t.append(
@@ -593,6 +739,7 @@ class FrequencyFlatteningOptimizeFW(Firework):
                 db_file=db_file,
                 input_file=input_file,
                 output_file=output_file,
+                parse_hess_file=True,
                 additional_fields={
                     "task_label": name,
                     "special_run_type": "frequency_flattener",
@@ -621,6 +768,7 @@ class FrequencyFlatteningTransitionStateFW(Firework):
         scale=1,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -719,6 +867,7 @@ class FrequencyFlatteningTransitionStateFW(Firework):
                 transition_state=True,
                 linked=linked,
                 freq_before_opt=freq_before_opt,
+                max_errors=max_errors,
             )
         )
         t.append(
@@ -819,6 +968,7 @@ class CubeAndCritic2FW(Firework):
         qchem_input_params=None,
         db_file=None,
         parents=None,
+        max_errors=5,
         **kwargs
     ):
         """
@@ -871,6 +1021,7 @@ class CubeAndCritic2FW(Firework):
                 input_file=input_file,
                 output_file=output_file,
                 max_cores=max_cores,
+                max_errors=max_errors,
                 job_type="normal",
             )
         )
