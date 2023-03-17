@@ -279,8 +279,8 @@ def get_fit_data(
     saved_structures = []
     fcm = ForceConstantModel(supercell,cs)
     natom = supercell.get_global_number_of_atoms()
-    nrow_per = natom*3
-    nrow_all = nrow_per*len(saved_structures)
+    ndim = natom*3
+    nrow_all = ndim*len(saved_structures)
     A_mat = np.zeros((nrow_all,cs.n_dofs))
     f_vec = np.zeros(nrow_all)
 
@@ -303,13 +303,14 @@ def get_fit_data(
         for s,structure in enumerate(saved_structures)
     )
     for s,data in enumerate(fit_data_tmp):
-        A_mat[s*nrow_per:(s+1)*nrow_per,:] = data[0]
-        f_vec[s*nrow_per:(s+1)*nrow_per] = data[1]
+        print(s,ndim)
+        A_mat[s*ndim:(s+1)*ndim] = data[0]
+        f_vec[s*ndim:(s+1)*ndim] = data[1]
 
     if param2 is not None:
         f_vec -= np.dot(A_mat[:,:ncut],param2) # subtract harmonic force from total
     logger.info('Fit_data dimensions: {}'.format(A_mat.shape))
-    fit_data = _clean_data(A_mat,f_vec,nrow_per)
+    fit_data = _clean_data(A_mat,f_vec,ndim)
     return fit_data
 
 
