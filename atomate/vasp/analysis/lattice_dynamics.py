@@ -355,7 +355,7 @@ def get_fit_data(
         for s,structure in enumerate(saved_structures)
     )
     for s,data in enumerate(fit_data_tmp):
-        print(s,data)
+        logger.info('DEBUG: {}, {}'.format(s,data[0]))
         A_mat[s*ndim:(s+1)*ndim] = data[0]
         f_vec[s*ndim:(s+1)*ndim] = data[1]
 
@@ -409,11 +409,11 @@ def _run_cutoffs(
     
     if separate_fit:
         logger.info('Fitting harmonic force constants separately')
-        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
-                                disp_cut, ncut=n2nd, param2=None)
-#        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
-#                                     ncut=n2nd, param2=None)
-        opt = Optimizer(fit_data,#sc.get_fit_data(),
+#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+#                                disp_cut, ncut=n2nd, param2=None)
+        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
+                                     ncut=n2nd, param2=None)
+        opt = Optimizer(sc.get_fit_data(),
                         fit_method,
                         [0,n2nd],
                         **fit_kwargs)
@@ -426,11 +426,11 @@ def _run_cutoffs(
         param_harmonic = opt.parameters # harmonic force constant parameters
         
         logger.info('Fitting anharmonic force constants separately')
-        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
-                                disp_cut, ncut=n2nd, param2=param_harmonic)
-#        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
-#                                     ncut=n2nd, param2=param_harmonic)
-        opt = Optimizer(fit_data,#sc.get_fit_data(),
+#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+#                                disp_cut, ncut=n2nd, param2=param_harmonic)
+        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
+                                     ncut=n2nd, param2=param_harmonic)
+        opt = Optimizer(sc.get_fit_data(),
                         fit_method,
                         [n2nd,nall],
                         **fit_kwargs)
@@ -511,11 +511,11 @@ def get_structure_container(
         
     else:
         logger.info('Fitting all force constants in one shot')
-        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
-                                disp_cut=None, ncut=None, param2=None)
-#        sc = get_structure_container(cs, structures, separate_fit, disp_cut=None,
-#                                     ncut=None, param2=None)
-        opt = Optimizer(fit_data,#sc.get_fit_data(),
+#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+#                                disp_cut=None, ncut=None, param2=None)
+        sc = get_structure_container(cs, structures, separate_fit, disp_cut=None,
+                                     ncut=None, param2=None)
+        opt = Optimizer(sc.get_fit_data(),
                         fit_method,
                         [0,nall],
                         **fit_kwargs)
@@ -594,7 +594,7 @@ def get_structure_container(
         for i, structure in enumerate(saved_structures):
             natoms = structure.get_global_number_of_atoms()
             ndisp = natoms*3
-            structure.set_array('forces',anh_force[i*ndisp:(i+1)*ndisp].reshape(natoms,3))
+            structure.set_array('forces',f_vec[i*ndisp:(i+1)*ndisp].reshape(natoms,3))
             sc.add_structure(structure)
 
     logger.debug(sc.__repr__())
