@@ -1,40 +1,39 @@
-# coding: utf-8
-
-
-import unittest
-from io import open
-import os
 import json
+import os
 import shutil
-
-from pymongo import MongoClient
+import unittest
 
 from fireworks import LaunchPad
+from pymatgen.core import SETTINGS
+from pymongo import MongoClient
 
-from pymatgen import SETTINGS
+__author__ = "Kiran Mathew"
+__credits__ = "Anubhav Jain"
+__email__ = "kmathew@lbl.gov"
 
-__author__ = 'Kiran Mathew'
-__credits__ = 'Anubhav Jain'
-__email__ = 'kmathew@lbl.gov'
-
-MODULE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_DIR = os.path.join(MODULE_DIR, "..", "common", "test_files")
 
-DEBUG_MODE = False  # If true, retains the database and output dirs at the end of the test
-VASP_CMD = None  # If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+# If DEBUG_MODE = true, retains the database and output dirs at the end of the test
+DEBUG_MODE = False
+# If None, runs a "fake" VASP. Otherwise, runs VASP with this command...
+VASP_CMD = None
 
 
 class AtomateTest(unittest.TestCase):
-
     def setUp(self, lpad=True):
         """
         Create scratch directory(removes the old one if there is one) and change to it.
         Also initialize launchpad.
         """
         if not SETTINGS.get("PMG_VASP_PSP_DIR"):
-            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.abspath(os.path.join(MODULE_DIR, "..", "vasp", "test_files"))
-            print('This system is not set up to run VASP jobs. '
-                  'Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file.')
+            SETTINGS["PMG_VASP_PSP_DIR"] = os.path.abspath(
+                os.path.join(MODULE_DIR, "..", "vasp", "test_files")
+            )
+            print(
+                "This system is not set up to run VASP jobs. "
+                "Please set PMG_VASP_PSP_DIR variable in your ~/.pmgrc.yaml file."
+            )
 
         self.scratch_dir = os.path.join(MODULE_DIR, "scratch")
         if os.path.exists(self.scratch_dir):
@@ -45,12 +44,14 @@ class AtomateTest(unittest.TestCase):
             try:
                 self.lp = LaunchPad.from_file(os.path.join(DB_DIR, "my_launchpad.yaml"))
                 self.lp.reset("", require_password=False)
-            except:
-                raise unittest.SkipTest('Cannot connect to MongoDB! Is the database server running? '
-                                        'Are the credentials correct?')
+            except Exception:
+                raise unittest.SkipTest(
+                    "Cannot connect to MongoDB! Is the database server running? "
+                    "Are the credentials correct?"
+                )
 
     # Note: the functions in matgendb.util, get_database and get_collection require db authentication
-    # but the db.json config file used for atomate testing purpose doesnt require db authentication.
+    # but the db.json config file used for atomate testing purpose doesn't require db authentication.
     # Hence the following 2 methods.
     def get_task_database(self):
         """
@@ -79,10 +80,11 @@ class AtomateTest(unittest.TestCase):
         Remove the scratch directory and teardown the test db.
         """
         if not DEBUG_MODE:
+            if hasattr(self, "lp"):
+                self.lp.reset("", require_password=False)
+                db = self.get_task_database()
+                for coll in db.list_collection_names():
+                    if coll != "system.indexes":
+                        db[coll].drop()
             shutil.rmtree(self.scratch_dir)
-            self.lp.reset("", require_password=False)
-            db = self.get_task_database()
-            for coll in db.collection_names():
-                if coll != "system.indexes":
-                    db[coll].drop()
             os.chdir(MODULE_DIR)

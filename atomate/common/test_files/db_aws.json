@@ -1,0 +1,11 @@
+{
+    "aliases": {}, 
+    "collection": "tasks",
+    "database": "atomate_unittest",
+    "host": "localhost", 
+    "port": 27017,
+    "maggma_store": {
+        "bucket" : "test_bucket",
+        "compress" : true
+    }
+}

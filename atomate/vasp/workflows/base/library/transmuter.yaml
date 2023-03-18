@@ -11,4 +11,3 @@ fireworks:
     transformation_params:
     - "scaling_matrix": [[2, 0, 0], [0, 2, 0], [0, 0, 2]]
     - "amplitude": 0.05
-

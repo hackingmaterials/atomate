@@ -1,16 +1,14 @@
 import tarfile
-
 from pathlib import Path
-
-from pymatgen import Structure
 
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
+from pymatgen.core import Structure
 
 from atomate.utils.testing import AtomateTest
+from atomate.utils.utils import get_a_unique_id
 from atomate.vasp.powerups import use_fake_vasp, use_potcar_spec
 from atomate.vasp.workflows.base.ferroelectric import get_wf_ferroelectric
-from atomate.utils.utils import get_a_unique_id
 
 __author__ = "Tess Smidt, Alex Ganose"
 __email__ = "blondegeek@gmail.com"
@@ -22,7 +20,7 @@ ref_dir = module_dir / "../../test_files"
 
 class TestFerroelectricWorkflow(AtomateTest):
     def setUp(self, lpad=True):
-        super(TestFerroelectricWorkflow, self).setUp(lpad=lpad)
+        super().setUp(lpad=lpad)
 
         polar_file = ref_dir / "ferroelectric_wf/BTO_polar_POSCAR"
         non_polar_file = ref_dir / "ferroelectric_wf/BTO_nonpolar_POSCAR"
@@ -98,15 +96,11 @@ class TestFerroelectricWorkflow(AtomateTest):
         rapidfire(self.lp, fworker=FWorker(env={"db_file": db_dir / "db.json"}))
 
         # Check polar relaxation
-        d = self.get_task_collection().find_one(
-            {"task_label": "_polar_relaxation"}
-        )
+        d = self.get_task_collection().find_one({"task_label": "_polar_relaxation"})
         self._check_run(d, "_polar_relaxation")
 
         # Check nonpolar relaxation
-        d = self.get_task_collection().find_one(
-            {"task_label": "_nonpolar_relaxation"}
-        )
+        d = self.get_task_collection().find_one({"task_label": "_nonpolar_relaxation"})
         self._check_run(d, "_nonpolar_relaxation")
 
         # Check polarization calculations
@@ -138,7 +132,9 @@ def get_simulated_wf(wf):
         "_interpolation_1_polarization": f_dir / "interpolation_1_polarization",
     }
 
-    wf = use_potcar_spec(wf, vasp_to_db_kwargs={"store_volumetric_data": []})
+    wf = use_potcar_spec(
+        wf, vasp_to_db_kwargs={"store_volumetric_data": [], "parse_bader": False}
+    )
     wf = use_fake_vasp(
         wf, bto_ref_dirs, params_to_check=["ENCUT", "LWAVE"], check_potcar=False
     )

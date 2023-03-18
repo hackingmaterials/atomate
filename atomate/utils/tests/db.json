@@ -1,7 +1,7 @@
 {
-    "aliases": {}, 
+    "aliases": {},
     "collection": "tasks",
     "database": "atomate_unittest",
-    "host": "localhost", 
+    "host": "localhost",
     "port": 27017
 }

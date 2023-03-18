@@ -1,25 +1,20 @@
-# coding: utf-8
-
-
 # This module defines tasks that support running QChem in various ways.
 
 
-import shutil
 import os
+import shutil
 import subprocess
 
-from pymatgen.io.qchem.inputs import QCInput
-
+import numpy as np
 from custodian import Custodian
 from custodian.qchem.handlers import QChemErrorHandler
 from custodian.qchem.jobs import QCJob
-
-from fireworks import explicit_serialize, FiretaskBase
+from fireworks import FiretaskBase, explicit_serialize
+from pymatgen.io.qchem.inputs import QCInput
 
 from atomate.utils.utils import env_chk, get_logger
-import numpy as np
 
-__author__ = "Samuel Blau"
+__author__ = "Samuel Blau, Evan Spotte-Smith"
 __copyright__ = "Copyright 2018, The Materials Project"
 __version__ = "0.1"
 __maintainer__ = "Samuel Blau"
@@ -40,26 +35,17 @@ class RunQChemDirect(FiretaskBase):
         qchem_cmd (str): The name of the full command line call to run. This should include any
                          flags for parallelization, saving scratch, and input / output files.
                          Does NOT support env_chk.
-    Optional params:
-        scratch_dir (str): Path to the scratch directory. Defaults to "/dev/shm/qcscratch/".
-                           Supports env_chk.
-
     """
 
     required_params = ["qchem_cmd"]
-    optional_params = ["scratch_dir"]
 
     def run_task(self, fw_spec):
         cmd = self.get("qchem_cmd")
-        scratch_dir = env_chk(self.get("scratch_dir"), fw_spec)
-        if scratch_dir == None:
-            scratch_dir = "/dev/shm/qcscratch/"
-        os.putenv("QCSCRATCH", scratch_dir)
+        os.putenv("QCSCRATCH", os.getcwd())
 
-        logger.info("Running command: {}".format(cmd))
+        logger.info(f"Running command: {cmd}")
         return_code = subprocess.call(cmd, shell=True)
-        logger.info("Command {} finished running with return code: {}".format(
-            cmd, return_code))
+        logger.info(f"Command {cmd} finished running with return code: {return_code}")
 
 
 @explicit_serialize
@@ -85,6 +71,7 @@ class RunQChemCustodian(FiretaskBase):
         calc_loc (str): Path where Q-Chem should run. Will env_chk by default. If not in
                         environment, will be set to None, in which case Q-Chem will run in
                         the system-defined QCLOCALSCR.
+        nboexe (str): Path to the NBO7 executable.
         save_scratch (bool): Whether to save scratch directory contents. Defaults to False.
         max_errors (int): Maximum # of errors to fix before giving up (default=5)
         job_type (str): Choose from "normal" (default) and "opt_with_frequency_flattener"
@@ -102,12 +89,28 @@ class RunQChemCustodian(FiretaskBase):
                                             applied to the molecule. Defaults to 0.3.
 
     """
+
     required_params = ["qchem_cmd"]
     optional_params = [
-        "multimode", "input_file", "output_file", "max_cores", "qclog_file",
-        "suffix", "calc_loc", "save_scratch", "max_errors", "job_type",
-        "handler_group", "gzipped_output", "backup", "linked",
-        "max_iterations", "max_molecule_perturb_scale"
+        "multimode",
+        "input_file",
+        "output_file",
+        "max_cores",
+        "qclog_file",
+        "suffix",
+        "calc_loc",
+        "nboexe",
+        "save_scratch",
+        "max_errors",
+        "job_type",
+        "handler_group",
+        "gzipped_output",
+        "backup",
+        "linked",
+        "max_iterations",
+        "max_molecule_perturb_scale",
+        "freq_before_opt",
+        "transition_state",
     ]
 
     def run_task(self, fw_spec):
@@ -115,30 +118,36 @@ class RunQChemCustodian(FiretaskBase):
         # initialize variables
         qchem_cmd = env_chk(self["qchem_cmd"], fw_spec)
         multimode = env_chk(self.get("multimode"), fw_spec)
-        if multimode == None:
+        if multimode is None:
             multimode = "openmp"
+        """
+        Note that I'm considering hardcoding openmp in the future
+        because there is basically no reason anyone should ever run
+        QChem on multiple nodes, aka with multimode = mpi.
+        """
         input_file = self.get("input_file", "mol.qin")
         output_file = self.get("output_file", "mol.qout")
         max_cores = env_chk(self["max_cores"], fw_spec)
         qclog_file = self.get("qclog_file", "mol.qclog")
         suffix = self.get("suffix", "")
-        calc_loc = env_chk(self.get("calc_loc"), fw_spec)
+        calc_loc = self.get("calc_loc", env_chk(">>calc_loc<<", fw_spec, strict=False))
+        nboexe = self.get("nboexe", env_chk(">>nboexe<<", fw_spec, strict=False))
         save_scratch = self.get("save_scratch", False)
         max_errors = self.get("max_errors", 5)
         max_iterations = self.get("max_iterations", 10)
         linked = self.get("linked", True)
         backup = self.get("backup", True)
-        max_molecule_perturb_scale = self.get("max_molecule_perturb_scale",
-                                              0.3)
+        max_molecule_perturb_scale = self.get("max_molecule_perturb_scale", 0.3)
         job_type = self.get("job_type", "normal")
         gzipped_output = self.get("gzipped_output", True)
+        transition_state = self.get("transition_state", False)
+        freq_before_opt = self.get("freq_before_opt", False)
 
         handler_groups = {
             "default": [
-                QChemErrorHandler(
-                    input_file=input_file, output_file=output_file)
+                QChemErrorHandler(input_file=input_file, output_file=output_file)
             ],
-            "no_handler": []
+            "no_handler": [],
         }
 
         # construct jobs
@@ -153,8 +162,10 @@ class RunQChemCustodian(FiretaskBase):
                     qclog_file=qclog_file,
                     suffix=suffix,
                     calc_loc=calc_loc,
+                    nboexe=nboexe,
                     save_scratch=save_scratch,
-                    backup=backup)
+                    backup=backup,
+                )
             ]
         elif job_type == "opt_with_frequency_flattener":
             if linked:
@@ -166,9 +177,13 @@ class RunQChemCustodian(FiretaskBase):
                     qclog_file=qclog_file,
                     max_iterations=max_iterations,
                     linked=linked,
+                    freq_before_opt=freq_before_opt,
+                    transition_state=transition_state,
                     save_final_scratch=save_scratch,
                     max_cores=max_cores,
-                    calc_loc=calc_loc)
+                    calc_loc=calc_loc,
+                    nboexe=nboexe,
+                )
             else:
                 jobs = QCJob.opt_with_frequency_flattener(
                     qchem_command=qchem_cmd,
@@ -179,21 +194,23 @@ class RunQChemCustodian(FiretaskBase):
                     max_iterations=max_iterations,
                     max_molecule_perturb_scale=max_molecule_perturb_scale,
                     linked=linked,
+                    freq_before_opt=freq_before_opt,
+                    transition_state=transition_state,
                     save_final_scratch=save_scratch,
                     max_cores=max_cores,
-                    calc_loc=calc_loc)
+                    calc_loc=calc_loc,
+                    nboexe=nboexe,
+                )
 
         else:
-            raise ValueError("Unsupported job type: {}".format(job_type))
+            raise ValueError(f"Unsupported job type: {job_type}")
 
         # construct handlers
         handlers = handler_groups[self.get("handler_group", "default")]
 
         c = Custodian(
-            handlers,
-            jobs,
-            max_errors=max_errors,
-            gzipped_output=gzipped_output)
+            handlers, jobs, max_errors=max_errors, gzipped_output=gzipped_output
+        )
 
         c.run()
 
@@ -211,13 +228,14 @@ class RunNoQChem(FiretaskBase):
 @explicit_serialize
 class RunQChemFake(FiretaskBase):
     """
-     QChem Emulator
+    QChem Emulator
 
-     Required params:
-         ref_dir (string): Path to reference qchem run directory with input file in the folder
-            named "mol.qin" and output file in the folder named "mol.qout".
+    Required params:
+        ref_dir (string): Path to reference qchem run directory with input file in the folder
+           named "mol.qin" and output file in the folder named "mol.qout".
 
-     """
+    """
+
     required_params = ["ref_dir"]
     optional_params = ["input_file"]
 
@@ -233,28 +251,25 @@ class RunQChemFake(FiretaskBase):
         # Check mol.qin
         ref_qin = QCInput.from_file(os.path.join(self["ref_dir"], input_file))
 
-        np.testing.assert_equal(ref_qin.molecule.species,
-                                user_qin.molecule.species)
+        np.testing.assert_equal(ref_qin.molecule.species, user_qin.molecule.species)
         np.testing.assert_allclose(
-            ref_qin.molecule.cart_coords,
-            user_qin.molecule.cart_coords,
-            atol=0.0001)
+            ref_qin.molecule.cart_coords, user_qin.molecule.cart_coords, atol=0.0001
+        )
         for key in ref_qin.rem:
             if user_qin.rem.get(key) != ref_qin.rem.get(key):
-                raise ValueError("Rem key {} is inconsistent!".format(key))
+                raise ValueError(f"Rem key {key} is inconsistent!")
         if ref_qin.opt is not None:
             for key in ref_qin.opt:
                 if user_qin.opt.get(key) != ref_qin.opt.get(key):
-                    raise ValueError("Opt key {} is inconsistent!".format(key))
+                    raise ValueError(f"Opt key {key} is inconsistent!")
         if ref_qin.pcm is not None:
             for key in ref_qin.pcm:
                 if user_qin.pcm.get(key) != ref_qin.pcm.get(key):
-                    raise ValueError("PCM key {} is inconsistent!".format(key))
+                    raise ValueError(f"PCM key {key} is inconsistent!")
         if ref_qin.solvent is not None:
             for key in ref_qin.solvent:
                 if user_qin.solvent.get(key) != ref_qin.solvent.get(key):
-                    raise ValueError(
-                        "Solvent key {} is inconsistent!".format(key))
+                    raise ValueError(f"Solvent key {key} is inconsistent!")
 
         logger.info("RunQChemFake: verified input successfully")
 

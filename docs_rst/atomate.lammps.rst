@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomate.lammps.firetasks
    atomate.lammps.fireworks
@@ -36,7 +37,6 @@ atomate.lammps.utils module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

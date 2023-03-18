@@ -12,10 +12,26 @@ atomate.vasp.firetasks.tests.test\_copy module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.firetasks.tests.test\_exchange module
+--------------------------------------------------
+
+.. automodule:: atomate.vasp.firetasks.tests.test_exchange
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.firetasks.tests.test\_get\_interpolated\_poscar module
 -------------------------------------------------------------------
 
 .. automodule:: atomate.vasp.firetasks.tests.test_get_interpolated_poscar
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+atomate.vasp.firetasks.tests.test\_lobster\_tasks module
+--------------------------------------------------------
+
+.. automodule:: atomate.vasp.firetasks.tests.test_lobster_tasks
    :members:
    :undoc-members:
    :show-inheritance:
@@ -43,7 +59,6 @@ atomate.vasp.firetasks.tests.test\_write\_vasp\_from\_interpolated\_poscar modul
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

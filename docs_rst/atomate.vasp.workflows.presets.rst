@@ -20,7 +20,6 @@ atomate.vasp.workflows.presets.scan module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

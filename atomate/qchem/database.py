@@ -1,6 +1,3 @@
-# coding: utf-8
-
-
 # This module defines the database classes.
 
 from atomate.utils.database import CalcDb
@@ -18,16 +15,17 @@ class QChemCalcDb(CalcDb):
     Class to help manage database insertions of QChem drones
     """
 
-    def __init__(self,
-                 host="localhost",
-                 port=27017,
-                 database="qchem",
-                 collection="tasks",
-                 user=None,
-                 password=None,
-                 **kwargs):
-        super(QChemCalcDb, self).__init__(host, port, database, collection,
-                                          user, password, **kwargs)
+    def __init__(
+        self,
+        host="localhost",
+        port=27017,
+        database="qchem",
+        collection="tasks",
+        user=None,
+        password=None,
+        **kwargs
+    ):
+        super().__init__(host, port, database, collection, user, password, **kwargs)
 
     def build_indexes(self, indexes=None, background=True):
         """
@@ -41,11 +39,13 @@ class QChemCalcDb(CalcDb):
             existing indexes.
         """
         _indices = indexes or [
-            "formula_pretty", "formula_anonymous", "dir_name", "smiles",
-            "last_updated"
+            "formula_pretty",
+            "formula_anonymous",
+            "dir_name",
+            "smiles",
+            "last_updated",
         ]
-        self.collection.create_index(
-            "task_id", unique=True, background=background)
+        self.collection.create_index("task_id", unique=True, background=background)
         # build single field indexes
         for ii in _indices:
             self.collection.create_index(ii, background=background)

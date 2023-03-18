@@ -1,13 +1,12 @@
-# coding: utf-8
-
 # This module defines the torsion potential workflow
 
 
 from fireworks import Workflow
-from atomate.qchem.fireworks.core import OptimizeFW
-from atomate.utils.utils import get_logger
+
 from atomate.qchem.firetasks.geo_transformations import RotateTorsion
 from atomate.qchem.firetasks.write_inputs import WriteCustomInput
+from atomate.qchem.fireworks.core import OptimizeFW
+from atomate.utils.utils import get_logger
 
 __author__ = "Brandon Wood"
 __copyright__ = "Copyright 2018, The Materials Project"
@@ -21,16 +20,18 @@ __credits__ = "Sam Blau, Shyam Dwaraknath"
 logger = get_logger(__name__)
 
 
-def get_wf_torsion_potential(molecule,
-                             atom_indexes,
-                             angles,
-                             rem,
-                             name="torsion_potential",
-                             qchem_cmd=">>qchem_cmd<<",
-                             multimode=">>multimode<<",
-                             max_cores=">>max_cores<<",
-                             db_file=None,
-                             **kwargs):
+def get_wf_torsion_potential(
+    molecule,
+    atom_indexes,
+    angles,
+    rem,
+    name="torsion_potential",
+    qchem_cmd=">>qchem_cmd<<",
+    multimode=">>multimode<<",
+    max_cores=">>max_cores<<",
+    db_file=None,
+    **kwargs,
+):
     """
     Returns a workflow to the torsion potential for a molecule.
 
@@ -76,7 +77,8 @@ def get_wf_torsion_potential(molecule,
         multimode=multimode,
         max_cores=max_cores,
         db_file=db_file,
-        **kwargs)
+        **kwargs,
+    )
     for idx_t, t in enumerate(fw1.tasks):
         if "WriteInputFromIOSet" in str(t):
             fw1.tasks[idx_t] = WriteCustomInput(molecule=molecule, rem=rem[0])
@@ -91,22 +93,19 @@ def get_wf_torsion_potential(molecule,
             max_cores=max_cores,
             db_file=db_file,
             parents=fw1,
-            **kwargs)
+            **kwargs,
+        )
         rot_task = RotateTorsion(atom_indexes=atom_indexes, angle=angle)
         rot_opt_fw.tasks.insert(0, rot_task)
         # define opt section
-        opt_line = "tors {a} {b} {c} {d} {ang}".format(
-            a=atom_indexes[0],
-            b=atom_indexes[1],
-            c=atom_indexes[2],
-            d=atom_indexes[3],
-            ang=angle)
+        a, b, c, d = atom_indexes
+        opt_line = f"tors {a} {b} {c} {d} {angle}"
         opt = {"CONSTRAINT": [opt_line]}
         for idx_t, t in enumerate(rot_opt_fw.tasks):
             if "WriteInputFromIOSet" in str(t):
                 rot_opt_fw.tasks[idx_t] = WriteCustomInput(rem=rem[1], opt=opt)
         fws.append(rot_opt_fw)
 
-    wfname = "{}:{}".format(molecule.composition.reduced_formula, name)
+    wfname = f"{molecule.composition.reduced_formula}:{name}"
 
     return Workflow(fws, name=wfname)

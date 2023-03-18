@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomate.qchem.firetasks
    atomate.qchem.fireworks
@@ -36,7 +37,6 @@ atomate.qchem.powerups module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

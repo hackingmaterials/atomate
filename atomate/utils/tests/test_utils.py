@@ -1,19 +1,23 @@
-# coding: utf-8
-
 import os
 from collections import defaultdict
 
+from fireworks import FiretaskBase, Firework, FWAction, explicit_serialize
 from pymongo.database import Database
 
-from fireworks import FiretaskBase, Firework, Workflow, explicit_serialize, FWAction
-
-from atomate.utils.utils import env_chk, get_logger, get_mongolike, recursive_get_result, recursive_update, get_database, get_uri
-
 from atomate.utils.testing import AtomateTest
+from atomate.utils.utils import (
+    env_chk,
+    get_database,
+    get_logger,
+    get_mongolike,
+    get_uri,
+    recursive_get_result,
+    recursive_update,
+)
 
-__author__ = 'Anubhav Jain <ajain@lbl.gov>'
+__author__ = "Anubhav Jain <ajain@lbl.gov>"
 
-MODULE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 logger = get_logger(__name__)
 
@@ -33,14 +37,12 @@ class Task2(FiretaskBase):
 
 
 class UtilsTests(AtomateTest):
-
     def setUp(self, lpad=True):
 
-        super(UtilsTests, self).setUp()
+        super().setUp()
         self.fw1 = Firework(Task1())
         self.fw2 = Firework([Task2(), Task2()], parents=self.fw1)
         self.fw3 = Firework(Task1(), parents=self.fw1)
-
 
     def test_env_chk(self):
         fw_spec_valid = {"_fw_env": {"hello": "there"}}
@@ -55,13 +57,20 @@ class UtilsTests(AtomateTest):
 
         self.assertRaises(KeyError, env_chk, ">>hello<<", fw_spec_invalid)
         self.assertEqual(env_chk(">>hello<<", fw_spec_invalid, False), None)
-        self.assertEqual(env_chk(">>hello<<", fw_spec_invalid, False, "fallback"), "fallback")
+        self.assertEqual(
+            env_chk(">>hello<<", fw_spec_invalid, False, "fallback"), "fallback"
+        )
 
         self.assertEqual(env_chk(None, fw_spec_valid, False), None)
         self.assertEqual(env_chk(None, fw_spec_valid, False, "fallback"), "fallback")
 
     def test_get_mongolike(self):
-        d = {"a": [{"b": 1}, {"c": {"d": 2}}], "e": {"f": {"g": 3}}, "g": 4, "h": [5, 6]}
+        d = {
+            "a": [{"b": 1}, {"c": {"d": 2}}],
+            "e": {"f": {"g": 3}},
+            "g": 4,
+            "h": [5, 6],
+        }
 
         self.assertEqual(get_mongolike(d, "g"), 4)
         self.assertEqual(get_mongolike(d, "e.f.g"), 3)
@@ -77,13 +86,17 @@ class UtilsTests(AtomateTest):
         # Basic functionality with attribute
         task1 = Task1()
         out_attr = recursive_get_result({"fw_name": "a>>_fw_name"}, task1)
-        self.assertEqual(out_attr["fw_name"], "{{atomate.utils.tests.test_utils.Task1}}")
+        self.assertEqual(
+            out_attr["fw_name"], "{{atomate.utils.tests.test_utils.Task1}}"
+        )
         # Basic functionality with callable attribute
         out_attr2 = recursive_get_result({"keys": "a>>keys"}, task1)
         self.assertEqual(list(out_attr2["keys"]), [])
         # Testing as_dict functionality
         out_as_dict = recursive_get_result({"fw_name": ">>_fw_name"}, task1)
-        self.assertEqual(out_as_dict["fw_name"], "{{atomate.utils.tests.test_utils.Task1}}")
+        self.assertEqual(
+            out_as_dict["fw_name"], "{{atomate.utils.tests.test_utils.Task1}}"
+        )
 
     def test_recursiveupdate(self):
         d = {"a": {"b": 3}, "c": [4]}
@@ -110,5 +123,6 @@ class UtilsTests(AtomateTest):
 
         db = get_database(os.path.join(MODULE_DIR, "db.json"))
         self.assertTrue(isinstance(db, Database))
-        self.assertEqual(db.client.address[0], "localhost")
         self.assertEqual(db.name, "atomate_unittest")
+        db.client.start_session()  # needed to start the connection and populate db.client.address
+        self.assertEqual(db.client.address, ("localhost", 27017))

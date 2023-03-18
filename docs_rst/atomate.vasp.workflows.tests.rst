@@ -12,6 +12,14 @@ atomate.vasp.workflows.tests.test\_adsorbate\_workflow module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.workflows.tests.test\_approx\_neb\_workflow module
+---------------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.tests.test_approx_neb_workflow
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.workflows.tests.test\_bulk\_modulus\_workflow module
 -----------------------------------------------------------------
 
@@ -28,10 +36,42 @@ atomate.vasp.workflows.tests.test\_elastic\_workflow module
    :undoc-members:
    :show-inheritance:
 
+atomate.vasp.workflows.tests.test\_exchange\_workflow module
+------------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.tests.test_exchange_workflow
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 atomate.vasp.workflows.tests.test\_ferroelectric\_workflow module
 -----------------------------------------------------------------
 
 .. automodule:: atomate.vasp.workflows.tests.test_ferroelectric_workflow
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+atomate.vasp.workflows.tests.test\_hubbard\_hund\_linresp module
+----------------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.tests.test_hubbard_hund_linresp
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+atomate.vasp.workflows.tests.test\_insertion\_workflow module
+-------------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.tests.test_insertion_workflow
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+atomate.vasp.workflows.tests.test\_lobster\_workflow module
+-----------------------------------------------------------
+
+.. automodule:: atomate.vasp.workflows.tests.test_lobster_workflow
    :members:
    :undoc-members:
    :show-inheritance:
@@ -75,7 +115,6 @@ atomate.vasp.workflows.tests.test\_vasp\_workflows module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 Module contents
 ---------------

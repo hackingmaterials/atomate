@@ -1,25 +1,21 @@
-# coding: utf-8
-
-
 import os
 import unittest
-
-from monty.os.path import which
-
-from atomate.vasp.workflows.base.magnetism import MagneticOrderingsWF
-from atomate.vasp.firetasks.parse_outputs import (
-    MagneticDeformationToDB,
-    MagneticOrderingsToDB,
-)
-from atomate.utils.testing import AtomateTest, DB_DIR
-
 from json import load
-from pymatgen import Structure
+from shutil import which
+
+from pymatgen.core import Structure
+
+from atomate.utils.testing import DB_DIR, AtomateTest
+from atomate.vasp.firetasks.parse_outputs import (
+    MagneticDeformationToDb,
+    MagneticOrderingsToDb,
+)
+from atomate.vasp.workflows.base.magnetism import MagneticOrderingsWF
 
 __author__ = "Matthew Horton"
 __email__ = "mkhorton@lbl.gov"
 
-module_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
+module_dir = os.path.dirname(os.path.abspath(__file__))
 db_dir = os.path.join(module_dir, "..", "..", "..", "common", "test_files")
 ref_dir = os.path.join(module_dir, "..", "..", "test_files", "magnetism_wf")
 
@@ -29,7 +25,6 @@ enumlib_present = enum_cmd and makestr_cmd
 
 
 class TestMagneticOrderingsWorkflow(AtomateTest):
-
     @unittest.skipIf(not enumlib_present, "enumlib not present")
     def test_ordering_enumeration(self):
 
@@ -73,24 +68,27 @@ class TestMagneticOrderingsWorkflow(AtomateTest):
         # blocks for the actual calculations, the most important test is
         # the new analysis task)
         tasks = self.get_task_collection()
-        with open(os.path.join(ref_dir, "ordering/sample_tasks.json"), "r") as f:
+        with open(os.path.join(ref_dir, "ordering/sample_tasks.json")) as f:
             sample_tasks = load(f)
         wf_uuid = sample_tasks[0]["wf_meta"]["wf_uuid"]
-        parent_structure = Structure.from_dict(sample_tasks[0]["input"]["structure"]).get_primitive_structure()
+        parent_structure = Structure.from_dict(
+            sample_tasks[0]["input"]["structure"]
+        ).get_primitive_structure()
         tasks.insert_many(sample_tasks)
 
-        toDb = MagneticOrderingsToDB(
-            db_file=os.path.join(DB_DIR, "db.json"), wf_uuid=wf_uuid,
+        toDb = MagneticOrderingsToDb(
+            db_file=os.path.join(DB_DIR, "db.json"),
+            wf_uuid=wf_uuid,
             parent_structure=parent_structure,
-            perform_bader=False, scan=False
+            perform_bader=False,
+            scan=False,
         )
         toDb.run_task({})
 
         mag_ordering_collection = self.get_task_database().magnetic_orderings
-        from pprint import pprint
         stable_ordering = mag_ordering_collection.find_one({"stable": True})
-        self.assertEqual(stable_ordering['input']['index'], 2)
-        self.assertAlmostEqual(stable_ordering['magmoms']['vasp'][0], -2.738)
+        self.assertEqual(stable_ordering["input"]["index"], 2)
+        self.assertAlmostEqual(stable_ordering["magmoms"]["vasp"][0], -2.738)
 
 
 class TestMagneticDeformationWorkflow(AtomateTest):
@@ -100,12 +98,12 @@ class TestMagneticDeformationWorkflow(AtomateTest):
         # blocks for the actual calculations, the most important test is
         # the new analysis task)
         tasks = self.get_task_collection()
-        with open(os.path.join(ref_dir, "deformation/sample_tasks.json"), "r") as f:
+        with open(os.path.join(ref_dir, "deformation/sample_tasks.json")) as f:
             sample_tasks = load(f)
         wf_uuid = sample_tasks[0]["wf_meta"]["wf_uuid"]
         tasks.insert_many(sample_tasks)
 
-        toDb = MagneticDeformationToDB(
+        toDb = MagneticDeformationToDb(
             db_file=os.path.join(DB_DIR, "db.json"), wf_uuid=wf_uuid
         )
         toDb.run_task({})

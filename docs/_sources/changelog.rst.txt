@@ -2,6 +2,16 @@
 atomate Changelog
 =================
 
+.. caution:: Starting v0.9.6 onwards, the changelog is no longer maintained. Please check the Github commit log for a record of changes.
+
+**v0.9.5**
+
+* Add magnetism workflow (M. Horton, N. Frey)
+* Overhaul SCAN workflow (R. Kingsbury)
+* Move help to Discourse (A. Ganose)
+* add ModifyKPoints Firetask (M. Siron)
+* Misc fixes, dependency updates, and improvements (M. Horton, N. Frey, A. Jain, M. Siron, A. Ganose)
+
 **v0.9.4**
 
 * Fixes for new pymatgen (S. Blau, S.P. Ong)

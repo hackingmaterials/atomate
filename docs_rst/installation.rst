@@ -16,7 +16,7 @@ This guide will get you up and running in an environment for running high-throug
 
 Details about how atomate is designed can be found in the `atomate paper`_ and an overview of how these different pieces interact are in a `Slideshare presentation`_. Running and writing your own workflows are covered in later tutorials. For now, these topics will be covered in enough depth to get you set up and to help you know where to troubleshoot if you are having problems.
 
-It is assumed that you are comfortable with basic Linux shell commands and navigation. If not, `Linux Journey`_ and `Linux Command`_ breifly cover enough to get you started. It will also be helpful if you are familiar with Python, but it is not strictly required for installation.
+It is assumed that you are comfortable with basic Linux shell commands and navigation. If not, `Linux Journey`_ and `Linux Command`_ briefly cover enough to get you started. It will also be helpful if you are familiar with Python, but it is not strictly required for installation.
 
 Note that this installation tutorial is VASP-centric since almost all functionality currently in atomate pertains to VASP.
 
@@ -235,6 +235,8 @@ If you want to test whether your ``db.json`` is set up correctly (**and you do n
     x.reset()
     print("SUCCESS")
 
+If you would like to store data beyond the 16 Mb limit of MongoDB please read:
+:ref:`advanced_storage`.
 
 my_fworker.yaml
 ---------------
@@ -342,7 +344,7 @@ This is not at all required, but if you want to see what the queue templates loo
 
 .. _FireWorks documentation for writing queue adapters: https://materialsproject.github.io/fireworks/qadapter_programming.html?highlight=qadapter
 
-.. _here: https://github.com/materialsproject/fireworks/tree/master/fireworks/user_objects/queue_adapters
+.. _here: https://github.com/materialsproject/fireworks/tree/main/fireworks/user_objects/queue_adapters
 
 
 FW_config.yaml
@@ -479,7 +481,7 @@ Below are 4 different options for adding a workflow to the database. You only ne
 All of these function specify (i) a type of workflow and (ii) the structure to feed into that workflow.
 
 * The ``-l vasp`` option states to use the ``vasp`` library of workflows.
-* The ``-s optimize_only.yaml`` sets the specification of the workflow using the ``optimize_only.yaml`` file in `this directory <https://github.com/hackingmaterials/atomate/blob/master/atomate/vasp/workflows/base/library/>`_. Alternatively, the ``-p wf_structure_optimization`` sets the workflow specification using the preset Python function located in `this module <https://github.com/hackingmaterials/atomate/blob/master/atomate/vasp/workflows/presets/core.py>`_. For now, it's probably best not to worry about the distinction but to know that both libraries of workflows are available to you.
+* The ``-s optimize_only.yaml`` sets the specification of the workflow using the ``optimize_only.yaml`` file in `this directory <https://github.com/hackingmaterials/atomate/blob/main/atomate/vasp/workflows/base/library/>`_. Alternatively, the ``-p wf_structure_optimization`` sets the workflow specification using the preset Python function located in `this module <https://github.com/hackingmaterials/atomate/blob/main/atomate/vasp/workflows/presets/core.py>`_. For now, it's probably best not to worry about the distinction but to know that both libraries of workflows are available to you.
 * The ``-c`` option is used in file-based workflows to make sure that one uses the ``vasp_cmd`` and ``db_file`` that are specified in ``my_fworker.yaml`` that you specified earlier. In the preset workflows, it is the default behavior to take these parameters from the ``my_fworker.yaml`` so this option is not needed.
 
 Verify the workflow
@@ -616,12 +618,11 @@ Q: I made a mistake using reservation mode, how do I cancel my job?
 
         lpad rerun_fws -i 1
 
-    where `-i 1` means to make perfom the operations on the FireWork at index 1. Run ``lpad -h`` to see all of the options.
+    where `-i 1` means to make perform the operations on the FireWork at index 1. Run ``lpad -h`` to see all of the options.
 
-The non-reservation mode for qlaunching requires a little less maintenance with certain tradeoffs, which are detailed in the FireWorks documentation.
+The non-reservation mode for ``qlaunch`` requires a little less maintenance with certain tradeoffs, which are detailed in the FireWorks documentation.
 
 Q: I honestly tried everything I can to solve my problem. I still need help!
 ----------------------------------------------------------------------------
 
 :A: There is a support forum for atomate: https://discuss.matsci.org/c/atomate
-

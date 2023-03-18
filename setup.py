@@ -1,49 +1,70 @@
-#!/usr/bin/env python
-
 import os
+from os.path import abspath, dirname, join
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
-module_dir = os.path.dirname(os.path.abspath(__file__))
+module_dir = dirname(abspath(__file__))
 
 if __name__ == "__main__":
     setup(
-        name='atomate',
-        version='0.9.4',
-        description='atomate has implementations of FireWorks workflows for '
-                    'Materials Science',
-        long_description=open(os.path.join(module_dir, 'README.md')).read(),
-        url='https://github.com/hackingmaterials/atomate',
-        author='Anubhav Jain, Kiran Mathew',
-        author_email='anubhavster@gmail.com, kmathew@lbl.gov',
-        license='modified BSD',
+        name="atomate",
+        version="1.0.3",
+        description="atomate has implementations of FireWorks workflows for Materials Science",
+        long_description=open(join(module_dir, "README.md")).read(),
+        long_description_content_type="text/markdown",
+        url="https://github.com/hackingmaterials/atomate",
+        author="Anubhav Jain, Kiran Mathew",
+        author_email="anubhavster@gmail.com, kmathew@lbl.gov",
+        license="modified BSD",
         packages=find_packages(),
-        package_data={'atomate.vasp.workflows.base': ['library/*'],
-                      'atomate.vasp.builders': ['*', 'examples/*']},
+        package_data={
+            "atomate.vasp.workflows.base": ["library/*"],
+            "atomate.vasp.builders": ["*", "examples/*"],
+        },
         zip_safe=False,
-        install_requires=['FireWorks>=1.4.0', 'pymatgen>=2019.11.11',
-                          'custodian>=2019.8.24', 'monty>=2.0.6',
-                          'tqdm>=4.7.4',
-                          'pymatgen-diffusion>=2018.1.4',
-                          'pydash>=4.1.0',
-                          'pyyaml>=5.1.2'],
-        extras_require={'rtransfer': ['paramiko>=2.4.2'],
-                        'plotting': ['matplotlib>=1.5.2'],
-                        'phonons': ['phonopy>=1.10.8'],
-                        'complete': ['paramiko>=2.4.2',
-                                     'matplotlib>=1.5.2',
-                                     'phonopy>=1.10.8']},
-        classifiers=["Programming Language :: Python :: 3",
-                     "Programming Language :: Python :: 3.6",
-                     "Programming Language :: Python :: 3.7",
-                     'Development Status :: 5 - Production/Stable',
-                     'Intended Audience :: Science/Research',
-                     'Intended Audience :: System Administrators',
-                     'Intended Audience :: Information Technology',
-                     'Operating System :: OS Independent',
-                     'Topic :: Other/Nonlisted Topic',
-                     'Topic :: Scientific/Engineering'],
-        test_suite='nose.collector',
-        tests_require=['nose'],
-        scripts=[os.path.join('scripts', f) for f in os.listdir(os.path.join(module_dir, 'scripts'))]
+        install_requires=[
+            "custodian>=2019.8.24",
+            "FireWorks>=2.0.3",
+            "maggma>=0.44.0",
+            "monty>=2.0.6",
+            "networkx",
+            "numpy",
+            "pandas",
+            "paramiko",
+            "pydash>=4.1.0",
+            "pymatgen-analysis-diffusion",
+            "pymatgen-analysis-defects>=2022.9.14",
+            "pymatgen",
+            "pymongo",
+            "pyyaml>=5.1.2",
+            "ruamel.yaml",
+            "scipy",
+            "tqdm>=4.7.4",
+        ],
+        extras_require={
+            "plotting": ["matplotlib>=1.5.2"],
+            "phonons": ["phonopy>=1.10.8"],
+            "qchem": ["openbabel"],
+            "defects": ["pymatgen-analysis-defects"],
+            "complete": [
+                "matplotlib>=1.5.2",
+                "phonopy>=1.10.8",
+                "openbabel",
+                "pymatgen-analysis-defects",
+            ],
+        },
+        classifiers=[
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+            "Development Status :: 5 - Production/Stable",
+            "Intended Audience :: Science/Research",
+            "Intended Audience :: System Administrators",
+            "Intended Audience :: Information Technology",
+            "Operating System :: OS Independent",
+            "Topic :: Other/Nonlisted Topic",
+            "Topic :: Scientific/Engineering",
+        ],
+        scripts=[join("scripts", f) for f in os.listdir(join(module_dir, "scripts"))],
     )

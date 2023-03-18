@@ -2,6 +2,16 @@
 atomate Changelog
 =================
 
+.. caution:: Starting v0.9.6 onwards, the changelog is no longer maintained. Please check the Github commit log for a record of changes.
+
+**v0.9.5**
+
+* Add magnetism workflow (M. Horton, N. Frey)
+* Overhaul SCAN workflow (R. Kingsbury)
+* Move help to Discourse (A. Ganose)
+* add ModifyKPoints Firetask (M. Siron)
+* Misc fixes, dependency updates, and improvements (M. Horton, N. Frey, A. Jain, M. Siron, A. Ganose)
+
 **v0.9.4**
 
 * Fixes for new pymatgen (S. Blau, S.P. Ong)
@@ -263,7 +273,7 @@ atomate Changelog
 **v0.4.5**
 
 * *extensive* code review, code cleanup, and improved code docs - with some minor name refactoring
-* new builders: dielectric, structureanalysis (currently gives dimensionality of structure)
+* new builders: dielectric, structure analysis (currently gives dimensionality of structure)
 * rewrite powerups as in-place with cleaner syntax
 * improved installation tutorial (B. Bocklund)
 * improve/fix/reorganize some unit tests
@@ -286,7 +296,7 @@ atomate Changelog
 * Add StdErrorHandler to handlers (A. Jain)
 * Auto-detect and remove line_mode parameter in MMVaspDB (A. Jain)
 * added unit tests
-* misc cleanup, refactoring, and doc udpates
+* misc cleanup, refactoring, and doc updates
 * misc bugfixes
 
 
@@ -341,7 +351,7 @@ atomate Changelog
 **v0.2**
 
 * BoltzTraP transport workflows (A. Jain)
-* major builder improvements (merge multiple collections, progressbar, config, more...)
+* major builder improvements (merge multiple collections, progress bar, config, more...)
 * use FrozenJobErrorHandler by default (A. Jain)
 * add basic configuration overrides for preset workflows (A. Jain)
 * misc improvements and bugfixes (A. Jain, K. Mathew)

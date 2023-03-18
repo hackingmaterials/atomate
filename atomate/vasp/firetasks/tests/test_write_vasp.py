@@ -1,18 +1,18 @@
 from pathlib import Path
 
 from fireworks.utilities.fw_serializers import load_object
+from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar
+from pymatgen.io.vasp.sets import MPRelaxSet
+from pymatgen.util.testing import PymatgenTest
 
+from atomate.utils.testing import AtomateTest
 from atomate.vasp.firetasks.write_inputs import (
+    ModifyIncar,
+    ModifyKpoints,
+    ModifyPotcar,
     WriteVaspFromIOSet,
     WriteVaspFromPMGObjects,
-    ModifyPotcar,
-    ModifyIncar,
 )
-from atomate.utils.testing import AtomateTest
-
-from pymatgen.util.testing import PymatgenTest
-from pymatgen.io.vasp import Incar, Poscar, Potcar, Kpoints
-from pymatgen.io.vasp.sets import MPRelaxSet
 
 __author__ = "Anubhav Jain, Kiran Mathew, Alex Ganose"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
@@ -35,7 +35,8 @@ class TestWriteVasp(AtomateTest):
         cls.ref_incar_preserve = Incar.from_file(p_preserve_incar / "INCAR")
 
     def setUp(self):
-        super(TestWriteVasp, self).setUp(lpad=False)
+        super().setUp(lpad=False)
+        self.maxDiff = None
 
     def tearDown(self):
         for x in ["INCAR", "POSCAR", "POTCAR", "KPOINTS", "POTCAR.spec"]:
@@ -50,7 +51,10 @@ class TestWriteVasp(AtomateTest):
             self.assertEqual(Incar.from_file("INCAR"), self.ref_incar)
 
             poscar = Poscar.from_file("POSCAR")
-            self.assertEqual(str(poscar), str(self.ref_poscar))
+            self.assertEqual(
+                poscar.get_string(significant_figures=4),
+                self.ref_poscar.get_string(significant_figures=4),
+            )
 
             if potcar_spec:
                 symbols = Path("POTCAR.spec").read_text().split()
@@ -73,9 +77,7 @@ class TestWriteVasp(AtomateTest):
         self._verify_files()
 
     def test_ioset_implicit(self):
-        ft = WriteVaspFromIOSet(
-            structure=self.struct_si, vasp_input_set="MPRelaxSet"
-        )
+        ft = WriteVaspFromIOSet(structure=self.struct_si, vasp_input_set="MPRelaxSet")
         ft = load_object(ft.to_dict())  # simulate database insertion
         ft.run_task({})
         self._verify_files(skip_kpoints=True)
@@ -148,3 +150,18 @@ class TestWriteVasp(AtomateTest):
         new_potcar = Potcar.from_file("POTCAR")
         self.assertEqual(len(new_potcar), 1)
         self.assertEqual(new_potcar[0].symbol, "O")
+
+    def test_modify_kpoints(self):
+        # create an KPOINTS
+        kpoints = self.ref_kpoints
+        kpoints.write_file("KPOINTS")
+
+        # modify and test
+        ft = ModifyKpoints(
+            kpoints_update={"kpts": [[3, 4, 5]]},
+        )
+        ft = load_object(ft.to_dict())  # simulate database insertion
+        ft.run_task({})
+
+        kpoints_mod = Kpoints.from_file("KPOINTS")
+        self.assertEqual(kpoints_mod.kpts, [[3, 4, 5]])

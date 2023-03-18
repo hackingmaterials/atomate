@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomate.vasp.workflows.base
    atomate.vasp.workflows.presets

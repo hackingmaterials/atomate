@@ -1,0 +1,46 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    if: github.repository_owner == 'hackingmaterials' # don't run on forks
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          cache: pip
+          cache-dependency-path: |
+            setup.py
+            requirements-ci.txt
+          python-version: 3.8
+
+      - name: Install OpenBabel
+        run: |
+          # underlying C++ lib needed for Python openbabel wrapper installed by `pip install .`
+          sudo apt-get install libopenbabel-dev
+          # https://github.com/openbabel/openbabel/issues/2408#issuecomment-1014466193
+          sudo ln -s /usr/include/openbabel3 /usr/local/include/openbabel3
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-ci.txt
+          pip install .[complete]
+
+      - name: pytest
+        run: |
+          pytest --ignore=atomate/qchem/test_files --cov=atomate --cov-report html:coverage_reports atomate

@@ -1,12 +1,9 @@
-# coding: utf-8
-
-
 from fireworks import explicit_serialize
 
-from atomate.common.firetasks.glue_tasks import get_calc_loc, CopyFiles
+from atomate.common.firetasks.glue_tasks import CopyFiles, get_calc_loc
 
-__author__ = 'Kiran Mathew'
-__email__ = 'kmathew@lbl.gov'
+__author__ = "Kiran Mathew"
+__email__ = "kmathew@lbl.gov"
 
 
 @explicit_serialize
@@ -21,17 +18,25 @@ class CopyPackmolOutputs(CopyFiles):
             search for the most recent calc_loc with the matching name.
         calc_dir (str): path to dir that contains VASP output files.
         filesystem (str): remote filesystem. e.g. username@host
-        exclude_files (list): list fo filenames to be excluded when copying.
-            NOte: by default nothing is excluded.
+        exclude_files (list): list of filenames to be excluded when copying.
+            Note: by default nothing is excluded.
     """
 
     optional_params = ["calc_loc", "calc_dir", "filesystem", "exclude_files"]
 
     def run_task(self, fw_spec):
 
-        calc_loc = get_calc_loc(self["calc_loc"], fw_spec["calc_locs"]) if self.get("calc_loc") else {}
+        calc_loc = (
+            get_calc_loc(self["calc_loc"], fw_spec["calc_locs"])
+            if self.get("calc_loc")
+            else {}
+        )
         exclude_files = self.get("exclude_files", [])
 
-        self.setup_copy(self.get("calc_dir", None), filesystem=self.get("filesystem", None),
-                        exclude_files=exclude_files, from_path_dict=calc_loc)
+        self.setup_copy(
+            self.get("calc_dir", None),
+            filesystem=self.get("filesystem", None),
+            exclude_files=exclude_files,
+            from_path_dict=calc_loc,
+        )
         self.copy_files()

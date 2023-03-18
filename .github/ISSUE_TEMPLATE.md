@@ -1,5 +1,5 @@
 Please submit help issues to:
-https://hackingmaterials.discourse.group/c/atomate
+https://matsci.org/atomate
 
 The Github issues is no longer used except for internal development purposes.
 

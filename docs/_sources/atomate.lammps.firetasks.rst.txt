@@ -36,7 +36,6 @@ atomate.lammps.firetasks.write\_inputs module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

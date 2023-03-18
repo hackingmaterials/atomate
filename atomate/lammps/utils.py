@@ -1,9 +1,6 @@
-# coding: utf-8
-
-
 from atomate.lammps.firetasks.run_calc import RunLammpsFake
 
-__author__ = 'Kiran Mathew'
+__author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
 
 

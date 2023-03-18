@@ -6,22 +6,21 @@ import os
 from importlib import import_module
 
 import numpy as np
-
-from monty.serialization import dumpfn
-
 from fireworks import FiretaskBase, explicit_serialize
 from fireworks.utilities.dict_mods import apply_mod
-
-from pymatgen.core.structure import Structure
+from monty.serialization import dumpfn
 from pymatgen.alchemy.materials import TransformedStructure
 from pymatgen.alchemy.transmuters import StandardTransmuter
-from pymatgen.io.vasp import Incar, Poscar, Potcar, PotcarSingle
+from pymatgen.core.structure import Structure
+from pymatgen.io.vasp import Incar, Kpoints, Poscar, Potcar, PotcarSingle
+from pymatgen.io.vasp.outputs import Vasprun
 from pymatgen.io.vasp.sets import (
-    MPStaticSet,
-    MPNonSCFSet,
-    MPSOCSet,
     MPHSEBSSet,
     MPNMRSet,
+    MPNonSCFSet,
+    MPScanRelaxSet,
+    MPSOCSet,
+    MPStaticSet,
 )
 
 from atomate.utils.utils import env_chk, load_class
@@ -54,10 +53,12 @@ class WriteVaspFromIOSet(FiretaskBase):
         potcar_spec (bool): Instead of writing the POTCAR, write a
             "POTCAR.spec". This is intended to allow testing of workflows
             without requiring pseudo-potentials to be installed on the system.
+        spec_structure_key (str): If supplied, then attempt to read this from the fw_spec
+            to obtain the structure
     """
 
     required_params = ["structure", "vasp_input_set"]
-    optional_params = ["vasp_input_params", "potcar_spec"]
+    optional_params = ["vasp_input_params", "potcar_spec", "spec_structure_key"]
 
     def run_task(self, fw_spec):
         # if a full VaspInputSet object was provided
@@ -66,12 +67,16 @@ class WriteVaspFromIOSet(FiretaskBase):
 
         # if VaspInputSet String + parameters was provided
         else:
-            vis_cls = load_class(
-                "pymatgen.io.vasp.sets", self["vasp_input_set"]
-            )
-            vis = vis_cls(
-                self["structure"], **self.get("vasp_input_params", {})
-            )
+            vis_cls = load_class("pymatgen.io.vasp.sets", self["vasp_input_set"])
+            vis = vis_cls(self["structure"], **self.get("vasp_input_params", {}))
+
+        # over-write structure with fw_spec structure
+        spec_structure_key = self.get("spec_structure_key", None)
+        if spec_structure_key is not None:
+            fw_struct = fw_spec.get(spec_structure_key)
+            dd = vis.as_dict()
+            dd["structure"] = fw_struct
+            vis = vis.from_dict(dd)
 
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -210,6 +215,43 @@ class ModifyIncar(FiretaskBase):
 
 
 @explicit_serialize
+class ModifyKpoints(FiretaskBase):
+    """
+    Modify an KPOINTS file.
+
+    Required params:
+        (none)
+
+    Optional params:
+        kpoints_update (dict): overwrite Kpoint dict key. Supports env_chk.
+            keys can be anything property of a kpoint object (kpts, kpts_shift,
+            kpts_weights, labels, comment, coord_type, num_kpts,
+            tet_connections, tet_number, tet_weight)
+        input_filename (str): Input filename (if not "KPOINTS")
+        output_filename (str): Output filename (if not "KPOINTS")
+    """
+
+    optional_params = [
+        "kpoints_update",
+        "input_filename",
+        "output_filename",
+    ]
+
+    def run_task(self, fw_spec):
+
+        kpoints_name = self.get("input_filename", "KPOINTS")
+        kpoints = Kpoints.from_file(kpoints_name)
+
+        kpoints_update = env_chk(self.get("kpoints_update"), fw_spec)
+
+        if kpoints_update:
+            for key, value in kpoints_update.items():
+                setattr(kpoints, key, value)
+
+        kpoints.write_file(self.get("output_filename", "KPOINTS"))
+
+
+@explicit_serialize
 class ModifyPotcar(FiretaskBase):
     """
     Modify Potcar file.
@@ -219,8 +261,8 @@ class ModifyPotcar(FiretaskBase):
 
     Optional params:
         functional (dict): functional to use, e.g. PBE, PBE_52, LDA_US, PW91
-        input_filename (str): Input filename (if not "INCAR")
-        output_filename (str): Output filename (if not "INCAR")
+        input_filename (str): Input filename (if not "POTCAR")
+        output_filename (str): Output filename (if not "POTCAR")
     """
 
     required_params = ["potcar_symbols"]
@@ -241,6 +283,56 @@ class ModifyPotcar(FiretaskBase):
                 )
 
         potcar.write_file(self.get("output_filename", "POTCAR"))
+
+
+@explicit_serialize
+class WriteScanRelaxFromPrev(FiretaskBase):
+    """
+    Writes input files for a SCAN relaxation by constructing a new input set.
+    The purpose of this Firetask is to allow the KSPACING and smearing parameters
+    to be recalculated based on the bandgap from the PBESol pre-optimization in the
+    SCAN relaxation workflow. Assumes that output files from a previous
+    (e.g., optimization) run have been copied to the current directory.
+
+    Note that if the "bandgap" kwarg is set by the user, this value will override
+    the value estimated from the PBESol relaxation.
+
+    Optional params (dict):
+        vasp_input_set_params: Dict of any keyword arguments supported by MPScanRelaxSet.
+        potcar_spec (bool): Instead of writing the POTCAR, write a
+            "POTCAR.spec". This is intended to allow testing of workflows
+            without requiring pseudo-potentials to be installed on the system.
+
+    """
+
+    optional_params = ["vasp_input_set_params", "potcar_spec"]
+
+    def run_task(self, fw_spec):
+
+        potcar_spec = self.get("potcar_spec", False)
+        vasp_input_set_params = self.get("vasp_input_set_params") or {}
+
+        # update the bandgap based on output from the previous calculation,
+        # unless the user specified a bandgap via vasp_input_set_params
+        if vasp_input_set_params.get("bandgap") is None:
+            # First look for the gga_bandgap key in the FW spec, to save parsing time
+            if fw_spec.get("gga_bandgap") is not None:
+                vasp_input_set_params["bandgap"] = fw_spec.get("gga_bandgap")
+            # If not found, parse the files from the previous calc to find the bandgap
+            else:
+                parse_potcar_file = not potcar_spec
+                vasprun = Vasprun("vasprun.xml", parse_potcar_file=parse_potcar_file)
+                bandgap = vasprun.get_band_structure(efermi="smart").get_band_gap()[
+                    "energy"
+                ]
+                vasp_input_set_params["bandgap"] = bandgap
+
+        # read the structure from the output of the previous calculation
+        structure = Structure.from_file("POSCAR")
+
+        vis = MPScanRelaxSet(structure, **vasp_input_set_params)
+
+        vis.write_input(".", potcar_spec=potcar_spec)
 
 
 @explicit_serialize
@@ -297,11 +389,9 @@ class WriteVaspStaticFromPrev(FiretaskBase):
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get(
-                "international_monoclinic", True
-            ),
+            international_monoclinic=self.get("international_monoclinic", True),
             lepsilon=lepsilon,
-            **other_params
+            **other_params,
         )
 
         potcar_spec = self.get("potcar_spec", False)
@@ -389,13 +479,11 @@ class WriteVaspNSCFFromPrev(FiretaskBase):
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get(
-                "international_monoclinic", True
-            ),
+            international_monoclinic=self.get("international_monoclinic", True),
             mode=self.get("mode", "uniform"),
             nedos=self.get("nedos", 2001),
             optics=self.get("optics", False),
-            **self.get("other_params", {})
+            **self.get("other_params", {}),
         )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -449,10 +537,8 @@ class WriteVaspSOCFromPrev(FiretaskBase):
             small_gap_multiply=self.get("small_gap_multiply", None),
             standardize=self.get("standardize", False),
             sym_prec=self.get("sym_prec", 0.1),
-            international_monoclinic=self.get(
-                "international_monoclinic", True
-            ),
-            **self.get("other_params", {})
+            international_monoclinic=self.get("international_monoclinic", True),
+            **self.get("other_params", {}),
         )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -492,7 +578,7 @@ class WriteVaspNMRFromPrev(FiretaskBase):
             mode=self.get("mode", "cs"),
             isotopes=self.get("isotopes", None),
             reciprocal_density=self.get("reciprocal_density", 100),
-            **self.get("other_params", {})
+            **self.get("other_params", {}),
         )
         potcar_spec = self.get("potcar_spec", False)
         vis.write_input(".", potcar_spec=potcar_spec)
@@ -544,11 +630,10 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
             t_cls = None
             for m in [
                 "advanced_transformations",
-                "defect_transformations",
                 "site_transformations",
                 "standard_transformations",
             ]:
-                mod = import_module("pymatgen.transformations.{}".format(m))
+                mod = import_module(f"pymatgen.transformations.{m}")
 
                 try:
                     t_cls = getattr(mod, t)
@@ -558,7 +643,7 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
                     pass
 
             if not found:
-                raise ValueError("Could not find transformation: {}".format(t))
+                raise ValueError(f"Could not find transformation: {t}")
 
             t_obj = t_cls(**transformation_params.pop(0))
             transformations.append(t_obj)
@@ -574,9 +659,7 @@ class WriteTransmutedStructureIOSet(FiretaskBase):
         )
         ts = TransformedStructure(structure)
         transmuter = StandardTransmuter([ts], transformations)
-        final_structure = transmuter.transformed_structures[
-            -1
-        ].final_structure.copy()
+        final_structure = transmuter.transformed_structures[-1].final_structure.copy()
         vis_orig = self["vasp_input_set"]
         vis_dict = vis_orig.as_dict()
         vis_dict["structure"] = final_structure.as_dict()

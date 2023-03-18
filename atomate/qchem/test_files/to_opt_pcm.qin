@@ -12,15 +12,17 @@ $molecule
 $end
 
 $rem
-   BASIS  =  def2-tzvppd
-   METHOD  =  wb97xd
+   BASIS  =  def2-svpd
+   METHOD  =  wb97mv
    JOB_TYPE  =  Opt
    gen_scfman = True
    scf_algorithm = diis
    geom_opt_max_cycles = 200
-   max_scf_cycles = 200
+   max_scf_cycles = 100
    SOLVENT_METHOD  =  PCM
    xc_grid = 3
+   thresh = 14
+   s2thresh = 16
    symmetry = False
    sym_ignore = True
    resp_charges = True

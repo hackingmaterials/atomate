@@ -12,7 +12,6 @@ atomate.vasp.builders.examples.run\_builders module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

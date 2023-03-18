@@ -10,4 +10,4 @@ fireworks:
     parents: 1
     saxis: [0, 0, 1]
     magmom: null
-    vasp_cmd: >>vasp_ncl<<
+    vasp_cmd: '>>vasp_ncl<<'

@@ -89,7 +89,7 @@ Once you have identified each calculation or analysis step as a Firework in our 
 * TransmuterFW
 * HSEBSFW
 * NonSCFFW
-* LepsFW
+* DFPTFW
 * SOCFW
 * MDFW
 * BoltztrapFW
@@ -223,9 +223,9 @@ In the above code example, we start by importing the classes and functions we'll
 
 Lines 41-51 is where we define the optimization Firework. First we check if a vasp_input_set_relax parameter was passed, if not we default to MPRelaxSet and update that set if the ``user_kpoints_settings`` parameter was passed. It's common to see a similar parameter for ``user_incar_settings``. On line 49 we create our list of Fireworks (``fws``) with the ``OptimizeFW`` that we imported. Take note that this is the only Firework we pass our structure to, which allows for more flexibility. More on this later.
 
-Lines 52-61 we do a similar thing with the ``MPStaticSet`` from pymatgen that we did for the ``MPRelaxSet``. Then in lines 63-71, we loop through each of the deformations passed (as a list of 2-dimensional lists describing deformation matricies) and instantiate ``TransmuterFW`` with that deformation as the ``transformation_params``. For each type of transformation you use (``DeformStructureTransformation``) here, you will need to look at what parameters that class takes and use the right keyword, which is ``deformation`` in this case. Another example is the ``SupercellTransformation`` takes a transformation parameter called ``scale``. Pay close attention that on line 69 we are adding the ``OptimizeFW`` (from ``fws[0]``) as the parent for all of these Fireworks so they can run in parallel.
+Lines 52-61 we do a similar thing with the ``MPStaticSet`` from pymatgen that we did for the ``MPRelaxSet``. Then in lines 63-71, we loop through each of the deformations passed (as a list of 2-dimensional lists describing deformation matrices) and instantiate ``TransmuterFW`` with that deformation as the ``transformation_params``. For each type of transformation you use (``DeformStructureTransformation``) here, you will need to look at what parameters that class takes and use the right keyword, which is ``deformation`` in this case. Another example is the ``SupercellTransformation`` takes a transformation parameter called ``scale``. Pay close attention that on line 69 we are adding the ``OptimizeFW`` (from ``fws[0]``) as the parent for all of these Fireworks so they can run in parallel.
 
-Next on lines 73-76 we taking a *Firetask* and wrapping it in a pure Firework object from FireWorks. This demonstrates the modularity and customizability that FireWorks allows, which favors composing existing objects over writing custom ones for each level of abstraction. We are passing the same sort of parameters to this Firetask that we have been passing, which allows you to correctly infer that Fireworks themselves propogate relevant parameters down to their Firetasks. Again, we are setting the parents of this analysis Firework to all of the Fireworks in our list except the first one (the ``OptimizeFW``). This ensure that the analysis does not run until *all* of our transformed structures have finished running.
+Next on lines 73-76 we taking a *Firetask* and wrapping it in a pure Firework object from FireWorks. This demonstrates the modularity and customizability that FireWorks allows, which favors composing existing objects over writing custom ones for each level of abstraction. We are passing the same sort of parameters to this Firetask that we have been passing, which allows you to correctly infer that Fireworks themselves propagate relevant parameters down to their Firetasks. Again, we are setting the parents of this analysis Firework to all of the Fireworks in our list except the first one (the ``OptimizeFW``). This ensure that the analysis does not run until *all* of our transformed structures have finished running.
 
 Finally we use a vanilla FireWorks ``Workflow`` object to pull in all our Fireworks, update the name of the Workflow and return the object. From here you can write a script similar to the :ref:`running workflows tutorial` and pass in the correct variables to get a workflow to add to the LaunchPad. In this workflow, pay attention to the ``vasp_cmd`` parameter and ``db_file`` parameters to get the correct behavior. The preset workers will default these to your FireWorker's environment variables, but you will have to handle that manually here. To use your environment variables, pass in ``'>>vasp_cmd<<'`` and ``'>>db_file<<'`` for each of these parameters, respectively. More on this behavior in the `env_chk`_ section.
 
@@ -254,7 +254,7 @@ Powerups (:py:mod:`atomate.vasp.powerups`) enable modifications to be made to wo
 
 Some useful powerups that affect the behavior of VASP are
 
-* ``add_modify_incar``: Update the INCAR of Fireworks specifed by (partially matched) name at runtime
+* ``add_modify_incar``: Update the INCAR of Fireworks specified by (partially matched) name at runtime
 * ``set_fworker``: specify certain FireWorkers for workflows. Useful for FireWorkers tuned for high-memory or high-precision jobs
 * ``modify_to_soc``: makes all of the VASP calculations that match the constraints take spin orbit coupling into account
 * ``remove_custodian``, ``use_custodian``, ``run_fake_vasp``: Choose to run VASP with or without custodian (or not at all, useful for debugging)
@@ -279,7 +279,7 @@ Workflows in atomate are powerful for getting science done quickly because they 
 * Ensure more consistent and easier usage of INCAR parameters you use often, such as setting a high ``NEDOS`` INCAR parameter
 * Set FireWorkers up for low and high precision jobs, or normal and high-memory jobs on the same computing resource.
 
-To use ``env_chk``, you don't have to do anything explicity, just pass ``'>>db_file<<'``, ``'>>vasp_cmd<<'``, ``'>>incar_update<<'`` to any parameter that supports ``env_chk``.
+To use ``env_chk``, you don't have to do anything explicitly, just pass ``'>>db_file<<'``, ``'>>vasp_cmd<<'``, ``'>>incar_update<<'`` to any parameter that supports ``env_chk``.
 
 Currently supported ``env_chk`` variables are:
 
@@ -303,5 +303,3 @@ Understanding this guide has enabled you to create arbitrarily complex atomate w
 If any of this was unclear, or if you feel that useful documentation is missing, please leave us feedback on the `atomate Discourse forum`_! To see all of the different pieces you can control with Python, go to the :ref:`API documentation <modindex>`. Many customization options and features of interest are not in atomate alone, but in `FireWorks`_, `pymatgen`_, and `custodian`_. Mastering FireWorks will enable you to get the most out of executing and managing your workflows. Mastering pymatgen will help you write complex materials workflows and perform sophisticated analyses of results.
 
 .. _atomate Discourse forum:  https://discuss.matsci.org/c/atomate
-
-
