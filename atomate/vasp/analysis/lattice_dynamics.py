@@ -898,28 +898,21 @@ def run_renormalization(
 
 
 
-def setup_TE_iter(cutoffs,parent_structure,temperatures,dLfracs):
-    parent_structure_TE = []
-    cs_TE = []
-    fcs_TE = []
-    for t, (T,dLfrac) in enumerate(zip(temperatures,dLfracs)):
-        new_atoms = AseAtomsAdaptor.get_atoms(parent_structure)
-        new_cell = Cell(np.transpose([new_atoms.get_cell()[:,i]*(1+dLfrac[0,i]) for i in range(3)]))
-        new_atoms.set_cell(new_cell,scale_atoms=True)
-        new_parent_structure = AseAtomsAdaptor.get_structure(new_atoms)
-        new_supercell_atoms = AseAtomsAdaptor.get_atoms(new_parent_structure*supercell_matrix)
-        new_cutoffs = [i*(1+np.linalg.norm(dLfrac)) for i in cutoffs]
-        while True:
-            new_cs = ClusterSpace(atoms,new_cutoffs,1e-3,acoustic_sum_rules=True)
-            if cs_TD.n_dofs == cs.n_dofs:
-                break
-            elif cs_TD.n_dofs > cs.n_dofs:
-                new_cutoffs = [i*0.999 for i in new_cutoffs]
-            elif cs_TD.n_dofs < cs.n_dofs:
-                new_cutoffs = [i*1.001 for i in new_cutoffs]
-        cs_TE.append(new_cs)
-        parent_structure_TE.append(new_parent_structure)
-        new_fcp = ForceConstantsPotential(new_cs,param_real[t])
-        fcs_TE.append(new_fcp.get_force_constants(new_supercell_atoms))
-
-        return parent_structure_TE, cs_TE, fcs_TE
+def setup_TE_iter(cs,cutoffs,parent_structure,param,temperatures,dLfrac):
+    new_atoms = AseAtomsAdaptor.get_atoms(parent_structure)
+    new_cell = Cell(np.transpose([new_atoms.get_cell()[:,i]*(1+dLfrac[0,i]) for i in range(3)]))
+    new_atoms.set_cell(new_cell,scale_atoms=True)
+    parent_structure_TE = AseAtomsAdaptor.get_structure(new_atoms)
+    supercell_atoms_TE = AseAtomsAdaptor.get_atoms(parent_structure_TE*supercell_matrix)
+    new_cutoffs = [i*(1+np.linalg.norm(dLfrac)) for i in cutoffs]
+    while True:
+        cs_TE = ClusterSpace(atoms,new_cutoffs,1e-3,acoustic_sum_rules=True)
+        if cs_TE.n_dofs == cs.n_dofs:
+            break
+        elif cs_TE.n_dofs > cs.n_dofs:
+            new_cutoffs = [i*0.999 for i in new_cutoffs]
+        elif cs_TE.n_dofs < cs.n_dofs:
+            new_cutoffs = [i*1.001 for i in new_cutoffs]
+        new_fcp = ForceConstantsPotential(cs_TE,param)
+        fcs_TE.append(new_fcp.get_force_constants(supercell_atoms_TE))
+    return parent_structure_TE, supercell_atoms_TE, cs_TE, fcs_TE
