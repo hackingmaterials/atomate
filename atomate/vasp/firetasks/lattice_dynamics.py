@@ -262,7 +262,6 @@ class RunHiPhiveRenorm(FiretaskBase):
         supercell_matrix = np.array(structure_data["supercell_matrix"])
 
         renorm_temp = np.array(self.get("renorm_temp"))
-        renorm_temp.sort()
         renorm_method = self.get("renorm_method")
         nconfig = self.get("nconfig")
         conv_thresh = self.get("conv_thresh")
@@ -271,38 +270,32 @@ class RunHiPhiveRenorm(FiretaskBase):
         bulk_modulus = self.get("bulk_modulus")
 
         # Renormalization with DFT lattice 
-        renorm_data = run_renormalization(parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, T, nconfig, 
-                                     max_iter, conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_orig)
+        renorm_data = run_renormalization(parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, renorm_temp,
+                                          nconfig, max_iter, conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_orig)
 
         # Additional renormalization with thermal expansion - optional - just single "iteration" for now
         if renorm_TE_iter:
             n_TE_iter = 1
-            if renorm_data is None: # failed or incomplete                                                                                                                                           
-                pass
-            elif result["n_imaginary"] > 0: # still has imaginary frequencies
-                pass
-            else:
-                for i in range(n_TE_iter):
+            for i in range(n_TE_iter):
+                if renorm_data is None: # failed or incomplete 
+                    break
+                elif result["n_imaginary"] < 0: # still imaginary
+                    break
+                else:
                     logger.info("Renormalizing with thermally expanded lattice - iteration {}".format(i))
-                    if i==0: # first iteration - pull only cases where phonon is all real and order by temperature
-                        if renorm_data is None: # failed or incomplete 
-                            continue 
-                        elif result["n_imaginary"] < 0: # still imaginary
-                            continue
-                    if i > 0:
-                        dLfrac = renorm_data["expansion_ratio"]  
-                        param = renorm_data["param"]
 
-                        parent_structure_TE, cs_TE, fcs_TE = setup_TE_iter(cutoffs,parent_structure,T,dLfrac)
-                        param_TE = copy(param)
-                        prim_TE_atoms = AseAtomsAdaptor.get_atoms(parent_structure_TE)
-                        prim_phonopy_TE = PhonopyAtoms(symbols=prim_TE_atoms.get_chemical_symbols(), 
-                                                       scaled_positions=prim_TE_atoms.get_scaled_positions(), cell=prim_TE_atoms.cell)
-                        phonopy_TE = Phonopy(prim_phonopy_TE, supercell_matrix=scmat, primitive_matrix=None)
-                        
-                        renorm_data = run_renormalization(parent_structure_TE[t], supercell_atoms_TE[t], supercell_matrix, 
-                                                          cs_TE[t], fcs_TE[t], param_TE[t], T, nconfig, max_iter, conv_thresh,
-                                                          renorm_method, fit_method, bulk_modulus, phonopy_TE)
+                dLfrac = renorm_data["expansion_ratio"]  
+                param = renorm_data["param"]
+
+                parent_structure_TE, supercell_atoms_TE, cs_TE, fcs_TE = setup_TE_iter(cs,cutoffs,parent_structure,param,renorm_temp,dLfrac)
+                prim_TE_atoms = AseAtomsAdaptor.get_atoms(parent_structure_TE)
+                prim_TE_phonopy = PhonopyAtoms(symbols=prim_TE_atoms.get_chemical_symbols(), 
+                                               scaled_positions=prim_TE_atoms.get_scaled_positions(), cell=prim_TE_atoms.cell)
+                phonopy_TE = Phonopy(prim_phonopy_TE, supercell_matrix=scmat, primitive_matrix=None)
+                
+                renorm_data = run_renormalization(parent_structure_TE, supercell_atoms_TE, supercell_matrix, 
+                                                  cs_TE, fcs_TE, param, renorm_temp, nconfig, max_iter,
+                                                  conv_thresh,  renorm_method, fit_method, bulk_modulus, phonopy_TE)
                         
         # write results
         logger.info("Writing renormalized results")
@@ -311,17 +304,17 @@ class RunHiPhiveRenorm(FiretaskBase):
         renorm_thermal_data = {key: [] for key in thermal_keys}
         logger.info("DEBUG: ",renorm_data)
         fcs = renorm_data["fcs"]
-        fcs.write("force_constants_{}K.fcs".format(T))
-        np.savetxt('parameters_{}K.txt'.format(T),renorm_data["param"])
+        fcs.write("force_constants_{}K.fcs".format(renorm_temp))
+        np.savetxt('parameters_{}K.txt'.format(renorm_temp),renorm_data["param"])
         for key in thermal_keys:
             renorm_thermal_data[key].append(renorm_data[key])
         if renorm_data["n_imaginary"] > 0:
-            logger.warning('Imaginary modes exist for {} K!'.format(T))
+            logger.warning('Imaginary modes exist for {} K!'.format(renorm_temp))
             logger.warning('ShengBTE files not written')
             logger.warning('No renormalization with thermal expansion')
         else:
             logger.info("No imaginary modes! Writing ShengBTE files")
-            fcs.write_to_phonopy("FORCE_CONSTANTS_2ND_{}K".format(T), format="text")
+            fcs.write_to_phonopy("FORCE_CONSTANTS_2ND_{}K".format(renorm_temp), format="text")
 
         renorm_thermal_data.pop("n_imaginary")                    
         dumpfn(thermal_data, "renorm_thermal_data.json")
