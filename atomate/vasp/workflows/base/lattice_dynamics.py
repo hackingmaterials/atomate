@@ -207,12 +207,11 @@ def get_lattice_dynamics_wf(
 
     # 3. Renormalization FW (pass_inputs like bulk modulus)
     if renormalize:
-        for T in renormalize_temperature:
+        for temperature in renormalize_temperature:
             nconfig = renormalize_nconfig*(1+np.mod(T,100))
-            print("nconfig in WF",type(nconfig),nconfig)
             fw_renormalization = RenormalizationFW(
                 db_file=db_file,
-                temperature=T,
+                temperature=temperature,
                 renorm_method=renormalize_method,
                 nconfig=nconfig,
                 conv_thresh=renormalize_conv_thresh,
