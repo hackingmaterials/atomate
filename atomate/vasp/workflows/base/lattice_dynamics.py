@@ -211,7 +211,7 @@ def get_lattice_dynamics_wf(
             nconfig = renormalize_nconfig*(1+np.mod(T,100))
             fw_renormalization = RenormalizationFW(
                 db_file=db_file,
-                temperature=temp,
+                temperature=T,
                 renorm_method=renormalize_method,
                 renorm_nconfig=nconfig,
                 renorm_conv_thresh=renormalize_conv_thresh,
