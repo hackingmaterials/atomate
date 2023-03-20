@@ -201,7 +201,7 @@ class RunHiPhive(FiretaskBase):
             thermal_data["n_imaginary"], bulk_modulus
         )
 
-        phonopy.save("phonopy_params.yaml")
+        phonopy.save("phonopy_orig.yaml")
         fitting_data["n_imaginary"] = thermal_data.pop("n_imaginary")
         thermal_data.update(anharmonic_data)
         dumpfn(fitting_data, "fitting_data.json")
@@ -250,7 +250,7 @@ class RunHiPhiveRenorm(FiretaskBase):
         param = np.loadtxt('parameters.txt')
         fitting_data = loadfn("fitting_data.json")
         structure_data = loadfn("structure_data.json")
-        phonopy_orig = phpy.load("phonopy_params.yaml")
+        phonopy_orig = phpy.load("phonopy_orig.yaml")
 
         cutoffs = fitting_data["cutoffs"]
         fit_method = fitting_data["fit_method"]
