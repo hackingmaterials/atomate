@@ -264,7 +264,7 @@ class RunHiPhiveRenorm(FiretaskBase):
         renorm_temp = np.array(self.get("renorm_temp"))
         renorm_temp.sort()
         renorm_method = self.get("renorm_method")
-        nconfig = self.get("nconfig")
+        nconfig0 = self.get("nconfig")
         conv_thresh = self.get("conv_thresh")
         max_iter = self.get("max_iter")
         renorm_TE_iter = self.get("renorm_TE_iter")
@@ -282,6 +282,7 @@ class RunHiPhiveRenorm(FiretaskBase):
         # low temperature renormalizations finish early
         renorm_data = []
         for t, T in enumerate(renorm_temp):
+            nconfig = nconfig0*(1+np.mod(T,100))
             data_T = run_renormalization(parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, T, nconfig, 
                                 max_iter, conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_orig)
             renorm_data.append(data_T)

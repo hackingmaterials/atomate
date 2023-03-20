@@ -59,9 +59,9 @@ T_KLAT = {"t_min":100,"t_max":1500,"t_step":100} #[i*100 for i in range(0,11)]
 
 FIT_METHOD = "rfe" 
 RENORM_METHOD = 'pseudoinverse'
-RENORM_NCONFIG = 50
+RENORM_NCONFIG = 5
 RENORM_CONV_THRESH = 0.1 # meV/atom
-RENORM_MAX_ITER = 20
+RENORM_MAX_ITER = 30
 
 eV2J = 1.602e-19
 hbar = sp.constants.hbar # J-s
