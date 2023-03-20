@@ -209,13 +209,14 @@ def get_lattice_dynamics_wf(
     if renormalize:
         for T in renormalize_temperature:
             nconfig = renormalize_nconfig*(1+np.mod(T,100))
+            print("nconfig in WF",type(nconfig),nconfig)
             fw_renormalization = RenormalizationFW(
                 db_file=db_file,
                 temperature=T,
                 renorm_method=renormalize_method,
-                renorm_nconfig=nconfig,
-                renorm_conv_thresh=renormalize_conv_thresh,
-                renorm_max_iter=renormalize_max_iter,
+                nconfig=nconfig,
+                conv_thresh=renormalize_conv_thresh,
+                max_iter=renormalize_max_iter,
                 renorm_TE_iter=renormalize_thermal_expansion_iter,
                 bulk_modulus=bulk_modulus,
                 mesh_density=mesh_density,

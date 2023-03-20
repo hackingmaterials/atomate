@@ -227,19 +227,19 @@ class RunHiPhive(FiretaskBase):
 @explicit_serialize
 class RunHiPhiveRenorm(FiretaskBase):
     """
-    Perform phonon renormalization to obtain temperature-dependent force constants
+    Perform phonon renormalization to obtain dependent-temperature force constants
     using hiPhive. Requires "structure_data.json" to be present in the current working
     directory.
 
     Required parameters:
    
     Optional parameter:
-        renorm_temp (List): list of temperatures to perform renormalization - defaults to T_RENORM
-        renorm_with_te (bool): if True, perform outer iteration over thermally expanded volumes
+        temperature (List): list of temperatures to perform renormalization - defaults to T_RENORM
+        renorm_TE_iter (bool): if True, perform outer iteration over thermally expanded volumes
         bulk_modulus (float): input bulk modulus - required for thermal expansion iterations
     """
 
-    optional_params = ["renorm_method","renorm_temp","nconfig","conv_thresh","max_iter",
+    optional_params = ["renorm_method","temperature","nconfig","conv_thresh","max_iter",
                        "renorm_TE_iter","bulk_modulus","imaginary_tol"]
 
     @requires(hiphive, "hiphive is required for lattice dynamics workflow")
@@ -261,7 +261,7 @@ class RunHiPhiveRenorm(FiretaskBase):
         supercell_atoms = AseAtomsAdaptor.get_atoms(supercell_structure)
         supercell_matrix = np.array(structure_data["supercell_matrix"])
 
-        renorm_temp = np.array(self.get("renorm_temp"))
+        temperature = np.array(self.get("temperature"))
         renorm_method = self.get("renorm_method")
         nconfig = self.get("nconfig")
         conv_thresh = self.get("conv_thresh")
@@ -269,8 +269,9 @@ class RunHiPhiveRenorm(FiretaskBase):
         renorm_TE_iter = self.get("renorm_TE_iter")
         bulk_modulus = self.get("bulk_modulus")
 
-        # Renormalization with DFT lattice 
-        renorm_data = run_renormalization(parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, renorm_temp,
+        # Renormalization with DFT lattice
+        print("nconfig FT",type(nconfig),nconfig)
+        renorm_data = run_renormalization(parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, temperature,
                                           nconfig, max_iter, conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_orig)
 
         # Additional renormalization with thermal expansion - optional - just single "iteration" for now
@@ -287,14 +288,14 @@ class RunHiPhiveRenorm(FiretaskBase):
                 dLfrac = renorm_data["expansion_ratio"]  
                 param = renorm_data["param"]
 
-                parent_structure_TE, supercell_atoms_TE, cs_TE, fcs_TE = setup_TE_iter(cs,cutoffs,parent_structure,param,renorm_temp,dLfrac)
+                parent_structure_TE, supercell_atoms_TE, cs_TE, fcs_TE = setup_TE_iter(cs,cutoffs,parent_structure,param,temperature,dLfrac)
                 prim_TE_atoms = AseAtomsAdaptor.get_atoms(parent_structure_TE)
                 prim_TE_phonopy = PhonopyAtoms(symbols=prim_TE_atoms.get_chemical_symbols(), 
                                                scaled_positions=prim_TE_atoms.get_scaled_positions(), cell=prim_TE_atoms.cell)
                 phonopy_TE = Phonopy(prim_phonopy_TE, supercell_matrix=scmat, primitive_matrix=None)
                 
                 renorm_data = run_renormalization(parent_structure_TE, supercell_atoms_TE, supercell_matrix, 
-                                                  cs_TE, fcs_TE, param, renorm_temp, nconfig, max_iter,
+                                                  cs_TE, fcs_TE, param, temperature, nconfig, max_iter,
                                                   conv_thresh,  renorm_method, fit_method, bulk_modulus, phonopy_TE)
                         
         # write results
@@ -304,17 +305,17 @@ class RunHiPhiveRenorm(FiretaskBase):
         renorm_thermal_data = {key: [] for key in thermal_keys}
         logger.info("DEBUG: ",renorm_data)
         fcs = renorm_data["fcs"]
-        fcs.write("force_constants_{}K.fcs".format(renorm_temp))
-        np.savetxt('parameters_{}K.txt'.format(renorm_temp),renorm_data["param"])
+        fcs.write("force_constants_{}K.fcs".format(temperature))
+        np.savetxt('parameters_{}K.txt'.format(temperature),renorm_data["param"])
         for key in thermal_keys:
             renorm_thermal_data[key].append(renorm_data[key])
         if renorm_data["n_imaginary"] > 0:
-            logger.warning('Imaginary modes exist for {} K!'.format(renorm_temp))
+            logger.warning('Imaginary modes exist for {} K!'.format(temperature))
             logger.warning('ShengBTE files not written')
             logger.warning('No renormalization with thermal expansion')
         else:
             logger.info("No imaginary modes! Writing ShengBTE files")
-            fcs.write_to_phonopy("FORCE_CONSTANTS_2ND_{}K".format(renorm_temp), format="text")
+            fcs.write_to_phonopy("FORCE_CONSTANTS_2ND_{}K".format(temperature), format="text")
 
         renorm_thermal_data.pop("n_imaginary")                    
         dumpfn(thermal_data, "renorm_thermal_data.json")
