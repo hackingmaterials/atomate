@@ -141,7 +141,7 @@ class LatticeThermalConductivityFW(Firework):
             if prev_calc_dir:
                 copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
             else:
-                copy_files = CopyFilesFromCalcLoc(calc_loc='Renormalization', filenames=files)
+                copy_files = CopyFilesFromCalcLoc(calc_loc='Renormalization_{}K'.format(temperature), filenames=files)
             os.system('mv FORCE_CONSTANTS_2ND_{}K FORCE_CONSTANTS_2ND'.format(temperature))
 
         else: # only the default files are needed
