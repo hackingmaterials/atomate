@@ -264,103 +264,64 @@ class RunHiPhiveRenorm(FiretaskBase):
         renorm_temp = np.array(self.get("renorm_temp"))
         renorm_temp.sort()
         renorm_method = self.get("renorm_method")
-        nconfig0 = self.get("nconfig")
+        nconfig = self.get("nconfig")
         conv_thresh = self.get("conv_thresh")
         max_iter = self.get("max_iter")
         renorm_TE_iter = self.get("renorm_TE_iter")
         bulk_modulus = self.get("bulk_modulus")
 
         # Renormalization with DFT lattice 
-
-        # Parallel version
-#        renorm_data = Parallel(n_jobs=len(renorm_temp), backend="multiprocessing")(delayed(run_renormalization)(
-#            parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, T, nconfig, max_iter,
-#            conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_orig) for t, T in enumerate(renorm_temp))
-
-        # Serial version - likely better because it allows parallelization over A matrix construction,
-        # which takes most of the time during renormalization, and leaves no process idling around when 
-        # low temperature renormalizations finish early
-        renorm_data = []
-        for t, T in enumerate(renorm_temp):
-            nconfig = nconfig0*(1+np.mod(T,100))
-            data_T = run_renormalization(parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, T, nconfig, 
-                                max_iter, conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_orig)
-            renorm_data.append(data_T)
+        renorm_data = run_renormalization(parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, T, nconfig, 
+                                     max_iter, conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_orig)
 
         # Additional renormalization with thermal expansion - optional - just single "iteration" for now
         if renorm_TE_iter:
-            n_TE_iter = 1            
-            for i in range(n_TE_iter):
-                logger.info("Renormalizing with thermally expanded lattice - iteration {}".format(i))
-
-                if i==0: # first iteration - pull only cases where phonon is all real and order by temperature
-                    T_real = []
-                    dLfrac_real = []
-                    param_real = []
-                    for result in renorm_data:
-                        if result is None: # failed or incomplete 
+            n_TE_iter = 1
+            if renorm_data is None: # failed or incomplete                                                                                                                                           
+                pass
+            elif result["n_imaginary"] > 0: # still has imaginary frequencies
+                pass
+            else:
+                for i in range(n_TE_iter):
+                    logger.info("Renormalizing with thermally expanded lattice - iteration {}".format(i))
+                    if i==0: # first iteration - pull only cases where phonon is all real and order by temperature
+                        if renorm_data is None: # failed or incomplete 
                             continue 
                         elif result["n_imaginary"] < 0: # still imaginary
                             continue
-                        else:
-                            T_real = T_real + result["temperature"]
-                            dLfrac_real = dLfrac_real + result["expansion_ratio"]
-                            param_real = param_real + result["param"]
-                    if len(T_real)==0: 
-                        logger.info("No cases with real phonons - cannot do thermal expansion for any temperature")
-                        break
-                else:
-                    for t,result in enumerate(renorm_data):
-                        dLfrac_real[t] = result["expansion_ratio"]  
-                        param_real[t] = result["param"]
+                    if i > 0:
+                        dLfrac = renorm_data["expansion_ratio"]  
+                        param = renorm_data["param"]
 
-                parent_structure_TE, cs_TE, fcs_TE = setup_TE_iter(cutoffs,parent_structure,T_real,dLfrac_real)
-                param_TE = copy(param_real)
-                prim_TE_atoms = AseAtomsAdaptor.get_atoms(parent_structure_TE)
-                prim_phonopy_TE = PhonopyAtoms(symbols=prim_TE_atoms.get_chemical_symbols(), 
-                                               scaled_positions=prim_TE_atoms.get_scaled_positions(), cell=prim_TE_atoms.cell)
-                phonopy_TE = Phonopy(prim_phonopy_TE, supercell_matrix=scmat, primitive_matrix=None)
-
-                # Parallel
-#                renorm_data = Parallel(n_jobs=len(T_real), backend="multiprocessing")(delayed(run_renormalization)(
-#                    parent_structure_TE[t], supercell_atoms_TE[t], supercell_matrix, cs_TE[t], fcs_TE[t], param_TE[t],
-#                    T, nconfig, max_iter, conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_TE
-#                    ) for t, T in enumerate(T_real)
-#                )
-
-                # Serial
-                renorm_data_TE = []
-                for t, T in enumerate(T_real):
-                    data_T = run_renormalization(parent_structure_TE[t], supercell_atoms_TE[t], supercell_matrix, 
-                                                 cs_TE[t], fcs_TE[t], param_TE[t], T, nconfig, max_iter, conv_thresh,
-                                                 renorm_method, fit_method, bulk_modulus, phonopy_TE)
-                    renorm_data_TE.append(data_T)
-                    
-            if len(T_real) > 0:
-                for t, result in enumerate(renorm_data_TE):
-                    temp_index = np.where(renorm_temp==T_real[t])[0][0]
-                    renorm_data[temp_index] = result
-
+                        parent_structure_TE, cs_TE, fcs_TE = setup_TE_iter(cutoffs,parent_structure,T,dLfrac)
+                        param_TE = copy(param)
+                        prim_TE_atoms = AseAtomsAdaptor.get_atoms(parent_structure_TE)
+                        prim_phonopy_TE = PhonopyAtoms(symbols=prim_TE_atoms.get_chemical_symbols(), 
+                                                       scaled_positions=prim_TE_atoms.get_scaled_positions(), cell=prim_TE_atoms.cell)
+                        phonopy_TE = Phonopy(prim_phonopy_TE, supercell_matrix=scmat, primitive_matrix=None)
+                        
+                        renorm_data = run_renormalization(parent_structure_TE[t], supercell_atoms_TE[t], supercell_matrix, 
+                                                          cs_TE[t], fcs_TE[t], param_TE[t], T, nconfig, max_iter, conv_thresh,
+                                                          renorm_method, fit_method, bulk_modulus, phonopy_TE)
+                        
         # write results
         logger.info("Writing renormalized results")
         thermal_keys = ["temperature","free_energy","entropy","heat_capacity",
         "gruneisen","thermal_expansion","expansion_ratio","free_energy_correction"]
         renorm_thermal_data = {key: [] for key in thermal_keys}
-        for t, result in enumerate(renorm_data):
-            logger.info("DEBUG: ",result)
-            T = result["temperature"]
-            fcs = result["fcs"]
-            fcs.write("force_constants_{}K.fcs".format(T))
-            np.savetxt('parameters_{}K.txt'.format(T),result["param"])
-            for key in thermal_keys:
-                renorm_thermal_data[key].append(result[key])
-            if result["n_imaginary"] > 0:
-                logger.warning('Imaginary modes exist for {} K!'.format(T))
-                logger.warning('ShengBTE files not written')
-                logger.warning('No renormalization with thermal expansion')
-            else:
-                logger.info("No imaginary modes! Writing ShengBTE files")
-                fcs.write_to_phonopy("FORCE_CONSTANTS_2ND_{}K".format(T), format="text")
+        logger.info("DEBUG: ",renorm_data)
+        fcs = renorm_data["fcs"]
+        fcs.write("force_constants_{}K.fcs".format(T))
+        np.savetxt('parameters_{}K.txt'.format(T),renorm_data["param"])
+        for key in thermal_keys:
+            renorm_thermal_data[key].append(renorm_data[key])
+        if renorm_data["n_imaginary"] > 0:
+            logger.warning('Imaginary modes exist for {} K!'.format(T))
+            logger.warning('ShengBTE files not written')
+            logger.warning('No renormalization with thermal expansion')
+        else:
+            logger.info("No imaginary modes! Writing ShengBTE files")
+            fcs.write_to_phonopy("FORCE_CONSTANTS_2ND_{}K".format(T), format="text")
 
         renorm_thermal_data.pop("n_imaginary")                    
         dumpfn(thermal_data, "renorm_thermal_data.json")

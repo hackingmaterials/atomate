@@ -219,7 +219,7 @@ class RenormalizationFW(Firework):
         renorm_force_constants = RunHiPhiveRenorm(
             renorm_temp=temperature,
             renorm_method=renorm_method,
-            nconfig0=renorm_nconfig,
+            nconfig=renorm_nconfig,
             conv_thresh=renorm_conv_thresh,
             max_iter=renorm_max_iter,
             renorm_TE_iter=renorm_TE_iter,
