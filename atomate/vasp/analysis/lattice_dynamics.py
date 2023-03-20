@@ -726,6 +726,10 @@ def run_renormalization(
         A tuple of the number of imaginary modes at Gamma, the minimum phonon
         frequency at Gamma, and the free energy, entropy, and heat capacity
     """
+
+    print("nconfig ANAL",type(nconfig),nconfig)
+    print('T ANAL',T)
+    nconfig = int(nconfig)
     renorm = Renormalization(cs,supercell,fcs,param,T,renorm_method,fit_method)
     fcp, fcs, param = renorm.renormalize(nconfig,conv_tresh)
 

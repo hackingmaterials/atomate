@@ -195,9 +195,9 @@ class RenormalizationFW(Firework):
         self,
         temperature: Union[float, Dict], 
         renorm_method: str,
-        renorm_nconfig: int,
-        renorm_conv_thresh: float,
-        renorm_max_iter: float,
+        nconfig: int,
+        conv_thresh: float,
+        max_iter: float,
         renorm_TE_iter: bool,
         bulk_modulus: float,
         mesh_density: float,
@@ -216,12 +216,13 @@ class RenormalizationFW(Firework):
         else:
             copy_files = CopyFilesFromCalcLoc(calc_loc="Fit Force Constants", filenames=files)
 
+        print('nconfig in FW',type(nconfig),nconfig)
         renorm_force_constants = RunHiPhiveRenorm(
-            renorm_temp=temperature,
+            temperature=temperature,
             renorm_method=renorm_method,
-            nconfig=renorm_nconfig,
-            conv_thresh=renorm_conv_thresh,
-            max_iter=renorm_max_iter,
+            nconfig=nconfig,
+            conv_thresh=conv_thresh,
+            max_iter=max_iter,
             renorm_TE_iter=renorm_TE_iter,
             bulk_modulus=bulk_modulus,
             **kwargs
