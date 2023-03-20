@@ -207,19 +207,21 @@ def get_lattice_dynamics_wf(
 
     # 3. Renormalization FW (pass_inputs like bulk modulus)
     if renormalize:
-        fw_renormalization = RenormalizationFW(
-            db_file=db_file,
-            temperature=renormalize_temperature,
-            renorm_method=renormalize_method,
-            renorm_nconfig=renormalize_nconfig,
-            renorm_conv_thresh=renormalize_conv_thresh,
-            renorm_max_iter=renormalize_max_iter,
-            renorm_TE_iter=renormalize_thermal_expansion_iter,
-            bulk_modulus=bulk_modulus,
-            mesh_density=mesh_density,
+        for T in renormalize_temperature:
+            nconfig = renormalize_nconfig*(1+np.mod(T,100))
+            fw_renormalization = RenormalizationFW(
+                db_file=db_file,
+                temperature=temp,
+                renorm_method=renormalize_method,
+                renorm_nconfig=nconfig,
+                renorm_conv_thresh=renormalize_conv_thresh,
+                renorm_max_iter=renormalize_max_iter,
+                renorm_TE_iter=renormalize_thermal_expansion_iter,
+                bulk_modulus=bulk_modulus,
+                mesh_density=mesh_density,
             )
-        wf.append_wf(
-            Workflow.from_Firework(fw_renormalization), [wf.fws[-1].fw_id]
+            wf.append_wf(
+                Workflow.from_Firework(fw_renormalization), [wf.fws[-1].fw_id]
             )
 
     # 4. Lattice thermal conductivity calculation
