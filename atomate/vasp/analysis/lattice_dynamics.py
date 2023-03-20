@@ -877,16 +877,19 @@ def run_renormalization(
 	)
     else:
         anharmonic_data = dict()
-        anharmonic_data["gruneisen"] = np.array([[0,0,0]])
-        anharmonic_data["thermal_expansion"] = np.array([[0,0,0]])
-
+#        anharmonic_data["temperature"] = T
+#        anharmonic_data["gruneisen"] = np.array([[0,0,0]])
+#        anharmonic_data["thermal_expansion"] = np.array([[0,0,0]])
+#        anharmonic_data["expansion_ratio"] = np.array([[0,0,0]])
+    renorm_data.update(anharmonic_data)
+    
     omega0 = phonopy_orig.mesh.frequencies # THz
     omega_TD = phonopy.mesh.frequencies # THz
 #    natom = phonopy.primitive.get_number_of_atoms()
-    correction_S, correction_4 = FE_correction(omega0,omega_TD,T) # eV/atom
+    correction_S, correction_SC = FE_correction(omega0,omega_TD,T) # eV/atom
 
-    renorm_data.update(anharmonic_data)
     renorm_data["free_energy_correction_S"] = correction_S[0]
+    renorm_data["free_energy_correction_SC"] = correction_SC[0]
     renorm_data["fcp"] = fcp
     renorm_data["fcs"] = fcs
     renorm_data["param"] = param

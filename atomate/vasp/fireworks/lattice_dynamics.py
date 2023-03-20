@@ -209,7 +209,7 @@ class RenormalizationFW(Firework):
         
         # files needed to run renormalization
         files = ["cluster_space.cs","parameters.txt","force_constants.fcs",
-                 "structure_data.json","fitting_data.json","phonopy_params.yaml"]
+                 "structure_data.json","fitting_data.json","phonopy_orig.yaml"]
 
         if prev_calc_dir:
             copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
