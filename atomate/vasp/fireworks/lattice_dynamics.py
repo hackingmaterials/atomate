@@ -211,12 +211,12 @@ class RenormalizationFW(Firework):
         files = ["cluster_space.cs","parameters.txt","force_constants.fcs",
                  "structure_data.json","fitting_data.json","phonopy_orig.yaml"]
 
+        name = name+"_{}K".format(temperature)
         if prev_calc_dir:
             copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
         else:
             copy_files = CopyFilesFromCalcLoc(calc_loc="Fit Force Constants", filenames=files)
 
-        print('nconfig in FW',type(nconfig),nconfig)
         renorm_force_constants = RunHiPhiveRenorm(
             temperature=temperature,
             renorm_method=renorm_method,
@@ -229,9 +229,10 @@ class RenormalizationFW(Firework):
             )        
 
         to_db = ForceConstantsToDb(
-            db_file=db_file, renormalized=True, mesh_density=mesh_density, additional_fields={}
+            db_file=db_file, renormalized=True, renorm_temperature = temperature,
+            mesh_density=mesh_density, additional_fields={}
 	)
         pass_locs = PassCalcLocs(name=name)
 
         tasks = [copy_files, renorm_force_constants, to_db, pass_locs]
-        super().__init__(tasks, name="{}_{}K".format(name,temperature), **kwargs)
+        super().__init__(tasks, name=name, **kwargs)

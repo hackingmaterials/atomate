@@ -219,8 +219,7 @@ def fit_force_constants(
     if fit_method == "rfe" and n_jobs == -1:
         fit_kwargs["n_jobs"] = 1
 
-    logger.info('CPU COUNT: {}'.format(os.cpu_count()))
-    cutoff_results = Parallel(n_jobs=12, backend="multiprocessing")(delayed(_run_cutoffs)(
+    cutoff_results = Parallel(n_jobs=min(os.cpu_count(),len(all_cutoffs)), backend="multiprocessing")(delayed(_run_cutoffs)(
         i, cutoffs, n_cutoffs, parent_structure, structures, supercell_matrix, fit_method,
         separate_fit, disp_cut, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
 
@@ -727,8 +726,6 @@ def run_renormalization(
         frequency at Gamma, and the free energy, entropy, and heat capacity
     """
 
-    print("nconfig ANAL",type(nconfig),nconfig)
-    print('T ANAL',T)
     nconfig = int(nconfig)
     renorm = Renormalization(cs,supercell,fcs,param,T,renorm_method,fit_method)
     fcp, fcs, param = renorm.renormalize(nconfig,conv_tresh)
@@ -744,16 +741,19 @@ def run_renormalization(
 	)
     else:
         anharmonic_data = dict()
-#        anharmonic_data["temperature"] = T
-#        anharmonic_data["gruneisen"] = np.array([[0,0,0]])
-#        anharmonic_data["thermal_expansion"] = np.array([[0,0,0]])
-#        anharmonic_data["expansion_ratio"] = np.array([[0,0,0]])
+        anharmonic_data["temperature"] = T
+        anharmonic_data["gruneisen"] = np.array([[0,0,0]])
+        anharmonic_data["thermal_expansion"] = np.array([[0,0,0]])
+        anharmonic_data["expansion_ratio"] = np.array([[0,0,0]])
     renorm_data.update(anharmonic_data)
-    
+
+    phonopy_orig.run_mesh()
+    phonopy.run_mesh()
     omega0 = phonopy_orig.mesh.frequencies # THz
     omega_TD = phonopy.mesh.frequencies # THz
+    evec = phonopy.mesh.eigenvectors
 #    natom = phonopy.primitive.get_number_of_atoms()
-    correction_S, correction_SC = FE_correction(omega0,omega_TD,T) # eV/atom
+    correction_S, correction_SC = FE_correction(omega0,omega_TD,evec,[T]) # eV/atom
 
     renorm_data["free_energy_correction_S"] = correction_S[0]
     renorm_data["free_energy_correction_SC"] = correction_SC[0]
