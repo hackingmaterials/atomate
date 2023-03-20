@@ -671,7 +671,7 @@ def anharmonic_properties(
     Cv: np.ndarray,
     n_imaginary: float,
     bulk_modulus: float = None
-) -> Tuple[Dict, Phonopy]:
+) -> Dict:
 
     if n_imaginary == 0:
         logger.info('Evaluating anharmonic properties...')
@@ -695,7 +695,7 @@ def anharmonic_properties(
         "gruneisen": grun,
         "thermal_expansion": cte,
         "expansion_ratio": dLfrac,
-        }, phonopy
+        }
 
 
 def get_total_grun(
@@ -872,7 +872,7 @@ def run_renormalization(
 
     if renorm_data["n_imaginary"] == 0:
         logger.info('Renormalized phonon is completely real at T = {} K!'.format(T))
-        anharmonic_data, phonopy = anharmonic_properties(
+        anharmonic_data = anharmonic_properties(
             phonopy, fcs, [T], thermal_data["heat_capacity"], n_imaginary, bulk_modulus=bulk_modulus
 	)
     else:
