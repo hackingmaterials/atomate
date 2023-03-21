@@ -63,7 +63,7 @@ RENORM_NCONFIG = 5
 RENORM_CONV_THRESH = 0.1 # meV/atom
 RENORM_MAX_ITER = 30
 
-eV2J = 1.602e-19
+eV2J = sp.constants.elementary_charge
 hbar = sp.constants.hbar # J-s
 kB = sp.constants.Boltzmann # J/K
 
@@ -864,6 +864,7 @@ def run_renormalization(
     """
 
     nconfig = int(nconfig)
+    nconfig *= 8
     renorm = Renormalization(cs,supercell,fcs,param,T,renorm_method,fit_method)
     fcp, fcs, param = renorm.renormalize(nconfig,conv_tresh)
 
