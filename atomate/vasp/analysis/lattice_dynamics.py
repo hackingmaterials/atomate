@@ -727,7 +727,6 @@ def run_renormalization(
     """
 
     nconfig = int(nconfig)
-    nconfig *= 8
     renorm = Renormalization(cs,supercell,fcs,param,T,renorm_method,fit_method)
     fcp, fcs, param = renorm.renormalize(nconfig,conv_tresh)
 
