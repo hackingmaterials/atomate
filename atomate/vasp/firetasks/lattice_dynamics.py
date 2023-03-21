@@ -405,7 +405,7 @@ class ForceConstantsToDb(FiretaskBase):
 
         else:
             T = renorm_temperature
-            renorm_thermal_data = loadfn("renorm_thermal_data_{}.json".format(T))
+            renorm_thermal_data = loadfn("renorm_thermal_data_{}K.json".format(T))
             fcs = ForceConstants.read("force_constants_{}K.fcs".format(T))
             
             dos_fsid, uniform_bs_fsid, lm_bs_fsid, fc_fsid = _get_fc_fsid(
@@ -433,7 +433,7 @@ class ForceConstantsToDb(FiretaskBase):
             fitting_id = _get_fc_fitting_id(mmdb)
             metadata = {"fc_fitting_id": fitting_id, "fc_fitting_dir": os.getcwd()}
             data_at_T.update(metadata)
-            data_at_T = jsanitize(data,strict=True,allow_bson=True)
+            data_at_T = jsanitize(data_at_T,strict=True,allow_bson=True)
             
             mmdb.db.renormalized_lattice_dynamics.insert_one(data_at_T)
             
