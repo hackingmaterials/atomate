@@ -301,6 +301,16 @@ class RunHiPhiveRenorm(FiretaskBase):
                         
         # write results
         logger.info("Writing renormalized results")
+        renorm_thermal_data = dict()
+        fcs = renorm_data['fcs']
+        fcs.write("force_constants_{}K.fcs".format(temperature))
+        thermal_keys = ["temperature","free_energy","entropy","heat_capacity",
+                        "gruneisen","thermal_expansion","expansion_ratio",
+                        "free_energy_correction_S","free_energy_correction_SC"]
+        renorm_thermal_data = {key: [] for key in thermal_keys}
+        for key in thermal_keys:
+            renorm_thermal_data[key].append(renorm_data[key])
+        
         logger.info("DEBUG: ",renorm_data)
         if renorm_data["n_imaginary"] > 0:
             logger.warning('Imaginary modes remain for {} K!'.format(temperature))
@@ -311,7 +321,7 @@ class RunHiPhiveRenorm(FiretaskBase):
             fcs.write_to_phonopy("FORCE_CONSTANTS_2ND_{}K".format(temperature), format="text")
 
         dumpfn(structure_data, "structure_data_{}K.json".format(temperature))
-        dumpfn(renorm_thermal_data, "renorm_data_{}K.json".format(temperature))
+        dumpfn(renorm_thermal_data, "renorm_thermal_data_{}K.json".format(temperature))
 
         
 @explicit_serialize
@@ -396,14 +406,8 @@ class ForceConstantsToDb(FiretaskBase):
 
         else:
             T = renorm_temperature
-            renorm_data = loadfn("renorm_data_{}K.json".format(T))
-            fcs = renorm_data["fcs"]
-            thermal_keys = ["temperature","free_energy","entropy","heat_capacity",
-                            "gruneisen","thermal_expansion","expansion_ratio",
-                            "free_energy_correction_S","free_energy_correction_SC"]
-            renorm_thermal_data = {key: [] for key in thermal_keys}
-            for key in thermal_keys:
-                renorm_thermal_data[key].append(renorm_data[key])
+            renorm_thermal_data = loadfn("renorm_thermal_data_{}K.json".format(T))
+            fcs = ForceConstants.read("force_constants_{}K.fcs".format(T))
 
             dos_fsid, uniform_bs_fsid, lm_bs_fsid, fc_fsid = _get_fc_fsid(
                 structure, supercell_matrix, fcs, mesh_density, mmdb
