@@ -171,10 +171,13 @@ def get_lattice_dynamics_wf(
                 )
         supercell_matrix_kwargs["force_diagonal"] = True
 
+    logger.debug('Transforming supercell!')
+    logger.debug('KWARGS: \n {}'.format(supercell_matrix_kwargs))
     st = CubicSupercellTransformation(**supercell_matrix_kwargs)
     supercell = st.apply_transformation(structure)
     supercell_matrix = st.transformation_matrix
-
+    logger.debug('SUPERCELL MATRIX: \n {}'.format(supercell_matrix))
+    
     if "n_configs_per_std" not in perturbed_structure_kwargs:
         n_supercells = get_num_supercells(supercell, **num_supercell_kwargs)
         perturbed_structure_kwargs["n_configs_per_std"] = n_supercells
@@ -204,7 +207,8 @@ def get_lattice_dynamics_wf(
         imaginary_tol=IMAGINARY_TOL,
         )
     wf.append_wf(Workflow.from_Firework(fw_fit_force_constant), wf.leaf_fw_ids)
-
+    fitting_fw_id = wf.fws[-1].fw_id
+    
     # 3. Renormalization FW (pass_inputs like bulk modulus)
     if renormalize:
         for temperature in renormalize_temperature:
@@ -221,40 +225,52 @@ def get_lattice_dynamics_wf(
                 mesh_density=mesh_density,
             )
             wf.append_wf(
-                Workflow.from_Firework(fw_renormalization), [wf.fws[-1].fw_id]
+                Workflow.from_Firework(fw_renormalization), [fitting_fw_id]
             )
 
     # 4. Lattice thermal conductivity calculation
     if calculate_lattice_thermal_conductivity:
         if renormalize:
-            # Because of the way ShengBTE works, a temperature array that is not
-            # equally spaced out (T_step) requires submission for each temperature
-            for t,T in enumerate(renormalize_temperature):
+            temperatures = renormalize_temperature
+        else:
+            temperatures = thermal_conductivity_temperature
+        # Because of the way ShengBTE works, a temperature array that is not
+        # evenly spaced out (T_step) requires submission for each temperature
+        even_spacing = all(np.diff(temperatures)==np.diff(temperatures)[0])
+        if even_spacing and not renormalize:
+            fw_lattice_conductivity = LatticeThermalConductivityFW(
+                db_file=db_file,
+                shengbte_cmd=shengbte_cmd,
+                renormalized=renormalize,
+                temperature=temperatures
+            )
+            if shengbte_fworker:
+                fw_lattice_conductivity.spec["_fworker"] = shengbte_fworker
+            wf.append_wf(
+                Workflow.from_Firework(fw_lattice_conductivity), [fitting_fw_id]
+            )
+        else:
+            push = 1
+            for t,T in enumerate(temperatures):
                 if T == 0:
+                    push = 0
                     continue
                 fw_lattice_conductivity = LatticeThermalConductivityFW(
                     db_file=db_file,
                     shengbte_cmd=shengbte_cmd,
-                    renormalized=True,
+                    renormalized=renormalize,
                     temperature=T
-                    )
+                )
                 if shengbte_fworker:
                     fw_lattice_conductivity.spec["_fworker"] = shengbte_fworker
-                wf.append_wf(
-                    Workflow.from_Firework(fw_lattice_conductivity), [wf.fws[-(t+1)].fw_id]
+                if renormalize:
+                    wf.append_wf(
+                        Workflow.from_Firework(fw_lattice_conductivity), [wf.fws[-(len(temperatures)+push)].fw_id]
                     )
-        else:
-            fw_lattice_conductivity = LatticeThermalConductivityFW(
-                db_file=db_file,
-                shengbte_cmd=shengbte_cmd,
-                renormalized=False,
-                temperature=thermal_conductivity_temperature,
-                )
-            if shengbte_fworker:
-                fw_lattice_conductivity.spec["_fworker"] = shengbte_fworker
-            wf.append_wf(
-                Workflow.from_Firework(fw_lattice_conductivity), [wf.fws[-1].fw_id]
-                )
+                else:
+                    wf.append_wf(
+                        Workflow.from_Firework(fw_lattice_conductivity), [fitting_fw_id]
+                    )                    
                 
     formula = structure.composition.reduced_formula
     wf.name = "{} - lattice dynamics".format(formula)
@@ -318,7 +334,7 @@ def get_perturbed_structure_wf(
     natoms = len(structure * supercell_matrix)
 
     if rattle_stds is None:
-        rattle_stds = np.linspace(0.008, 0.08, 5)
+        rattle_stds = np.linspace(0.005, 0.1, 5)
 
     if vasp_input_set is None:
         vasp_input_set = MPStaticSet(structure)

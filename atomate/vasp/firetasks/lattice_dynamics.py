@@ -303,7 +303,7 @@ class RunHiPhiveRenorm(FiretaskBase):
         logger.info("Writing renormalized results")
         renorm_thermal_data = dict()
         fcs = renorm_data['fcs']
-        fcs.write("force_constants_{}K.fcs".format(temperature))
+        fcs.write("force_constants.fcs")
         thermal_keys = ["temperature","free_energy","entropy","heat_capacity",
                         "gruneisen","thermal_expansion","expansion_ratio",
                         "free_energy_correction_S","free_energy_correction_SC"]
@@ -318,10 +318,10 @@ class RunHiPhiveRenorm(FiretaskBase):
             logger.warning('No renormalization with thermal expansion')
         else:
             logger.info("No imaginary modes! Writing ShengBTE files")
-            fcs.write_to_phonopy("FORCE_CONSTANTS_2ND_{}K".format(temperature), format="text")
+            fcs.write_to_phonopy("FORCE_CONSTANTS_2ND".format(temperature), format="text")
 
-        dumpfn(structure_data, "structure_data_{}K.json".format(temperature))
-        dumpfn(renorm_thermal_data, "renorm_thermal_data_{}K.json".format(temperature))
+        dumpfn(structure_data, "structure_data.json".format(temperature))
+        dumpfn(renorm_thermal_data, "renorm_thermal_data.json".format(temperature))
 
         
 @explicit_serialize
@@ -405,9 +405,9 @@ class ForceConstantsToDb(FiretaskBase):
             logger.info("Finished inserting force constants and phonon data")
 
         else:
-            T = renorm_temperature
-            renorm_thermal_data = loadfn("renorm_thermal_data_{}K.json".format(T))
-            fcs = ForceConstants.read("force_constants_{}K.fcs".format(T))
+            renorm_thermal_data = loadfn("renorm_thermal_data.json")
+            fcs = ForceConstants.read("force_constants.fcs")
+            T = renorm_thermal_data["temperature"]
 
             dos_fsid, uniform_bs_fsid, lm_bs_fsid, fc_fsid = _get_fc_fsid(
                 structure, supercell_matrix, fcs, mesh_density, mmdb
