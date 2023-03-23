@@ -605,7 +605,7 @@ def harmonic_properties(
     structure: Structure,
     supercell_matrix: np.ndarray,
     fcs: ForceConstants,
-    T: List,
+    temperature: List,
     imaginary_tol: float = IMAGINARY_TOL
 ) -> Tuple[Dict,Phonopy]:
     """
@@ -634,13 +634,13 @@ def harmonic_properties(
     
     phonopy.set_force_constants(fcs2)
     phonopy.set_mesh(mesh,is_eigenvectors=True,is_mesh_symmetry=False) #run_mesh(is_gamma_center=True)
-    phonopy.run_thermal_properties(temperatures=T)
+    phonopy.run_thermal_properties(temperatures=temperature)
     logger.info('Thermal properties successfully run!')
 
-    _, free_energy, entropy, Cv = phonopy.get_thermal_properties()
+    _, free_energy, entropy, heat_capacity = phonopy.get_thermal_properties()
     free_energy *= 1000/sp.constants.Avogadro/eV2J/natom # kJ/mol to eV/atom
     entropy *= 1/sp.constants.Avogadro/eV2J/natom # J/K/mol to eV/K/atom
-    Cv *= 1/sp.constants.Avogadro/eV2J/natom # J/K/mol to eV/K/atom
+    heat_capacity *= 1/sp.constants.Avogadro/eV2J/natom # J/K/mol to eV/K/atom
 
     freq = phonopy.mesh.frequencies # in THz
     # find imaginary modes at gamma
@@ -654,11 +654,17 @@ def harmonic_properties(
     else: # do not calculate these if imaginary modes exist
         logger.warning('Imaginary modes found!')
 
+    if len(temperature)==1:
+        temperature = temperature[0]
+        free_energy = free_energy[0]
+        entropy = entropy[0]
+        heat_capacity = heat_capacity[0]
+        
     return {
-        "temperature": T,
+        "temperature": temperature,
         "free_energy": free_energy,
         "entropy": entropy,
-        "heat_capacity": Cv,
+        "heat_capacity": heat_capacity,
         "n_imaginary": n_imaginary
         }, phonopy
 
@@ -666,8 +672,8 @@ def harmonic_properties(
 def anharmonic_properties(
     phonopy: Phonopy,
     fcs: ForceConstants,
-    T: List,
-    Cv: np.ndarray,
+    temperature: List,
+    heat_capacity: np.ndarray,
     n_imaginary: float,
     bulk_modulus: float = None
 ) -> Dict:
@@ -676,21 +682,27 @@ def anharmonic_properties(
         logger.info('Evaluating anharmonic properties...')
         fcs2 = fcs.get_fc_array(2)
         fcs3 = fcs.get_fc_array(3)
-        grun, cte = gruneisen(phonopy,fcs2,fcs3,T,Cv,bulk_modulus=bulk_modulus)
+        grun, cte = gruneisen(phonopy,fcs2,fcs3,temperature,heat_capacity,bulk_modulus=bulk_modulus)
         if type(bulk_modulus) is float or int:
-            dLfrac = thermal_expansion(T,cte)
+            dLfrac = thermal_expansion(temperature,cte)
         else:
             logger.warning('Thermal expansion cannot be calculated without bulk modulus input. Set to 0.')
-            cte = np.zeros((len(T),3))
-            dLfrac = np.zeros((len(T),3))
+            cte = np.zeros((len(temperature),3))
+            dLfrac = np.zeros((len(temperature),3))
     else: # do not calculate these if imaginary modes exist
         logger.warning('Gruneisen and thermal expansion cannot be calculated with imaginary modes. All set to 0.')
-        grun = np.zeros((len(T),3))
-        cte = np.zeros((len(T),3))
-        dLfrac = np.zeros((len(T),3))
+        grun = np.zeros((len(temperature),3))
+        cte = np.zeros((len(temperature),3))
+        dLfrac = np.zeros((len(temperature),3))
 
+    if len(temperature)==1:
+        temperature = temperature[0]
+        grun = grun[0]
+        cte = cte[0]
+        dLfrac = dLfrac[0]
+        
     return {
-        "temperature": T,
+        "temperature": temperature,
         "gruneisen": grun,
         "thermal_expansion": cte,
         "expansion_ratio": dLfrac,
@@ -879,9 +891,9 @@ def run_renormalization(
     else:
         anharmonic_data = dict()
         anharmonic_data["temperature"] = T
-        anharmonic_data["gruneisen"] = np.array([[0,0,0]])
-        anharmonic_data["thermal_expansion"] = np.array([[0,0,0]])
-        anharmonic_data["expansion_ratio"] = np.array([[0,0,0]])
+        anharmonic_data["gruneisen"] = np.array([0,0,0])
+        anharmonic_data["thermal_expansion"] = np.array([0,0,0])
+        anharmonic_data["expansion_ratio"] = np.array([0,0,0])
     renorm_data.update(anharmonic_data)
 
     phonopy_orig.run_mesh()
