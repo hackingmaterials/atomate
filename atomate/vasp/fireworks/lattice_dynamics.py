@@ -122,34 +122,22 @@ class LatticeThermalConductivityFW(Firework):
         ):
 
         # files needed to run ShengBTE
-        if renormalized: # must check if FORCE_CONSTANTS_2ND_{T}K can be copied individually
+        
+        files = [
+            "structure_data.json",
+            "FORCE_CONSTANTS_2ND",
+            "FORCE_CONSTANTS_3RD"
+        ]
+        
+        if renormalized: 
             assert type(temperature) in [float,int]
-            files = [
-                "structure_data.json",
-                "FORCE_CONSTANTS_2ND_{}K".format(temperature),
-                "FORCE_CONSTANTS_3RD"
-            ]
-#            temperature_copy = temperature[:]
-#            for t,T in enumerate(temperature_copy):
-#                try:
-#                    files = files.append("FORCE_CONSTANTS_2ND_{}K".format(T))
-#                except:
-#                    logger.info("FORCE_CONSTANTS_2ND_{}K is missing".format(T))
-#                    logger.info("Renormalization must have failed at {} K".format(T))
-#                    logger.info("Cannot calculate thermal conductivity at {} K".format(T))
-#                    temperature.remove(T)
+            name = '{} at {}K'.format(name,temperature)
             if prev_calc_dir:
                 copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
             else:
                 copy_files = CopyFilesFromCalcLoc(calc_loc='Renormalization_{}K'.format(temperature), filenames=files)
-            os.system('mv FORCE_CONSTANTS_2ND_{}K FORCE_CONSTANTS_2ND'.format(temperature))
 
-        else: # only the default files are needed
-            files = [
-                "structure_data.json",
-                "FORCE_CONSTANTS_2ND",
-                "FORCE_CONSTANTS_3RD",
-            ]
+        else:
             if prev_calc_dir:
                 copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
             else:
@@ -165,10 +153,8 @@ class LatticeThermalConductivityFW(Firework):
         shengbte_to_db = ShengBTEToDb(db_file=db_file, additional_fields={})
 
         tasks = [copy_files, run_shengbte, shengbte_to_db]
-        if renormalized:
-            super().__init__(tasks, name=name+' at {}K'.format(temperature), **kwargs)
-        else:
-            super().__init__(tasks, name=name, **kwargs)
+
+        super().__init__(tasks, name=name, **kwargs)
 
 
 
