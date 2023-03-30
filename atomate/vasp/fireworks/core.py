@@ -265,7 +265,9 @@ class ScanOptimizeFW(Firework):
 
             # Disable vdW for the precondition step
             if vasp_input_set_params.get("vdw"):
-                pre_opt_settings.update({"_unset": {"LUSE_VDW": True, "BPARAM": 15.7}})
+                pre_opt_settings.update({"_unset": {"LUSE_VDW": True,
+                                                    "BPARAM": 15.7,
+                                                    "METAGGA": metagga_type}})
 
             t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
 
