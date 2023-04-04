@@ -793,7 +793,9 @@ def gruneisen(
         vol = phonopy.primitive.get_volume()
         cte = grun_tot*heat_capacity.repeat(3)/(vol/10**30)/(bulk_modulus*10**9)/3
         cte = np.nan_to_num(cte)
-        dLfrac = thermal_expansion(temperature,list(cte))
+        dLfrac = thermal_expansion(temperature,cte)
+        if len(temperature)==1:
+            dLfrac = dLfrac[-1]
         logger.info('Gruneisen: \n {}'.format(grun_tot))
         logger.info('Coefficient of Thermal Expansion: \n {}'.format(cte))
         logger.info('Linear Expansion Fraction: \n {}'.format(dLfrac))        
@@ -803,15 +805,12 @@ def gruneisen(
 
 def thermal_expansion(
         temperature: List,
-        cte: List,
-        T: Optional[float]=None
+        cte: np.array,
 ) -> np.ndarray:
     assert len(temperature)==len(cte)
     if 0 not in temperature:
         temperature = [0] + temperature
-        cte = [[0,0,0]] + cte
-    logger.info('CTE: {}'.format(cte))
-    logger.info('T_array: {}'.format(temperature))
+        cte = np.array([np.array([0,0,0])] + list(cte))
     temperature = np.array(temperature)
     ind = np.argsort(temperature)
     temperature = temperature[ind]
@@ -821,15 +820,7 @@ def thermal_expansion(
     for t in range(len(temperature)):
         dLfrac[t,:] = np.trapz(cte[:t+1,:],temperature[:t+1],axis=0)
     dLfrac = np.nan_to_num(dLfrac)
-    logger.info('dLfrac: \n {}'.format(dLfrac))
-    if T is None:
-        return dLfrac
-    else:
-        try:
-            T_ind = np.where(temperature==T)[0][0]
-            return np.array([dLfrac[T_ind]])
-        except:
-            raise ValueError('Designated T does not exist in the temperature array!')
+    return dLfrac
 
 
 def run_renormalization(
