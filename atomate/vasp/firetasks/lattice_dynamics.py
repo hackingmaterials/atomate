@@ -284,7 +284,7 @@ class RunHiPhiveRenorm(FiretaskBase):
                 else:
                     logger.info("Renormalizing with thermally expanded lattice - iteration {}".format(i))
 
-                dLfrac = renorm_data["expansion_ratio"]  
+                dLfrac = renorm_data["expansion_fraction"]  
                 param = renorm_data["param"]
 
                 parent_structure_TE, supercell_atoms_TE, cs_TE, fcs_TE = setup_TE_iter(cs,cutoffs,parent_structure,param,temperature,dLfrac)
@@ -305,7 +305,7 @@ class RunHiPhiveRenorm(FiretaskBase):
         fcs = renorm_data['fcs']
         fcs.write("force_constants.fcs")
         thermal_keys = ["temperature","free_energy","entropy","heat_capacity",
-                        "gruneisen","thermal_expansion","expansion_ratio",
+                        "gruneisen","thermal_expansion","expansion_fraction",
                         "free_energy_correction_S","free_energy_correction_SC"]
         renorm_thermal_data = {key: [] for key in thermal_keys}
         for key in thermal_keys:
