@@ -18,7 +18,7 @@ from hiphive.cutoffs import is_cutoff_allowed, estimate_maximum_cutoff
 from hiphive.fitting import Optimizer
 from hiphive.renormalization import Renormalization
 from hiphive.utilities import get_displacements
-from hiphive.run_tools import _clean_data, FE_correction, construct_fit_data
+from hiphive.run_tools import _clean_data, free_energy_correction, construct_fit_data
 
 from pymatgen.core.structure import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
@@ -749,7 +749,7 @@ def run_renormalization(
     omega_TD = phonopy.mesh.frequencies # THz
     evec = phonopy.mesh.eigenvectors
 #    natom = phonopy.primitive.get_number_of_atoms()
-    correction_S, correction_SC = FE_correction(omega0,omega_TD,evec,[T]) # eV/atom
+    correction_S, correction_SC = free_energy_correction(omega0,omega_TD,evec,[T]) # eV/atom
 
     renorm_data["free_energy_correction_S"] = correction_S[0]
     renorm_data["free_energy_correction_SC"] = correction_SC[0]

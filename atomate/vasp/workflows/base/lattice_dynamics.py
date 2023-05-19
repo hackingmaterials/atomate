@@ -186,6 +186,7 @@ def get_lattice_dynamics_wf(
     wf = get_perturbed_structure_wf(
         structure,
         supercell_matrix=supercell_matrix,
+        separate_fit=separate_fit,
         vasp_input_set=vasp_input_set,
         common_settings=common_settings,
         copy_vasp_outputs=copy_vasp_outputs,
@@ -288,6 +289,7 @@ def get_lattice_dynamics_wf(
 def get_perturbed_structure_wf(
     structure: Structure,
     supercell_matrix: Optional[np.ndarray],
+    separate_fit: bool = False,
     name: str = "perturbed structure",
     vasp_input_set: Optional[VaspInputSet] = None,
     common_settings: Optional[Dict] = None,
@@ -363,10 +365,16 @@ def get_perturbed_structure_wf(
         rattle_min_distance = min_distance - 2 * rattle_std
         rattle_min_distance = min(scaled_min_distance, rattle_min_distance)
 
-        transformations = [
-            "SupercellTransformation",
-            "MonteCarloRattleTransformation",
-        ]
+        if separate_fit:
+            transformations = [
+                "SupercellTransformation",
+                "FixedRandomDisplacementTransformation",
+            ]            
+        else:
+            transformations = [
+                "SupercellTransformation",
+                "MonteCarloRattleTransformation",
+            ]
         transformation_params = [
             {"scaling_matrix": supercell_matrix},
             {"rattle_std": rattle_std, "min_distance": rattle_min_distance},
