@@ -237,8 +237,11 @@ def get_lattice_dynamics_wf(
             temperatures = thermal_conductivity_temperature
         # Because of the way ShengBTE works, a temperature array that is not
         # evenly spaced out (T_step) requires submission for each temperature
-        even_spacing = all(np.diff(temperatures)==np.diff(temperatures)[0])
-        if even_spacing and not renormalize:
+        if not renormalize:
+            if type(temperatures)==dict:
+                pass
+            elif type(temperatures) in [list,np.ndarray]:
+                assert all(np.diff(temperatures)==np.diff(temperatures)[0])
             fw_lattice_conductivity = LatticeThermalConductivityFW(
                 db_file=db_file,
                 shengbte_cmd=shengbte_cmd,
