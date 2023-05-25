@@ -791,7 +791,8 @@ def gruneisen(
     else:
         heat_capacity *= eV2J*phonopy.primitive.get_number_of_atoms() # eV/K/atom to J/K 
         vol = phonopy.primitive.get_volume()
-        cte = grun_tot*heat_capacity.repeat(3)/(vol/10**30)/(bulk_modulus*10**9)/3
+#        cte = grun_tot*heat_capacity.repeat(3)/(vol/10**30)/(bulk_modulus*10**9)/3
+        cte = grun_tot*heat_capacity.repeat(3).reshape(len(heat_capacity),3)/(vol/10**30)/(bulk_modulus*10**9)/3
         cte = np.nan_to_num(cte)
         dLfrac = thermal_expansion(temperature,cte)
         if len(temperature)==1:
@@ -861,7 +862,7 @@ def run_renormalization(
 
     nconfig = int(nconfig)
     renorm = Renormalization(cs,supercell,fcs,param,T,renorm_method,fit_method)
-    fcp, fcs, param = renorm.renormalize(nconfig,conv_tresh)
+    fcp, fcs, param = renorm.renormalize(nconfig)#,conv_tresh)
 
     renorm_data, phonopy = harmonic_properties(
         structure, supercell_matrix, fcs, [T], imaginary_tol
