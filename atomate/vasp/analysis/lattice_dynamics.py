@@ -136,8 +136,7 @@ def fit_force_constants(
     supercell_matrix: np.ndarray,
     structures: List["Atoms"],
     all_cutoffs: List[List[float]],
-    separate_fit: bool,
-    disp_cut: float = None,
+    disp_cut: float = 0.055,
     imaginary_tol: float = IMAGINARY_TOL,
     fit_method: str = FIT_METHOD,
     n_jobs: int = -1,
@@ -163,9 +162,7 @@ def fit_force_constants(
         all_cutoffs: A nested list of cutoff values to trial. Each set of
             cutoffs contains the radii for different orders starting with second
             order.
-        separate_fit: Boolean to determine whether harmonic and anharmonic fitting
-            are to be done separately (True) or in one shot (False)
-        disp_cut: if separate_fit true, determines the mean displacement of perturbed
+        disp_cut: determines the mean displacement of perturbed
             structure to be included in harmonic (<) or anharmonic (>) fitting
         imaginary_tol: Tolerance used to decide if a phonon mode is imaginary,
             in THz.
@@ -192,14 +189,7 @@ def fit_force_constants(
     fitting_data = {
         "cutoffs": [],
         "rmse_test": [],
-#        "n_imaginary": [],
-#        "min_frequency": [],
-#        "temperature": [],
-#        "free_energy": [],
-#        "entropy": [],
-#        "heat_capacity": [],
         "fit_method": fit_method,
-        "separate_fit": separate_fit,
         "disp_cut": disp_cut,
         "imaginary_tol": imaginary_tol,
 #        "max_n_imaginary": max_n_imaginary,
@@ -221,7 +211,7 @@ def fit_force_constants(
 
     cutoff_results = Parallel(n_jobs=min(os.cpu_count(),len(all_cutoffs)), backend="multiprocessing")(delayed(_run_cutoffs)(
         i, cutoffs, n_cutoffs, parent_structure, structures, supercell_matrix, fit_method,
-        separate_fit, disp_cut, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
+        disp_cut, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
 
     logger.info('CUTOFF RESULTS \n {}'.format(cutoff_results))
     
@@ -291,10 +281,10 @@ def get_fit_data(
             saved_structures.append(structure)
         else: # fit separately
             if param2 is None: # for harmonic fitting
-                if mean_displacements < disp_cut:
+                if mean_displacements <= disp_cut:
                     saved_structures.append(structure)
             else: # for anharmonic fitting
-                if mean_displacements >= disp_cut:
+                if mean_displacements > disp_cut:
                     saved_structures.append(structure)
 
     fit_data_tmp = Parallel(n_jobs=min(os.cpu_count(),max(1,len(saved_structures))))(#,prefer="threads")(
@@ -321,7 +311,6 @@ def _run_cutoffs(
     structures,
     supercell_matrix,
     fit_method,
-    separate_fit,
     disp_cut,
     imaginary_tol,
     fit_kwargs
@@ -342,21 +331,36 @@ def _run_cutoffs(
     logger.debug(cs.__repr__())
     n2nd = cs.get_n_dofs_by_order(2)
     nall = cs.n_dofs
-    
-    if separate_fit:
-        logger.info('Fitting harmonic force constants separately')
-#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
-#                                disp_cut, ncut=n2nd, param2=None)
-        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
-                                     ncut=n2nd, param2=None)
-        opt = Optimizer(sc.get_fit_data(),
-                        fit_method,
-                        [0,n2nd],
-                        **fit_kwargs)
-        opt.train()
-        param_harmonic = opt.parameters # harmonic force constant parameters
-        
-        logger.info('Fitting anharmonic force constants separately')
+
+    logger.info('Fitting harmonic force constants separately')
+    separate_fit = True
+#    fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+#                            disp_cut, ncut=n2nd, param2=None)
+    sc = get_structure_container(cs, structures, separate_fit, disp_cut,
+                                 ncut=n2nd, param2=None)
+    opt = Optimizer(sc.get_fit_data(),
+                    fit_method,
+                    [0,n2nd],
+                    **fit_kwargs)
+    opt.train()
+    param_harmonic = opt.parameters # harmonic force constant parameters
+    param_tmp = np.concatenate((param2,np.zeros(cs.n_dofs-len(param_harmonic))))
+    fcp = ForceConstantPotential(cs, param_tmp)
+    fcs = fcp.get_force_constants(supercell_atoms)
+
+    parent_phonopy = get_phonopy_structure(parent_structure)
+    phonopy = Phonopy(parent_phonopy, supercell_matrix=supercell_matrix)
+    natom = phonopy.primitive.get_number_of_atoms()
+    mesh = supercell_matrix.diagonal()*2
+    phonopy.set_force_constants(fcs2)
+    phonopy.set_mesh(mesh,is_eigenvectors=False,is_mesh_symmetry=False) #run_mesh(is_gamma_center=True)
+    phonopy.run_mesh(mesh, with_eigenvectors=False, is_mesh_symmetry=False)
+    omega = phonopy.mesh.frequencies  # THz
+    omega = np.sort(omega.flatten())
+    imaginary = np.any(omega<-1e-3)
+
+    if imaginary:
+        logger.info('Imaginary modes found! Fitting anharmonic force constants separately')
 #        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
 #                                disp_cut, ncut=n2nd, param2=param_harmonic)
         sc = get_structure_container(cs, structures, separate_fit, disp_cut,
@@ -373,7 +377,8 @@ def _run_cutoffs(
         logger.info('Training complete for cutoff: {}, {}'.format(i,cutoffs))
         
     else:
-        logger.info('Fitting all force constants in one shot')
+        logger.info('No imaginary modes! Fitting all force constants in one shot')
+        separate_fit = False
 #        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
 #                                disp_cut=None, ncut=None, param2=None)
         sc = get_structure_container(cs, structures, separate_fit, disp_cut=None,
