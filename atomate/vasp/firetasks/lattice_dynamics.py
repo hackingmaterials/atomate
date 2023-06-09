@@ -126,10 +126,7 @@ class RunHiPhive(FiretaskBase):
         cutoffs (Optional[list[list]]): A list of cutoffs to trial. If None,
             a set of trial cutoffs will be generated based on the structure
             (default).
-        separate_fit: If True, harmonic and anharmonic force constants are fit
-            separately and sequentially, harmonic first then anharmonic. If
-            False, then they are all fit in one go. Default is False.
-        disp_cut: if separate_fit=True, determines the mean displacement of perturbed
+        disp_cut: determines the mean displacement of perturbed
             structure to be included in harmonic (<) or anharmonic (>) fitting  
         imaginary_tol (float): Tolerance used to decide if a phonon mode
             is imaginary, in THz.
@@ -139,7 +136,6 @@ class RunHiPhive(FiretaskBase):
 
     optional_params = [
         "cutoffs",
-        "separate_fit",
         "disp_cut",
         "temperature_qha",
         "bulk_modulus",
@@ -157,7 +153,6 @@ class RunHiPhive(FiretaskBase):
         supercell_structure = structure_data["supercell_structure"]
         supercell_matrix = np.array(structure_data["supercell_matrix"])
 
-        separate_fit = self.get('separate_fit', False)
         disp_cut = self.get('disp_cut', None)
         cutoffs = self.get("cutoffs") or get_cutoffs(supercell_structure)
         T_qha = self.get("temperature_qha", T_QHA)
@@ -181,7 +176,6 @@ class RunHiPhive(FiretaskBase):
             supercell_matrix,
             structures,
             cutoffs,
-            separate_fit,
             disp_cut,
             imaginary_tol,
             fit_method
