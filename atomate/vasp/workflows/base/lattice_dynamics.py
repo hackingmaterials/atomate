@@ -70,7 +70,6 @@ _WF_VERSION = 0.1
 def get_lattice_dynamics_wf(
     structure: Structure,
     fit_method:str = FIT_METHOD,
-    separate_fit: bool = False,
     disp_cut: float = None,
     bulk_modulus: float = None,
     common_settings: Dict = None,
@@ -119,9 +118,7 @@ def get_lattice_dynamics_wf(
 
     Args:
         structure: Initial structure.
-        separate_fit: Boolean to determine whether harmonic and anharmonic fitting
-            are to be done separately (True) or in one shot (False)
-        disp_cut: if separate_fit true, determines the mean displacement of perturbed
+        disp_cut: determines the mean displacement of perturbed
             structure to be included in harmonic (<) or anharmonic (>) fitting  
         bulk_modulus: bulk modulus in GPa, necessary for thermal expansion
         common_settings: Common settings dict. Supports "VASP_CMD", "DB_FILE",
@@ -186,7 +183,6 @@ def get_lattice_dynamics_wf(
     wf = get_perturbed_structure_wf(
         structure,
         supercell_matrix=supercell_matrix,
-        separate_fit=separate_fit,
         vasp_input_set=vasp_input_set,
         common_settings=common_settings,
         copy_vasp_outputs=copy_vasp_outputs,
@@ -199,7 +195,6 @@ def get_lattice_dynamics_wf(
     fw_fit_force_constant = FitForceConstantsFW(
         db_file=db_file,
         spec=allow_fizzled,
-        separate_fit=separate_fit,
         fit_method=fit_method,
         disp_cut=disp_cut,
         bulk_modulus=bulk_modulus, 
@@ -292,7 +287,6 @@ def get_lattice_dynamics_wf(
 def get_perturbed_structure_wf(
     structure: Structure,
     supercell_matrix: Optional[np.ndarray],
-    separate_fit: bool = False,
     name: str = "perturbed structure",
     vasp_input_set: Optional[VaspInputSet] = None,
     common_settings: Optional[Dict] = None,
@@ -365,22 +359,17 @@ def get_perturbed_structure_wf(
 
         # make sure the minimum distance is at least min_dist - 2 * rattle_std
         # as a sanity check
-        rattle_min_distance = min_distance - 2 * rattle_std
-        rattle_min_distance = min(scaled_min_distance, rattle_min_distance)
+#        rattle_min_distance = min_distance - 2 * rattle_std
+#        rattle_min_distance = min(scaled_min_distance, rattle_min_distance)
 
-        if separate_fit:
-            transformations = [
-                "SupercellTransformation",
-                "FixedRandomDisplacementTransformation",
-            ]            
-        else:
-            transformations = [
-                "SupercellTransformation",
-                "MonteCarloRattleTransformation",
-            ]
+        transformations = [
+            "SupercellTransformation",
+            "FixedRandomDisplacementTransformation",
+        ]            
+
         transformation_params = [
             {"scaling_matrix": supercell_matrix},
-            {"rattle_std": rattle_std, "min_distance": rattle_min_distance},
+            {"rattle_std": rattle_std}#, "min_distance": rattle_min_distance},
         ]
 
         fw = TransmuterFW(
