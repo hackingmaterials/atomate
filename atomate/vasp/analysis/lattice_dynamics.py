@@ -429,7 +429,7 @@ def _run_cutoffs(
                     **fit_kwargs)
     opt.train()
     param_harmonic = opt.parameters # harmonic force constant parameters
-    param_tmp = np.concatenate((param2,np.zeros(cs.n_dofs-len(param_harmonic))))
+    param_tmp = np.concatenate((param_harmonic,np.zeros(cs.n_dofs-len(param_harmonic))))
     fcp = ForceConstantPotential(cs, param_tmp)
     fcs = fcp.get_force_constants(supercell_atoms)
 
@@ -437,7 +437,7 @@ def _run_cutoffs(
     phonopy = Phonopy(parent_phonopy, supercell_matrix=supercell_matrix)
     natom = phonopy.primitive.get_number_of_atoms()
     mesh = supercell_matrix.diagonal()*2
-    phonopy.set_force_constants(fcs2)
+    phonopy.set_force_constants(fcs.get_fc_array(2))
     phonopy.set_mesh(mesh,is_eigenvectors=False,is_mesh_symmetry=False) #run_mesh(is_gamma_center=True)
     phonopy.run_mesh(mesh, with_eigenvectors=False, is_mesh_symmetry=False)
     omega = phonopy.mesh.frequencies  # THz
