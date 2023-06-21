@@ -854,12 +854,13 @@ def wf_nudged_elastic_band(structures, parent, c=None):
 
 def wf_lattice_dynamics(
     structure: Structure,
-<<<<<<< HEAD
-    separate_fit: bool = False,
     fit_method: str = FIT_METHOD,
+<<<<<<< HEAD
 =======
     fit_method: str = False,
 >>>>>>> 2e30eb4a (remove separate_fit)
+=======
+>>>>>>> ac887694 (clean-up)
     disp_cut: float = None,
     bulk_modulus: float = None,
     c: Optional[dict] = None,
