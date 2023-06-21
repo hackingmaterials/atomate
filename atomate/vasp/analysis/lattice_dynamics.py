@@ -18,7 +18,7 @@ from hiphive.cutoffs import is_cutoff_allowed, estimate_maximum_cutoff
 from hiphive.fitting import Optimizer
 from hiphive.renormalization import Renormalization
 from hiphive.utilities import get_displacements
-from hiphive.run_tools import _clean_data, FE_correction
+from hiphive.run_tools import _clean_data, free_energy_correction, construct_fit_data
 
 from pymatgen.core.structure import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
@@ -50,11 +50,11 @@ T_KLAT = {"t_min":100,"t_max":1500,"t_step":100} #[i*100 for i in range(0,11)]
 
 FIT_METHOD = "rfe" 
 RENORM_METHOD = 'pseudoinverse'
-RENORM_NCONFIG = 50
+RENORM_NCONFIG = 5
 RENORM_CONV_THRESH = 0.1 # meV/atom
-RENORM_MAX_ITER = 20
+RENORM_MAX_ITER = 30
 
-eV2J = 1.602e-19
+eV2J = sp.constants.elementary_charge
 hbar = sp.constants.hbar # J-s
 kB = sp.constants.Boltzmann # J/K
 
@@ -136,8 +136,7 @@ def fit_force_constants(
     supercell_matrix: np.ndarray,
     structures: List["Atoms"],
     all_cutoffs: List[List[float]],
-    separate_fit: bool,
-    disp_cut: float = None,
+    disp_cut: float = 0.055,
     imaginary_tol: float = IMAGINARY_TOL,
     fit_method: str = FIT_METHOD,
     n_jobs: int = -1,
@@ -163,9 +162,7 @@ def fit_force_constants(
         all_cutoffs: A nested list of cutoff values to trial. Each set of
             cutoffs contains the radii for different orders starting with second
             order.
-        separate_fit: Boolean to determine whether harmonic and anharmonic fitting
-            are to be done separately (True) or in one shot (False)
-        disp_cut: if separate_fit true, determines the mean displacement of perturbed
+        disp_cut: determines the mean displacement of perturbed
             structure to be included in harmonic (<) or anharmonic (>) fitting
         imaginary_tol: Tolerance used to decide if a phonon mode is imaginary,
             in THz.
@@ -192,14 +189,7 @@ def fit_force_constants(
     fitting_data = {
         "cutoffs": [],
         "rmse_test": [],
-#        "n_imaginary": [],
-#        "min_frequency": [],
-#        "temperature": [],
-#        "free_energy": [],
-#        "entropy": [],
-#        "heat_capacity": [],
         "fit_method": fit_method,
-        "separate_fit": separate_fit,
         "disp_cut": disp_cut,
         "imaginary_tol": imaginary_tol,
 #        "max_n_imaginary": max_n_imaginary,
@@ -219,10 +209,9 @@ def fit_force_constants(
     if fit_method == "rfe" and n_jobs == -1:
         fit_kwargs["n_jobs"] = 1
 
-    logger.info('CPU COUNT: {}'.format(os.cpu_count()))
-    cutoff_results = Parallel(n_jobs=12, backend="multiprocessing")(delayed(_run_cutoffs)(
+    cutoff_results = Parallel(n_jobs=min(os.cpu_count(),len(all_cutoffs)), backend="multiprocessing")(delayed(_run_cutoffs)(
         i, cutoffs, n_cutoffs, parent_structure, structures, supercell_matrix, fit_method,
-        separate_fit, disp_cut, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
+        disp_cut, imaginary_tol, fit_kwargs) for i, cutoffs in enumerate(all_cutoffs))
 
     logger.info('CUTOFF RESULTS \n {}'.format(cutoff_results))
     
@@ -279,8 +268,8 @@ def get_fit_data(
     saved_structures = []
     fcm = ForceConstantModel(supercell,cs)
     natom = supercell.get_global_number_of_atoms()
-    nrow_per = natom*3
-    nrow_all = nrow_per*len(saved_structures)
+    ndim = natom*3
+    nrow_all = ndim*len(saved_structures)
     A_mat = np.zeros((nrow_all,cs.n_dofs))
     f_vec = np.zeros(nrow_all)
 
@@ -292,10 +281,10 @@ def get_fit_data(
             saved_structures.append(structure)
         else: # fit separately
             if param2 is None: # for harmonic fitting
-                if mean_displacements < disp_cut:
+                if mean_displacements <= disp_cut:
                     saved_structures.append(structure)
             else: # for anharmonic fitting
-                if mean_displacements >= disp_cut:
+                if mean_displacements > disp_cut:
                     saved_structures.append(structure)
 
     fit_data_tmp = Parallel(n_jobs=min(os.cpu_count(),max(1,len(saved_structures))))(#,prefer="threads")(
@@ -303,13 +292,14 @@ def get_fit_data(
         for s,structure in enumerate(saved_structures)
     )
     for s,data in enumerate(fit_data_tmp):
-        A_mat[s*nrow_per:(s+1)*nrow_per] = data[0]
-        f_vec[s*nrow_per:(s+1)*nrow_per] = data[1]
+        logger.info('DEBUG: {}, {}'.format(s,data[0]))
+        A_mat[s*ndim:(s+1)*ndim] = data[0]
+        f_vec[s*ndim:(s+1)*ndim] = data[1]
 
     if param2 is not None:
         f_vec -= np.dot(A_mat[:,:ncut],param2) # subtract harmonic force from total
     logger.info('Fit_data dimensions: {}'.format(A_mat.shape))
-    fit_data = _clean_data(A_mat,f_vec,nrow_per)
+    fit_data = _clean_data(A_mat,f_vec,ndim)
     return fit_data
 
 
@@ -321,7 +311,6 @@ def _run_cutoffs(
     structures,
     supercell_matrix,
     fit_method,
-    separate_fit,
     disp_cut,
     imaginary_tol,
     fit_kwargs
@@ -342,26 +331,41 @@ def _run_cutoffs(
     logger.debug(cs.__repr__())
     n2nd = cs.get_n_dofs_by_order(2)
     nall = cs.n_dofs
-    
-    if separate_fit:
-        logger.info('Fitting harmonic force constants separately')
-        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
-                                disp_cut, ncut=n2nd, param2=None)
-#        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
-#                                     ncut=n2nd, param2=None)
-        opt = Optimizer(fit_data,#sc.get_fit_data(),
-                        fit_method,
-                        [0,n2nd],
-                        **fit_kwargs)
-        opt.train()
-        param_harmonic = opt.parameters # harmonic force constant parameters
-        
-        logger.info('Fitting anharmonic force constants separately')
-        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
-                                disp_cut, ncut=n2nd, param2=param_harmonic)
-#        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
-#                                     ncut=n2nd, param2=param_harmonic)
-        opt = Optimizer(fit_data,#sc.get_fit_data(),
+
+    logger.info('Fitting harmonic force constants separately')
+    separate_fit = True
+#    fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+#                            disp_cut, ncut=n2nd, param2=None)
+    sc = get_structure_container(cs, structures, separate_fit, disp_cut,
+                                 ncut=n2nd, param2=None)
+    opt = Optimizer(sc.get_fit_data(),
+                    fit_method,
+                    [0,n2nd],
+                    **fit_kwargs)
+    opt.train()
+    param_harmonic = opt.parameters # harmonic force constant parameters
+    param_tmp = np.concatenate((param_harmonic,np.zeros(cs.n_dofs-len(param_harmonic))))
+    fcp = ForceConstantPotential(cs, param_tmp)
+    fcs = fcp.get_force_constants(supercell_atoms)
+
+    parent_phonopy = get_phonopy_structure(parent_structure)
+    phonopy = Phonopy(parent_phonopy, supercell_matrix=supercell_matrix)
+    natom = phonopy.primitive.get_number_of_atoms()
+    mesh = supercell_matrix.diagonal()*2
+    phonopy.set_force_constants(fcs.get_fc_array(2))
+    phonopy.set_mesh(mesh,is_eigenvectors=False,is_mesh_symmetry=False) #run_mesh(is_gamma_center=True)
+    phonopy.run_mesh(mesh, with_eigenvectors=False, is_mesh_symmetry=False)
+    omega = phonopy.mesh.frequencies  # THz
+    omega = np.sort(omega.flatten())
+    imaginary = np.any(omega<-1e-3)
+
+    if imaginary:
+        logger.info('Imaginary modes found! Fitting anharmonic force constants separately')
+#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+#                                disp_cut, ncut=n2nd, param2=param_harmonic)
+        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
+                                     ncut=n2nd, param2=param_harmonic)
+        opt = Optimizer(sc.get_fit_data(),
                         fit_method,
                         [n2nd,nall],
                         **fit_kwargs)
@@ -373,12 +377,13 @@ def _run_cutoffs(
         logger.info('Training complete for cutoff: {}, {}'.format(i,cutoffs))
         
     else:
-        logger.info('Fitting all force constants in one shot')
-        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
-                                disp_cut=None, ncut=None, param2=None)
-#        sc = get_structure_container(cs, structures, separate_fit, disp_cut=None,
-#                                     ncut=None, param2=None)
-        opt = Optimizer(fit_data,#sc.get_fit_data(),
+        logger.info('No imaginary modes! Fitting all force constants in one shot')
+        separate_fit = False
+#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
+#                                disp_cut=None, ncut=None, param2=None)
+        sc = get_structure_container(cs, structures, separate_fit, disp_cut=None,
+                                     ncut=None, param2=None)
+        opt = Optimizer(sc.get_fit_data(),
                         fit_method,
                         [0,nall],
                         **fit_kwargs)
@@ -456,7 +461,7 @@ def get_structure_container(
         for i, structure in enumerate(saved_structures):
             natoms = structure.get_global_number_of_atoms()
             ndisp = natoms*3
-            structure.set_array('forces',anh_force[i*ndisp:(i+1)*ndisp].reshape(natoms,3))
+            structure.set_array('forces',f_vec[i*ndisp:(i+1)*ndisp].reshape(natoms,3))
             sc.add_structure(structure)
 
     logger.debug(sc.__repr__())
@@ -468,7 +473,7 @@ def harmonic_properties(
     structure: Structure,
     supercell_matrix: np.ndarray,
     fcs: ForceConstants,
-    T: List,
+    temperature: List,
     imaginary_tol: float = IMAGINARY_TOL
 ) -> Tuple[Dict,Phonopy]:
     """
@@ -493,17 +498,17 @@ def harmonic_properties(
     parent_phonopy = get_phonopy_structure(structure)
     phonopy = Phonopy(parent_phonopy, supercell_matrix=supercell_matrix)
     natom = phonopy.primitive.get_number_of_atoms()
-    mesh = supercell_matrix.diagonal()*4
+    mesh = supercell_matrix.diagonal()*2
     
     phonopy.set_force_constants(fcs2)
     phonopy.set_mesh(mesh,is_eigenvectors=True,is_mesh_symmetry=False) #run_mesh(is_gamma_center=True)
-    phonopy.run_thermal_properties(temperatures=T)
+    phonopy.run_thermal_properties(temperatures=temperature)
     logger.info('Thermal properties successfully run!')
 
-    _, free_energy, entropy, Cv = phonopy.get_thermal_properties()
+    _, free_energy, entropy, heat_capacity = phonopy.get_thermal_properties()
     free_energy *= 1000/sp.constants.Avogadro/eV2J/natom # kJ/mol to eV/atom
     entropy *= 1/sp.constants.Avogadro/eV2J/natom # J/K/mol to eV/K/atom
-    Cv *= 1/sp.constants.Avogadro/eV2J/natom # J/K/mol to eV/K/atom
+    heat_capacity *= 1/sp.constants.Avogadro/eV2J/natom # J/K/mol to eV/K/atom
 
     freq = phonopy.mesh.frequencies # in THz
     # find imaginary modes at gamma
@@ -517,11 +522,17 @@ def harmonic_properties(
     else: # do not calculate these if imaginary modes exist
         logger.warning('Imaginary modes found!')
 
+    if len(temperature)==1:
+        temperature = temperature[0]
+        free_energy = free_energy[0]
+        entropy = entropy[0]
+        heat_capacity = heat_capacity[0]
+        
     return {
-        "temperature": T,
+        "temperature": temperature,
         "free_energy": free_energy,
         "entropy": entropy,
-        "heat_capacity": Cv,
+        "heat_capacity": heat_capacity,
         "n_imaginary": n_imaginary
         }, phonopy
 
@@ -529,35 +540,28 @@ def harmonic_properties(
 def anharmonic_properties(
     phonopy: Phonopy,
     fcs: ForceConstants,
-    T: List,
-    Cv: np.ndarray,
+    temperature: List,
+    heat_capacity: np.ndarray,
     n_imaginary: float,
     bulk_modulus: float = None
-) -> Tuple[Dict, Phonopy]:
+) -> Dict:
 
     if n_imaginary == 0:
         logger.info('Evaluating anharmonic properties...')
         fcs2 = fcs.get_fc_array(2)
         fcs3 = fcs.get_fc_array(3)
-        grun, cte = gruneisen(phonopy,fcs2,fcs3,T,Cv,bulk_modulus=bulk_modulus)
-        if type(bulk_modulus) is float or int:
-            dLfrac = thermal_expansion(T,cte)
-        else:
-            logger.warning('Thermal expansion cannot be calculated without bulk modulus input. Set to 0.')
-            cte = np.zeros((len(T),3))
-            dLfrac = np.zeros((len(T),3))
+        grun, cte, dLfrac = gruneisen(phonopy,fcs2,fcs3,temperature,heat_capacity,bulk_modulus=bulk_modulus)
     else: # do not calculate these if imaginary modes exist
         logger.warning('Gruneisen and thermal expansion cannot be calculated with imaginary modes. All set to 0.')
-        grun = np.zeros((len(T),3))
-        cte = np.zeros((len(T),3))
-        dLfrac = np.zeros((len(T),3))
+        grun = np.zeros((len(temperature),3))
+        cte = np.zeros((len(temperature),3))
+        dLfrac = np.zeros((len(temperature),3))
 
     return {
-        "temperature": T,
         "gruneisen": grun,
         "thermal_expansion": cte,
-        "expansion_ratio": dLfrac,
-        }, phonopy
+        "expansion_fraction": dLfrac,
+        }
 
 
 def get_total_grun(
@@ -632,7 +636,7 @@ def gruneisen(
         fcs2: np.ndarray,
         fcs3: np.ndarray,
         temperature: List,
-        Cv: np.ndarray, # in eV/K/atom
+        heat_capacity: np.ndarray, # in eV/K/atom
         bulk_modulus: float = None # in GPa
 ) -> Tuple[List,List]:
 
@@ -648,28 +652,34 @@ def gruneisen(
         grun_tot.append(get_total_grun(omega,grun,kweight,temp))
     grun_tot = np.nan_to_num(np.array(grun_tot))
     
-    # linear thermal expansion coefficient
+    # linear thermal expansion coefficeint and fraction
     if bulk_modulus is None:
         cte = None
+        dLfrac = None
     else:
-        Cv *= eV2J*phonopy.primitive.get_number_of_atoms() # eV/K/atom to J/K 
+        heat_capacity *= eV2J*phonopy.primitive.get_number_of_atoms() # eV/K/atom to J/K 
         vol = phonopy.primitive.get_volume()
-        cte = grun_tot*(Cv.repeat(3).reshape((len(Cv),3)))/(vol/10**30)/(bulk_modulus*10**9)/3
-        cte = np.nan_to_num(cte)    
+#        cte = grun_tot*heat_capacity.repeat(3)/(vol/10**30)/(bulk_modulus*10**9)/3
+        cte = grun_tot*heat_capacity.repeat(3).reshape(len(heat_capacity),3)/(vol/10**30)/(bulk_modulus*10**9)/3
+        cte = np.nan_to_num(cte)
+        dLfrac = thermal_expansion(temperature,cte)
+        if len(temperature)==1:
+            dLfrac = dLfrac[-1]
         logger.info('Gruneisen: \n {}'.format(grun_tot))
-        logger.info('CTE: \n {}'.format(cte))    
-    return grun_tot, cte
+        logger.info('Coefficient of Thermal Expansion: \n {}'.format(cte))
+        logger.info('Linear Expansion Fraction: \n {}'.format(dLfrac))        
+        
+    return grun_tot, cte, dLfrac
 
 
 def thermal_expansion(
         temperature: List,
-        cte: List,
-        T: Optional[float]=None
+        cte: np.array,
 ) -> np.ndarray:
     assert len(temperature)==len(cte)
     if 0 not in temperature:
         temperature = [0] + temperature
-        cte = [[0,0,0]] + cte
+        cte = np.array([np.array([0,0,0])] + list(cte))
     temperature = np.array(temperature)
     ind = np.argsort(temperature)
     temperature = temperature[ind]
@@ -679,15 +689,7 @@ def thermal_expansion(
     for t in range(len(temperature)):
         dLfrac[t,:] = np.trapz(cte[:t+1,:],temperature[:t+1],axis=0)
     dLfrac = np.nan_to_num(dLfrac)
-    logger.info('dLfrac: \n {}'.format(dLfrac))
-    if T is None:
-        return dLfrac
-    else:
-        try:
-            T_ind = np.where(temperature==T)[0][0]
-            return np.array([dLfrac[T_ind]])
-        except:
-            raise ValueError('Designated T does not exist in the temperature array!')
+    return dLfrac
 
 
 def run_renormalization(
@@ -725,8 +727,10 @@ def run_renormalization(
         A tuple of the number of imaginary modes at Gamma, the minimum phonon
         frequency at Gamma, and the free energy, entropy, and heat capacity
     """
+
+    nconfig = int(nconfig)
     renorm = Renormalization(cs,supercell,fcs,param,T,renorm_method,fit_method)
-    fcp, fcs, param = renorm.renormalize(nconfig,conv_tresh)
+    fcp, fcs, param = renorm.renormalize(nconfig)#,conv_tresh)
 
     renorm_data, phonopy = harmonic_properties(
         structure, supercell_matrix, fcs, [T], imaginary_tol
@@ -734,21 +738,27 @@ def run_renormalization(
 
     if renorm_data["n_imaginary"] == 0:
         logger.info('Renormalized phonon is completely real at T = {} K!'.format(T))
-        anharmonic_data, phonopy = anharmonic_properties(
-            phonopy, fcs, [T], thermal_data["heat_capacity"], n_imaginary, bulk_modulus=bulk_modulus
-	)
-    else:
-        anharmonic_data = dict()
-        anharmonic_data["gruneisen"] = np.array([[0,0,0]])
-        anharmonic_data["thermal_expansion"] = np.array([[0,0,0]])
+    anharmonic_data = anharmonic_properties(
+        phonopy, fcs, [T], renorm_data["heat_capacity"], renorm_data["n_imaginary"], bulk_modulus=bulk_modulus
+    )
+#    else:
+#        anharmonic_data = dict()
+#        anharmonic_data["temperature"] = T
+#        anharmonic_data["gruneisen"] = np.array([0,0,0])
+#        anharmonic_data["thermal_expansion"] = np.array([0,0,0])
+#        anharmonic_data["expansion_fraction"] = np.array([0,0,0])
+    renorm_data.update(anharmonic_data)
 
+    phonopy_orig.run_mesh()
+    phonopy.run_mesh()
     omega0 = phonopy_orig.mesh.frequencies # THz
     omega_TD = phonopy.mesh.frequencies # THz
+    evec = phonopy.mesh.eigenvectors
 #    natom = phonopy.primitive.get_number_of_atoms()
-    correction_S, correction_4 = FE_correction(omega0,omega_TD,T) # eV/atom
+    correction_S, correction_SC = free_energy_correction(omega0,omega_TD,evec,[T]) # eV/atom
 
-    renorm_data.update(anharmonic_data)
     renorm_data["free_energy_correction_S"] = correction_S[0]
+    renorm_data["free_energy_correction_SC"] = correction_SC[0]
     renorm_data["fcp"] = fcp
     renorm_data["fcs"] = fcs
     renorm_data["param"] = param
@@ -757,28 +767,21 @@ def run_renormalization(
 
 
 
-def setup_TE_iter(cutoffs,parent_structure,temperatures,dLfracs):
-    parent_structure_TE = []
-    cs_TE = []
-    fcs_TE = []
-    for t, (T,dLfrac) in enumerate(zip(temperatures,dLfracs)):
-        new_atoms = AseAtomsAdaptor.get_atoms(parent_structure)
-        new_cell = Cell(np.transpose([new_atoms.get_cell()[:,i]*(1+dLfrac[0,i]) for i in range(3)]))
-        new_atoms.set_cell(new_cell,scale_atoms=True)
-        new_parent_structure = AseAtomsAdaptor.get_structure(new_atoms)
-        new_supercell_atoms = AseAtomsAdaptor.get_atoms(new_parent_structure*supercell_matrix)
-        new_cutoffs = [i*(1+np.linalg.norm(dLfrac)) for i in cutoffs]
-        while True:
-            new_cs = ClusterSpace(atoms,new_cutoffs,1e-3,acoustic_sum_rules=True)
-            if cs_TD.n_dofs == cs.n_dofs:
-                break
-            elif cs_TD.n_dofs > cs.n_dofs:
-                new_cutoffs = [i*0.999 for i in new_cutoffs]
-            elif cs_TD.n_dofs < cs.n_dofs:
-                new_cutoffs = [i*1.001 for i in new_cutoffs]
-        cs_TE.append(new_cs)
-        parent_structure_TE.append(new_parent_structure)
-        new_fcp = ForceConstantsPotential(new_cs,param_real[t])
-        fcs_TE.append(new_fcp.get_force_constants(new_supercell_atoms))
-
-        return parent_structure_TE, cs_TE, fcs_TE
+def setup_TE_iter(cs,cutoffs,parent_structure,param,temperatures,dLfrac):
+    new_atoms = AseAtomsAdaptor.get_atoms(parent_structure)
+    new_cell = Cell(np.transpose([new_atoms.get_cell()[:,i]*(1+dLfrac[0,i]) for i in range(3)]))
+    new_atoms.set_cell(new_cell,scale_atoms=True)
+    parent_structure_TE = AseAtomsAdaptor.get_structure(new_atoms)
+    supercell_atoms_TE = AseAtomsAdaptor.get_atoms(parent_structure_TE*supercell_matrix)
+    new_cutoffs = [i*(1+np.linalg.norm(dLfrac)) for i in cutoffs]
+    while True:
+        cs_TE = ClusterSpace(atoms,new_cutoffs,1e-3,acoustic_sum_rules=True)
+        if cs_TE.n_dofs == cs.n_dofs:
+            break
+        elif cs_TE.n_dofs > cs.n_dofs:
+            new_cutoffs = [i*0.999 for i in new_cutoffs]
+        elif cs_TE.n_dofs < cs.n_dofs:
+            new_cutoffs = [i*1.001 for i in new_cutoffs]
+        new_fcp = ForceConstantsPotential(cs_TE,param)
+        fcs_TE.append(new_fcp.get_force_constants(supercell_atoms_TE))
+    return parent_structure_TE, supercell_atoms_TE, cs_TE, fcs_TE

@@ -37,9 +37,7 @@ class FitForceConstantsFW(Firework):
         db_file: Path to a db file.
         cutoffs: A list of cutoffs to trial. If None, a set of trial cutoffs
             will be generated based on the structure (default).
-        separate_fit: Boolean to determine whether harmonic and anharmonic fitting
-            are to be done separately (True) or in one shot (False)
-        disp_cut: if separate_fit true, determines the mean displacement of perturbed
+        disp_cut: determines the mean displacement of perturbed
             structure to be included in harmonic (<) or anharmonic (>) fitting  
         bulk_modulus: in GPa, necessary for thermal expansion
         imaginary_tol: Tolerance used to decide if a phonon mode is
@@ -55,7 +53,6 @@ class FitForceConstantsFW(Firework):
     def __init__(
         self,
         fit_method: str,
-        separate_fit: bool,
         disp_cut: float,
         bulk_modulus: float,
         imaginary_tol: float,
@@ -71,7 +68,6 @@ class FitForceConstantsFW(Firework):
         
         fit_force_constants = RunHiPhive(
             cutoffs=cutoffs,
-            separate_fit=separate_fit,
             fit_method=fit_method,
             disp_cut=disp_cut,
             bulk_modulus=bulk_modulus,
@@ -122,34 +118,22 @@ class LatticeThermalConductivityFW(Firework):
         ):
 
         # files needed to run ShengBTE
-        if renormalized: # must check if FORCE_CONSTANTS_2ND_{T}K can be copied individually
+        
+        files = [
+            "structure_data.json",
+            "FORCE_CONSTANTS_2ND",
+            "FORCE_CONSTANTS_3RD"
+        ]
+        
+        if renormalized: 
             assert type(temperature) in [float,int]
-            files = [
-                "structure_data.json",
-                "FORCE_CONSTANTS_2ND_{}K".format(temperature),
-                "FORCE_CONSTANTS_3RD"
-            ]
-#            temperature_copy = temperature[:]
-#            for t,T in enumerate(temperature_copy):
-#                try:
-#                    files = files.append("FORCE_CONSTANTS_2ND_{}K".format(T))
-#                except:
-#                    logger.info("FORCE_CONSTANTS_2ND_{}K is missing".format(T))
-#                    logger.info("Renormalization must have failed at {} K".format(T))
-#                    logger.info("Cannot calculate thermal conductivity at {} K".format(T))
-#                    temperature.remove(T)
+            name = '{} at {}K'.format(name,temperature)
             if prev_calc_dir:
                 copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
             else:
-                copy_files = CopyFilesFromCalcLoc(calc_loc='Renormalization', filenames=files)
-            os.system('mv FORCE_CONSTANTS_2ND_{}K FORCE_CONSTANTS_2ND'.format(temperature))
+                copy_files = CopyFilesFromCalcLoc(calc_loc='Renormalization_{}K'.format(temperature), filenames=files)
 
-        else: # only the default files are needed
-            files = [
-                "structure_data.json",
-                "FORCE_CONSTANTS_2ND",
-                "FORCE_CONSTANTS_3RD",
-            ]
+        else:
             if prev_calc_dir:
                 copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
             else:
@@ -165,10 +149,8 @@ class LatticeThermalConductivityFW(Firework):
         shengbte_to_db = ShengBTEToDb(db_file=db_file, additional_fields={})
 
         tasks = [copy_files, run_shengbte, shengbte_to_db]
-        if renormalized:
-            super().__init__(tasks, name=name+' at {}K'.format(temperature), **kwargs)
-        else:
-            super().__init__(tasks, name=name, **kwargs)
+
+        super().__init__(tasks, name=name, **kwargs)
 
 
 
@@ -195,9 +177,9 @@ class RenormalizationFW(Firework):
         self,
         temperature: Union[float, Dict], 
         renorm_method: str,
-        renorm_nconfig: int,
-        renorm_conv_thresh: float,
-        renorm_max_iter: float,
+        nconfig: int,
+        conv_thresh: float,
+        max_iter: float,
         renorm_TE_iter: bool,
         bulk_modulus: float,
         mesh_density: float,
@@ -209,26 +191,28 @@ class RenormalizationFW(Firework):
         
         # files needed to run renormalization
         files = ["cluster_space.cs","parameters.txt","force_constants.fcs",
-                 "structure_data.json","fitting_data.json","phonopy_params.yaml"]
+                 "structure_data.json","fitting_data.json","phonopy_orig.yaml"]
 
+        name = name+"_{}K".format(temperature)
         if prev_calc_dir:
             copy_files = CopyFiles(from_dir=prev_calc_dir, filenames=files)
         else:
             copy_files = CopyFilesFromCalcLoc(calc_loc="Fit Force Constants", filenames=files)
 
         renorm_force_constants = RunHiPhiveRenorm(
-            renorm_temp=temperature,
+            temperature=temperature,
             renorm_method=renorm_method,
-            nconfig=renorm_nconfig,
-            conv_thresh=renorm_conv_thresh,
-            max_iter=renorm_max_iter,
+            nconfig=nconfig,
+            conv_thresh=conv_thresh,
+            max_iter=max_iter,
             renorm_TE_iter=renorm_TE_iter,
             bulk_modulus=bulk_modulus,
             **kwargs
             )        
 
         to_db = ForceConstantsToDb(
-            db_file=db_file, renormalized=True, mesh_density=mesh_density, additional_fields={}
+            db_file=db_file, renormalized=True, renorm_temperature = temperature,
+            mesh_density=mesh_density, additional_fields={}
 	)
         pass_locs = PassCalcLocs(name=name)
 
