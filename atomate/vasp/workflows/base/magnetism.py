@@ -328,8 +328,8 @@ class MagneticOrderingsWF:
                         vasp_cmd=c["VASP_CMD"],
                         db_file=c["DB_FILE"],
                         name=name + " static",
-                        prev_calc_loc=True,
-                        parents=fws[-1],
+                        prev_calc_loc = True if not self.static else False,
+                        parents=fws[-1] if not self.static else None,
                         vasptodb_kwargs={"parse_chgcar": True, "parse_aeccar": True},
                     )
                 )
