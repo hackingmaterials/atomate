@@ -691,14 +691,12 @@ class WriteNormalmodeDisplacedPoscar(FiretaskBase):
         mode = self["mode"]
         disp = self["displacement"]
         structure = Structure.from_file("POSCAR")
+        masses = np.array([site.specie.data['Atomic mass'] for site in structure])
         nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
-        nm_norms = np.linalg.norm(nm_eigenvecs, axis=2)
+        nm_eigenvec_sqm = nm_eigenvecs[mode, :, :] / np.sqrt(masses[:, np.newaxis])
+        nm_norms = np.linalg.norm(nm_eigenvec_sqm)
+        nm_displacement = (nm_eigenvec_sqm * disp / nm_norms)
 
-        # displace the sites along the given normal mode: displacement vector
-        # for each site = normalized eigen vector * amount of displacement
-        nm_displacement = (
-            nm_eigenvecs[mode, :, :] * disp / nm_norms[mode, :, np.newaxis]
-        )
         for i, vec in enumerate(nm_displacement):
             structure.translate_sites(i, vec, frac_coords=False)
 

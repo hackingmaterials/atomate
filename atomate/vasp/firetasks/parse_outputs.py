@@ -472,12 +472,11 @@ class RamanTensorToDb(FiretaskBase):
     def run_task(self, fw_spec):
         nm_eigenvecs = np.array(fw_spec["normalmodes"]["eigenvecs"])
         nm_eigenvals = np.array(fw_spec["normalmodes"]["eigenvals"])
-        nm_norms = np.linalg.norm(nm_eigenvecs, axis=2)
+        
         structure = fw_spec["normalmodes"]["structure"]
         masses = np.array([site.specie.data["Atomic mass"] for site in structure])
-        nm_norms = nm_norms / np.sqrt(
-            masses
-        )  # eigenvectors in vasprun.xml are not divided by sqrt(M_i)
+        
+        # eigenvectors in vasprun.xml are not divided by sqrt(M_i)
         # To get the actual eigenvals, the values read from vasprun.xml must be multiplied by -1.
         # frequency_i = sqrt(-e_i)
         # To convert the frequency to THZ: multiply sqrt(-e_i) by 15.633
@@ -507,14 +506,16 @@ class RamanTensorToDb(FiretaskBase):
 
         # raman tensor = finite difference derivative of epsilon wrt displacement.
         raman_tensor_dict = {}
-        scale = np.sqrt(structure.volume / 2.0) / 4.0 / np.pi
+        scale = structure.volume / 4.0 / np.pi
         for k, v in modes_eps_dict.items():
+            nm_eigenvec_sqm = nm_eigenvecs[k, :, :] / np.sqrt(masses[:, np.newaxis])
+            nm_norms = np.linalg.norm(nm_eigenvec_sqm)
             raman_tensor = (np.array(v[0][1]) - np.array(v[1][1])) / (v[0][0] - v[1][0])
             # frequency in cm^-1
             omega = nm_frequencies[k]
             if nm_eigenvals[k] > 0:
                 logger.warning(f"Mode: {k} is UNSTABLE. Freq(cm^-1) = {-omega}")
-            raman_tensor = scale * raman_tensor * np.sum(nm_norms[k]) / np.sqrt(omega)
+            raman_tensor = scale * raman_tensor * nm_norms
             raman_tensor_dict[str(k)] = raman_tensor.tolist()
 
         d["raman_tensor"] = raman_tensor_dict
