@@ -243,7 +243,7 @@ class ScanOptimizeFW(Firework):
 
                 # Enable vdW for the SCAN step
                 settings["_set"]["LUSE_VDW"] = True
-                settings["_set"]["BPARAM"] = 15.7
+                settings["_set"]["BPARAM"] = 11.95
 
             t.append(ModifyIncar(incar_dictmod=settings))
 
@@ -266,7 +266,7 @@ class ScanOptimizeFW(Firework):
             # Disable vdW for the precondition step
             if vasp_input_set_params.get("vdw"):
                 pre_opt_settings.update({"_unset": {"LUSE_VDW": True,
-                                                    "BPARAM": 15.7,
+                                                    "BPARAM": 11.95,
                                                     "METAGGA": metagga_type}})
 
             t.append(ModifyIncar(incar_dictmod=pre_opt_settings))
