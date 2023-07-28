@@ -18,9 +18,6 @@ LOBSTER_CMD = ">>lobster_cmd<<"
 # the initial relaxation of a structure optimization for faster performance
 HALF_KPOINTS_FIRST_RELAX = False
 
-# maximum force allowed on atom for successful structure optimization
-RELAX_MAX_FORCE = 0.25
-
 # this is a three-way toggle on what to do if your job looks OK,
 # but is actually unconverged (either electronic or ionic).
 # True -> mark job as COMPLETED, but defuse children.
