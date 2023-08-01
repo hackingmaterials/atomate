@@ -315,7 +315,6 @@ class MagneticOrderingsWF:
                             vasp_input_set=vis,
                             vasp_cmd=c["VASP_CMD"],
                             db_file=c["DB_FILE"],
-                            max_force_threshold=0.05,
                             half_kpts_first_relax=False,
                             name=name + " optimize",
                         )

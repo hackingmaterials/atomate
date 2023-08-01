@@ -97,7 +97,6 @@ class RunVaspCustodian(FiretaskBase):
     optional_params = [
         "job_type",
         "handler_group",
-        "max_force_threshold",
         "scratch_dir",
         "gzip_output",
         "max_errors",
