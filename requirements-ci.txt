@@ -1,9 +1,0 @@
-pymatgen==2023.7.20
-custodian==2023.7.22
-boto3==1.28.15
-Flask==2.3.2
-coverage==7.2.7
-moto==4.1.14
-pytest-cov==4.1.0
-pytest==7.4.0
-openbabel-wheel==3.1.1.16

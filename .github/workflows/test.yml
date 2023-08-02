@@ -38,7 +38,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements-ci.txt
           pip install .[complete]
 
       - name: pytest

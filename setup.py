@@ -50,6 +50,12 @@ if __name__ == "__main__":
                 "matplotlib>=1.5.2",
                 "phonopy>=1.10.8",
                 "openbabel-wheel",
+                "boto3>=1.28.15",
+                "Flask>=2.3.2",
+                "coverage>=7.2.7",
+                "moto>=4.1.14",
+                "pytest-cov>=4.1.0",
+                "pytest>=7.4.0",
             ],
         },
         classifiers=[
