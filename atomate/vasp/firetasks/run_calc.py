@@ -14,7 +14,6 @@ from custodian.vasp.handlers import (
     FrozenJobErrorHandler,
     IncorrectSmearingHandler,
     LargeSigmaHandler,
-    MaxForceErrorHandler,
     MeshSymmetryErrorHandler,
     NonConvergingErrorHandler,
     PositiveEnergyErrorHandler,
@@ -81,8 +80,6 @@ class RunVaspCustodian(FiretaskBase):
         handler_group: (str | list[ErrorHandler]) - group of handlers to use. See handler_groups dict in the code or
             the groups and complete list of handlers in each group. Alternatively, you can
             specify a list of ErrorHandler objects.
-        max_force_threshold: (float) - if >0, adds MaxForceErrorHandler. Not recommended for
-            nscf runs.
         scratch_dir: (str) - if specified, uses this directory as the root scratch dir.
             Supports env_chk.
         gzip_output: (bool) - gzip output (default=T)
@@ -100,7 +97,6 @@ class RunVaspCustodian(FiretaskBase):
     optional_params = [
         "job_type",
         "handler_group",
-        "max_force_threshold",
         "scratch_dir",
         "gzip_output",
         "max_errors",
@@ -266,11 +262,6 @@ class RunVaspCustodian(FiretaskBase):
             handlers = handler_groups[handler_group]
         else:
             handlers = handler_group
-
-        if self.get("max_force_threshold"):
-            handlers.append(
-                MaxForceErrorHandler(max_force_threshold=self["max_force_threshold"])
-            )
 
         if self.get("wall_time"):
             handlers.append(WalltimeHandler(wall_time=self["wall_time"]))

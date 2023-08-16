@@ -1,8 +1,0 @@
-pymatgen==2023.3.10
-custodian==2023.3.10
-boto3==1.17.97
-Flask==2.1.3
-coverage==5.5
-moto==3.1.18
-pytest-cov==2.12.1
-pytest==6.2.4
