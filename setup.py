@@ -32,7 +32,7 @@ if __name__ == "__main__":
             "pandas",
             "paramiko",
             "pydash>=7.0.6",
-            "pymatgen-analysis-diffusion>=2022.7.21",
+            "pymatgen-analysis-diffusion>=2023.8.15",
             "pymatgen-analysis-defects>=2023.7.24",
             "pymatgen>=2023.7.20",
             "pymongo",
