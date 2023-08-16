@@ -4,7 +4,7 @@ from json import loads
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from monty.json import MontyEncoder
 from pydash import get
-from pymatgen.analysis.path_finder import ChgcarPotential, NEBPathfinder
+from pymatgen.analysis.diffusion.neb.pathfinder import ChgcarPotential, NEBPathfinder
 from pymatgen.core import Element, Structure
 from pymatgen.io.vasp.sets import MPRelaxSet
 
