@@ -26,7 +26,6 @@ jobs:
           cache: pip
           cache-dependency-path: |
             setup.py
-            requirements-ci.txt
           python-version: 3.8
 
       - name: Install OpenBabel
