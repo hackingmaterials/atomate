@@ -1,5 +1,4 @@
 import os
-import unittest
 
 import numpy as np
 from fireworks import FWorker
@@ -132,7 +131,3 @@ class TestNMRWorkflow(AtomateTest):
                     [-26.609, -38.683, -7.188],
                 ],
             )
-
-
-if __name__ == "__main__":
-    unittest.main()

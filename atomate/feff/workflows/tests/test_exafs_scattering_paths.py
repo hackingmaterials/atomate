@@ -65,7 +65,3 @@ class TestEXAFSPaths(unittest.TestCase):
     def test_paths(self):
         paths = [[249, 0], [85, 0]]
         self.assertEqual(paths, self.fw2_dict["spec"]["_tasks"][2]["paths"])
-
-
-if __name__ == "__main__":
-    unittest.main()

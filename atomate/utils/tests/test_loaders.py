@@ -1,5 +1,4 @@
 import os
-import unittest
 
 from monty.serialization import loadfn
 from pymatgen.util.testing import PymatgenTest
@@ -34,7 +33,3 @@ class FuncTest(PymatgenTest):
         wf = get_wf_from_spec_dict(self.structure, d)
         self.assertEqual(len(wf.fws), 3)
         self.assertEqual(sorted(len(v) for v in wf.links.values()), [0, 1, 1])
-
-
-if __name__ == "__main__":
-    unittest.main()

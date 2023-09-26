@@ -3,7 +3,6 @@ __email__ = "janine.george@uclouvain.be, guido.petretto@uclouvain.be"
 
 import json
 import os
-import unittest
 
 from fireworks.core.rocket_launcher import rapidfire
 from pymatgen.core.structure import Structure
@@ -187,7 +186,6 @@ class TestWFLobster(AtomateTest):
     def _single_lobster_db_insertion(
         self, delete_wavecars=False, user_supplied_basis=None, fake=True
     ):
-
         structure = self.struct_si
         my_wf = get_wf_lobster(
             structure=structure,
@@ -379,7 +377,3 @@ class TestWFLobsterTestBasis(AtomateTest):
     #     # integration test
     #     if VASP_CMD and LOBSTER_CMD:
     #         self._single_vasp_lobster(fake=False)
-
-
-if __name__ == "__main__":
-    unittest.main()

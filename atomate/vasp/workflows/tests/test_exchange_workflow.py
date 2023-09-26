@@ -95,7 +95,3 @@ class TestExchangeWF(AtomateTest):
         ).get_wf(c=c)
 
         return wf
-
-
-if __name__ == "__main__":
-    unittest.main()

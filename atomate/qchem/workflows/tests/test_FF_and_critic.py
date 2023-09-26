@@ -1,5 +1,4 @@
 import os
-import unittest
 
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
@@ -85,7 +84,3 @@ class TestFFOptandCritic(AtomateTest):
             os.path.join(test_files, "critic_example", "critic2_drone_ref.json")
         )
         self.assertEqual(CC2["critic2"], critic2_drone_ref)
-
-
-if __name__ == "__main__":
-    unittest.main()

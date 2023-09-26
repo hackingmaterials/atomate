@@ -1,5 +1,4 @@
 import os
-import unittest
 
 import pandas as pd
 from pymatgen.core.structure import Structure
@@ -46,7 +45,3 @@ class TestExchangeFireworks(AtomateTest):
         )
         num_ftasks = len(vcfw.tasks)
         self.assertEqual(num_ftasks, 2)
-
-
-if __name__ == "__main__":
-    unittest.main()
