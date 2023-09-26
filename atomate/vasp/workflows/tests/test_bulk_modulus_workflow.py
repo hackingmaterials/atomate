@@ -1,6 +1,5 @@
 import json
 import os
-import unittest
 
 import numpy as np
 from fireworks import FWorker
@@ -224,7 +223,3 @@ class TestBulkModulusWorkflow(AtomateTest):
         # check the final results
         d = self.get_task_collection(coll_name="eos").find_one()
         self._check_run(d, mode="fit equation of state")
-
-
-if __name__ == "__main__":
-    unittest.main()

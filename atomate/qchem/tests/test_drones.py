@@ -669,7 +669,3 @@ class QChemDroneTest(unittest.TestCase):
         self.assertEqual(doc["output"]["dipoles"]["dipole"][0], 4.0212)
         self.assertEqual(doc["output"]["gap_info"]["beta_LUMO"], -0.0105686)
         self.assertEqual(doc["output"]["gap_info"]["KSgap"], 0.3287354)
-
-
-if __name__ == "__main__":
-    unittest.main()

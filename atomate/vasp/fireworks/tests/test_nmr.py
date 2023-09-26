@@ -60,7 +60,3 @@ class TestNMRFireworks(unittest.TestCase):
         )
 
         self.assertRaises(ValueError, NMRFW)
-
-
-if __name__ == "__main__":
-    unittest.main()

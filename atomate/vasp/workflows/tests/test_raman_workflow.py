@@ -1,5 +1,4 @@
 import os
-import unittest
 
 import numpy as np
 from fireworks import FWorker
@@ -148,7 +147,3 @@ class TestRamanWorkflow(AtomateTest):
 
         wf = self.lp.get_wf_by_fw_id(1)
         self.assertTrue(all([s == "COMPLETED" for s in wf.fw_states.values()]))
-
-
-if __name__ == "__main__":
-    unittest.main()

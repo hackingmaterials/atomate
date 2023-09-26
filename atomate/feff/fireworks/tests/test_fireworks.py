@@ -1,5 +1,4 @@
 import os
-import unittest
 
 from pymatgen.core import Structure
 
@@ -32,7 +31,3 @@ class TestFireworks(AtomateTest):
             "{{atomate.feff.firetasks.parse_outputs.AddPathsToFilepadTask}}",
         ]
         self.assertEqual(answer, [ft["_fw_name"] for ft in fw_dict["spec"]["_tasks"]])
-
-
-if __name__ == "__main__":
-    unittest.main()

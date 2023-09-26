@@ -1,6 +1,5 @@
 import os
 import shutil
-import unittest
 
 try:
     from unittest.mock import patch
@@ -545,7 +544,9 @@ class TestFakeRunQChem(AtomateTest):
         for key in ref_out:
             if key == "dipoles":
                 self.assertEqual(ref_out[key]["total"], this_out[key]["total"])
-                np.testing.assert_array_equal(ref_out[key]["dipole"], this_out[key]["dipole"])
+                np.testing.assert_array_equal(
+                    ref_out[key]["dipole"], this_out[key]["dipole"]
+                )
             else:
                 try:
                     self.assertEqual(ref_out[key], this_out[key])
@@ -556,7 +557,3 @@ class TestFakeRunQChem(AtomateTest):
         ):
             self.assertEqual(os.path.isfile(filename), True)
         os.chdir(module_dir)
-
-
-if __name__ == "__main__":
-    unittest.main()

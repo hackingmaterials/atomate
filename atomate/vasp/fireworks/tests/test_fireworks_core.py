@@ -152,7 +152,6 @@ class TestCoreFireworks(unittest.TestCase):
         self.assertRaises(ValueError, SOCFW, magmom=1)
 
     def testTransmuterFW(self):
-
         transformations = [RotationTransformation]
         opts = [{"axis": [1, 0, 0], "angle": 0}]
 
@@ -182,7 +181,3 @@ class TestCoreFireworks(unittest.TestCase):
         self.assertTrue(boltz_fw.tasks[0]["calc_loc"])
 
         self.assertRaises(ValueError, BoltztrapFW)
-
-
-if __name__ == "__main__":
-    unittest.main()

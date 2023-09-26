@@ -1,6 +1,5 @@
 import json
 import os
-import unittest
 import zlib
 
 import boto3
@@ -850,7 +849,3 @@ class TestScanOptimizeWorkflow(AtomateTest):
         wf = self.lp.get_wf_by_fw_id(fw_id)
         is_completed = [s == "COMPLETED" for s in wf.fw_states.values()]
         self.assertTrue(all(is_completed))
-
-
-if __name__ == "__main__":
-    unittest.main()

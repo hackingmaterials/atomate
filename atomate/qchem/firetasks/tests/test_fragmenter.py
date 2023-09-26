@@ -1,6 +1,5 @@
 import json
 import os
-import unittest
 
 from monty.serialization import loadfn  # , dumpfn
 
@@ -468,7 +467,3 @@ class TestFragmentMolecule(AtomateTest):
             frags = ft.unique_fragments
             self.assertEqual(len(frags), 7)
             self.assertEqual(len(FWAction_patch.call_args[1]["additions"]), 14)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -1,6 +1,5 @@
 import os
 import shutil
-import unittest
 
 import numpy as np
 from fireworks import Firework, FWorker, Workflow
@@ -39,7 +38,6 @@ class TestParsePassWrite(AtomateTest):
                 os.remove(os.path.join(module_dir, x))
 
     def test_parse_pass_write(self):
-
         input_file = "test.qin.opt_1"
         output_file = "test.qout.opt_1"
         calc_dir = os.path.join(module_dir, "..", "..", "test_files", "FF_working")
@@ -65,7 +63,6 @@ class TestParsePassWrite(AtomateTest):
         np.testing.assert_equal(self.act_mol.cart_coords, test_mol.cart_coords)
 
     def test_parse_pass_rotate_write(self):
-
         input_file = "pt_gs_wb97mv_tz_initial.in"
         output_file = "pt_gs_wb97mv_tz_initial_1_job.out"
         calc_dir = os.path.join(module_dir, "..", "..", "test_files")
@@ -97,7 +94,3 @@ class TestParsePassWrite(AtomateTest):
         np.testing.assert_allclose(
             act_mol.cart_coords, test_mol.cart_coords, atol=0.0001
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

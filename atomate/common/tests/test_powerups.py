@@ -140,7 +140,6 @@ class TestPowerups(unittest.TestCase):
         self.assertDictEqual(wf.id_fw[-3].spec, {})
 
     def test_add_additional_fields_to_taskdocs(self):
-
         my_wf = copy_wf(self.bsboltz_wf)
         meta_dict = {"foo": "bar", "baz": 42}
         my_wf = add_additional_fields_to_taskdocs(my_wf, meta_dict)
@@ -172,7 +171,3 @@ class TestPowerups(unittest.TestCase):
 
 def copy_wf(wf):
     return Workflow.from_dict(wf.to_dict())
-
-
-if __name__ == "__main__":
-    unittest.main()

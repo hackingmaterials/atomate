@@ -48,7 +48,3 @@ class TestLobsterFireworks(unittest.TestCase):
         # check for ValueError when no parent or calc_dir are provided
         with self.assertRaises(ValueError):
             LobsterFW()
-
-
-if __name__ == "__main__":
-    unittest.main()

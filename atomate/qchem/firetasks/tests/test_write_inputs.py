@@ -1,6 +1,5 @@
 import os
 import shutil
-import unittest
 
 from pymatgen.core import Molecule
 from pymatgen.io.qchem.inputs import QCInput
@@ -21,7 +20,6 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 class TestWriteInputQChem(AtomateTest):
     @classmethod
     def setUpClass(cls):
-
         co_species = ["C", "O"]
         co_coords = [[0.0, 0.0, 0.0], [1.3, 0.0, 0.0]]
         cls.co_mol = Molecule(co_species, co_coords)
@@ -191,7 +189,3 @@ class TestWriteInputQChem(AtomateTest):
         test_dict = QCInput.from_file("mol.qin").as_dict()
         for k, v in self.co_opt_diff_in.as_dict().items():
             self.assertEqual(v, test_dict[k])
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -1,5 +1,4 @@
 import os
-import unittest
 
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
@@ -89,7 +88,3 @@ class TestDoubleFFOpt(AtomateTest):
         )
 
         self.assertEqual(first_FF_final_mol, second_FF_initial_mol)
-
-
-if __name__ == "__main__":
-    unittest.main()

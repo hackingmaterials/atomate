@@ -1,5 +1,4 @@
 import os
-import unittest
 
 from fireworks import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
@@ -323,7 +322,3 @@ class TestCopyFilesFromCalcLoc(AtomateTest):
         self.assertTrue(
             os.path.exists(get_calc_loc("fw3", calc_locs)["path"] + "/POSCAR_1")
         )
-
-
-if __name__ == "__main__":
-    unittest.main()
