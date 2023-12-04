@@ -11,10 +11,14 @@ from monty.io import zopen
 from monty.json import jsanitize
 from pymatgen.apps.borg.hive import AbstractDrone
 from pymatgen.core import Molecule
+from pymatgen.core.periodic_table import Element
 from pymatgen.io.babel import BabelMolAdaptor
 from pymatgen.io.qchem.inputs import QCInput
 from pymatgen.io.qchem.outputs import QCOutput
+from pymatgen.analysis.graphs import MoleculeGraph
+from pymatgen.analysis.local_env import OpenBabelNN, metal_edge_extender
 from pymatgen.symmetry.analyzer import PointGroupAnalyzer
+from pymatgen.util.graph_hashing import weisfeiler_lehman_graph_hash
 
 from atomate import __version__ as atomate_version
 from atomate.utils.utils import get_logger
@@ -29,6 +33,13 @@ __date__ = "4/25/18"
 __credits__ = "Brandon Wood, Shyam Dwaraknath, Xiaohui Qu, Kiran Mathew, Shyue Ping Ong, Anubhav Jain"
 
 logger = get_logger(__name__)
+
+
+METALS = {
+    str(e)
+    for e in [Element.from_Z(i) for i in range(1, 119)]
+    if e.is_metal
+}
 
 
 class QChemDrone(AbstractDrone):
@@ -53,6 +64,9 @@ class QChemDrone(AbstractDrone):
             "chemsys",
             "pointgroup",
             "formula_alphabetical",
+            "species_hash",
+            "coord_hash",
+            "species_hash_nometal"
         },
         "input": {"initial_molecule", "job_type"},
         "output": {"initial_molecule", "job_type", "final_energy"},
@@ -345,6 +359,41 @@ class QChemDrone(AbstractDrone):
             pbmol = bb.pybel_mol
             smiles = pbmol.write("smi").split()[0]
             d["smiles"] = smiles
+
+            # Add graph hashes
+            # This is primarily for emmet builders
+            if "optimized_molecule" in d["output"]:
+                hash_mol = d["output"]["optimized_molecule"]
+            else:
+                hash_mol = d["output"]["initial_molecule"]
+
+            hash_mg = MoleculeGraph.with_local_env_strategy(hash_mol, OpenBabelNN())
+            hash_mg = metal_edge_extender(hash_mg)
+            undir_mg = hash_mg.graph.to_undirected()
+
+            metal_inds = [i for i, e in enumerate(hash_mol.species) if str(e) in METALS]
+
+            to_delete = list()
+            for bond in hash_mg.graph.edges():
+                if bond[0] in metal_inds or bond[1] in metal_inds:
+                    to_delete.append((bond[0], bond[1]))
+
+            mg_nometal = copy.deepcopy(hash_mg) 
+            for b in to_delete:
+                mg_nometal.break_edge(b[0], b[1], allow_reverse=True)
+
+            d["coord_hash"] = weisfeiler_lehman_graph_hash(
+                undir_mg,
+                node_attr="coords"
+            )
+            d["species_hash"] = weisfeiler_lehman_graph_hash(
+                undir_mg,
+                node_attr="specie"
+            )
+            d["species_hash_nometal"] = weisfeiler_lehman_graph_hash(
+                mg_nometal.graph.to_undirected(),
+                node_attr="specie"
+            )
 
             d["state"] = "successful" if d_calc_final["completion"] else "unsuccessful"
             if "special_run_type" in d:
