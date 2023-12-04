@@ -1,5 +1,4 @@
 import os
-import unittest
 
 from fireworks.core.fworker import FWorker
 from fireworks.core.rocket_launcher import rapidfire
@@ -122,7 +121,3 @@ class TestEELSWorkflow(AtomateTest):
         self.assertEqual(d["absorbing_atom"], self.absorbing_atom)
         tags = Tags.from_file(os.path.join(run_dir, "feff.inp"))
         self.assertEqual(d["input_parameters"], tags.as_dict())
-
-
-if __name__ == "__main__":
-    unittest.main()

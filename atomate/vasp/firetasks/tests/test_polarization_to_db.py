@@ -1,5 +1,4 @@
 import os
-import unittest
 
 from atomate.utils.testing import AtomateTest
 from atomate.vasp.firetasks.parse_outputs import PolarizationToDb
@@ -21,7 +20,6 @@ VASP_CMD = None
 
 class TestFerroelectricWorkflow(AtomateTest):
     def test_polarizationtodb(self):
-
         import gzip
 
         import bson
@@ -49,7 +47,3 @@ class TestFerroelectricWorkflow(AtomateTest):
         coll = self.get_task_collection("polarization_tasks")
         d = coll.find_one()
         self.assertAlmostEqual(d["polarization_change_norm"], 46.288752795325244, 5)
-
-
-if __name__ == "__main__":
-    unittest.main()

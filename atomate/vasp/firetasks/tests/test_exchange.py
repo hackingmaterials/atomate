@@ -64,7 +64,3 @@ class TestExchangeTasks(AtomateTest):
 
         vtdb = VampireToDb(db_file=self.db_file, wf_uuid=self.uuid)
         vtdb.run_task({})
-
-
-if __name__ == "__main__":
-    unittest.main()

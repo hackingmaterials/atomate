@@ -1,17 +1,15 @@
 import os
-import unittest
 from itertools import chain
 
 import numpy as np
-from pymatgen.io.qchem.outputs import QCOutput
-from pymatgen.core.structure import Molecule
 from pymatgen.core.sites import Site
+from pymatgen.core.structure import Molecule
+from pymatgen.io.qchem.outputs import QCOutput
 
 from atomate.qchem.firetasks.critic2 import ProcessCritic2, RunCritic2
 from atomate.qchem.firetasks.fragmenter import FragmentMolecule
 from atomate.qchem.firetasks.geo_transformations import PerturbGeometry
-from atomate.qchem.firetasks.parse_outputs import QChemToDb
-from atomate.qchem.firetasks.parse_outputs import ProtCalcToDb
+from atomate.qchem.firetasks.parse_outputs import ProtCalcToDb, QChemToDb
 from atomate.qchem.firetasks.run_calc import RunQChemCustodian
 from atomate.qchem.firetasks.write_inputs import WriteInputFromIOSet
 from atomate.qchem.fireworks.core import (
@@ -137,7 +135,6 @@ class TestCore(AtomateTest):
         self.assertEqual(firework.name, "special single point")
 
     def test_ProtonEnergyFW(self):
-
         H_site_1_H2O = Site("H", [0.18338, 2.20176, 0.01351])
         H_site_2_H2O = Site("H", [-1.09531, 1.61602, 0.70231])
         O_site_H2O = Site("O", [-0.80595, 2.22952, -0.01914])
@@ -927,7 +924,3 @@ class TestCore(AtomateTest):
         )
         self.assertEqual(firework.parents, [])
         self.assertEqual(firework.name, "special cube and critic2")
-
-
-if __name__ == "__main__":
-    unittest.main()

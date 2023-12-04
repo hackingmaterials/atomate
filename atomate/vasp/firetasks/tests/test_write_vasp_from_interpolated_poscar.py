@@ -1,5 +1,4 @@
 import os
-import unittest
 
 from fireworks import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
@@ -133,7 +132,3 @@ class TestWriteVaspFromInterpolatedPOSCAR(AtomateTest):
         self.assertAlmostEqual(
             structs[this_image].lattice.abc[0], struct_inter.lattice.abc[0]
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

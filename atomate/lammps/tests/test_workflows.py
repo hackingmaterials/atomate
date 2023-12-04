@@ -44,7 +44,6 @@ class TestLammpsWorkflows(AtomateTest):
         )
 
     def test_lammps_wflow(self):
-
         wf = get_wf_basic(
             self.input_file_template,
             self.user_settings,
@@ -94,7 +93,3 @@ class TestLammpsWorkflows(AtomateTest):
                     f"{self.reference_files_path}/peo.dcd",
                 )
             )
-
-
-if __name__ == "__main__":
-    unittest.main()

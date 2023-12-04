@@ -1,6 +1,5 @@
 import json
 import os
-import unittest
 
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
@@ -137,7 +136,3 @@ class TestFragmentation(AtomateTest):
 
             self.assertEqual(len(FWAction_patch.call_args[1]["additions"]), 0)
         mmdb.reset()
-
-
-if __name__ == "__main__":
-    unittest.main()

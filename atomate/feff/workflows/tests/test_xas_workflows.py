@@ -1,5 +1,4 @@
 import os
-import unittest
 
 import numpy as np
 from fireworks.core.fworker import FWorker
@@ -126,7 +125,3 @@ class TestXASWorkflow(AtomateTest):
         self.assertEqual(d["input_parameters"], tags.as_dict())
         xmu = np.loadtxt(os.path.join(run_dir, "xmu.dat"))
         self.assertEqual(d["spectrum"], xmu.tolist())
-
-
-if __name__ == "__main__":
-    unittest.main()

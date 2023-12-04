@@ -222,7 +222,3 @@ class TestRunLobster(AtomateTest):
             a = t.run_task(fw_spec={})
             self.assertDictEqual(a.stored_data["custodian"], d)
             mock_c.assert_called_once()
-
-
-if __name__ == "__main__":
-    unittest.main()

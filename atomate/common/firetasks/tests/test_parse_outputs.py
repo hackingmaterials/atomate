@@ -1,5 +1,4 @@
 import os
-import unittest
 
 from fireworks import Firework, Workflow
 from fireworks.core.rocket_launcher import rapidfire
@@ -49,7 +48,3 @@ class TestToDbTask(AtomateTest):
         self.assertEqual(task1["task_id"], 1)
         self.assertEqual(task1["dir_name"], "/test")
         self.assertEqual(task1["drone"], "Test Drone")
-
-
-if __name__ == "__main__":
-    unittest.main()

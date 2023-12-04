@@ -119,7 +119,3 @@ class TestProcessCritic2(AtomateTest):
         with open("processed_critic2.json") as f:
             just_built = json.load(f)
         self.assertEqual(reference, just_built)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -1,5 +1,4 @@
 import os
-import unittest
 
 from atomate.utils.testing import AtomateTest
 from atomate.vasp.firetasks.glue_tasks import CopyVaspOutputs
@@ -117,7 +116,3 @@ class TestCopyVaspOutputs(AtomateTest):
         no_files = ["CONTCAR", "EIGENVAL", "KPOINTS"]
         for f in no_files:
             self.assertFalse(os.path.exists(os.path.join(self.scratch_dir, f)))
-
-
-if __name__ == "__main__":
-    unittest.main()

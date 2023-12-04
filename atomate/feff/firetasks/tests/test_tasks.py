@@ -1,5 +1,4 @@
 import os
-import unittest
 from glob import glob
 
 from pymatgen.core import Structure
@@ -39,7 +38,3 @@ class TestTasks(AtomateTest):
         t.run_task({})
         with open("paths_answer.dat") as answer, open("paths.dat") as tmp:
             self.assertEqual(answer.readlines(), tmp.readlines())
-
-
-if __name__ == "__main__":
-    unittest.main()

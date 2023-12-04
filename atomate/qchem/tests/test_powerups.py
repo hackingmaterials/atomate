@@ -1,6 +1,5 @@
 import os
 import shutil
-import unittest
 
 from fireworks import Firework, Workflow
 from pymatgen.io.qchem.outputs import QCOutput
@@ -39,7 +38,6 @@ class TestPowerups(AtomateTest):
                 os.remove(os.path.join(module_dir, x))
 
     def test_use_fake_qchem(self):
-
         input_file = "test.qin.opt_1"
         output_file = "test.qout.opt_1"
         calc_dir = os.path.join(module_dir, "..", "test_files", "FF_working")
@@ -64,7 +62,3 @@ class TestPowerups(AtomateTest):
                     if "RunQChemFake" in str(t):
                         test_fake_run = True
         self.assertTrue(test_fake_run)
-
-
-if __name__ == "__main__":
-    unittest.main()

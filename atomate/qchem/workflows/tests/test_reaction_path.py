@@ -1,6 +1,5 @@
 import copy
 import os
-import unittest
 
 import numpy as np
 from fireworks import FWorker
@@ -105,7 +104,3 @@ class TestReactionPath(AtomateTest):
         np.testing.assert_allclose(
             mol_copy_back.cart_coords, backwards_final_mol.cart_coords, atol=0.0001
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -1,5 +1,4 @@
 import os
-import unittest
 
 import numpy as np
 from pymatgen.core.structure import Molecule
@@ -17,7 +16,6 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 class TestGeoTransformations(AtomateTest):
     @classmethod
     def setUpClass(cls):
-
         cls.pt_mol = Molecule.from_file(
             os.path.join(
                 module_dir, "..", "..", "test_files", "pt_gs_wb97mv_tz_initial.xyz"
@@ -52,7 +50,6 @@ class TestGeoTransformations(AtomateTest):
 class TestPerturbGeometry(AtomateTest):
     @classmethod
     def setUpClass(cls):
-
         cls.ts_init = Molecule.from_file(
             os.path.join(module_dir, "..", "..", "test_files", "ts_init.xyz")
         )
@@ -81,7 +78,3 @@ class TestPerturbGeometry(AtomateTest):
         np.testing.assert_allclose(
             self.ts_perturbed.cart_coords, test_mol.cart_coords, atol=0.0001
         )
-
-
-if __name__ == "__main__":
-    unittest.main()

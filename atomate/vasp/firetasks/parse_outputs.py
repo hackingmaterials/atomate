@@ -1376,6 +1376,7 @@ class MagneticOrderingsToDb(FiretaskBase):
                         {"wf_meta.wf_uuid": uuid, "task_label": optimize_task_label}
                     )
                 )
+
                 # used to determine if ordering changed during relaxation
                 # stored for checking suitable convergence is reached
                 energy_diff_relax_static = (
@@ -1384,6 +1385,7 @@ class MagneticOrderingsToDb(FiretaskBase):
                 )
             else:
                 energy_diff_relax_static = None
+                optimize_task = d
 
             input_structure = Structure.from_dict(optimize_task["input"]["structure"])
             input_magmoms = optimize_task["input"]["incar"]["MAGMOM"]
@@ -1459,8 +1461,8 @@ class MagneticOrderingsToDb(FiretaskBase):
                 d["calcs_reversed"][0]["output"]["outcar"]["total_magnetization"]
             )
             num_formula_units = sum(
-                d["calcs_reversed"][0]["composition_reduced"].values()
-            ) / sum(d["calcs_reversed"][0]["composition_unit_cell"].values())
+                d["calcs_reversed"][0]["composition_unit_cell"].values()
+            ) / sum(d["calcs_reversed"][0]["composition_reduced"].values())
             total_magnetization_per_formula_unit = (
                 total_magnetization / num_formula_units
             )

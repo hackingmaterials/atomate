@@ -63,7 +63,3 @@ class TestLammpsDrone(AtomateTest):
         #     145.4361,
         # ]
         # self.assertEqual(lmps_output.as_dict()["thermo_data"]["enthalpy"], enthalpy)
-
-
-if __name__ == "__main__":
-    unittest.main()

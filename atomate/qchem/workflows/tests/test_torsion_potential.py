@@ -1,5 +1,4 @@
 import os
-import unittest
 
 import numpy as np
 from fireworks import FWorker
@@ -155,7 +154,3 @@ class TestTorsionPotential(AtomateTest):
             act_opt_180_mol.cart_coords, opt_180_final_mol.cart_coords, atol=0.0001
         )
         np.testing.assert_equal(act_opt_180_final_e, opt_180_final_e)
-
-
-if __name__ == "__main__":
-    unittest.main()
