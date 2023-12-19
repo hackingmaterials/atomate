@@ -56,6 +56,7 @@ if __name__ == "__main__":
                 "moto>=4.1.14",
                 "pytest-cov>=4.1.0",
                 "pytest>=7.4.0",
+                "pymatgen-analysis-defects>=2022.8.18",
             ],
         },
         classifiers=[

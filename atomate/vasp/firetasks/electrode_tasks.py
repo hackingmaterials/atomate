@@ -98,21 +98,12 @@ class AnalyzeChgcar(FiretaskBase):
             chgcar = chgcar["aeccar0"] + chgcar["aeccar2"]
 
         cia = ChargeInsertionAnalyzer(chgcar, **cia_kwargs)
-        cia.get_labels()
+        avg_chg_groups = list(cia.filter_and_group())
 
         insert_sites = []
-        seent = set()
-
-        cia._extrema_df.sort_values(by=["avg_charge_den"], inplace=True)
-        for itr, li_site in cia._extrema_df.iterrows():
-            if len(insert_sites) >= attempt_insertions:
-                break
-            li_site = cia._extrema_df.iloc[itr]
-            lab = li_site["site_label"]
-            if lab not in seent:
-                insert_sites.append([li_site["a"], li_site["b"], li_site["c"]])
-                seent.add(lab)
-
+        for _, g in avg_chg_groups[:attempt_insertions]:
+            insert_sites.append(g[0])
+        
         logger.info(
             f"Found {len(insert_sites)} insertion sites for task : {base_task_id}"
         )

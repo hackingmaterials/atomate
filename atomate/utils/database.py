@@ -57,7 +57,6 @@ class CalcDb(metaclass=ABCMeta):
                         "compress" : Whether compression is used
                         "endpoint_url" : the url used to access the S3 store
             maggma_store_prefix: when using maggma stores, you can set the prefix string.
-
             **kwargs:
         """
         if maggma_store_kwargs is None:
