@@ -102,7 +102,7 @@ class AnalyzeChgcar(FiretaskBase):
 
         insert_sites = []
         for _, g in avg_chg_groups[:attempt_insertions]:
-            insert_sites.append(g[0])
+            insert_sites.append(g[ 0])
         
         logger.info(
             f"Found {len(insert_sites)} insertion sites for task : {base_task_id}"
