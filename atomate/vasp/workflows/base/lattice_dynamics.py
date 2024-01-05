@@ -363,7 +363,8 @@ def get_perturbed_structure_wf(
 #        rattle_min_distance = min(scaled_min_distance, rattle_min_distance)
 
         transformations = [
-            "SupercellTransformation",
+#            "SupercellTransformation",
+            "PhonopySupercellTransformation",
             "FixedRandomDisplacementTransformation",
         ]            
 
