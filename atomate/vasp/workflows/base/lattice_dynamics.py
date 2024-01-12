@@ -190,7 +190,7 @@ def get_lattice_dynamics_wf(
         **perturbed_structure_kwargs,
         )
 
-    # 2. Fit interatomic force constants from pertrubed structures
+    # 2. Fit interatomic force constants from perturbed structures
     allow_fizzled = {"_allow_fizzled_parents": True}
     fw_fit_force_constant = FitForceConstantsFW(
         db_file=db_file,

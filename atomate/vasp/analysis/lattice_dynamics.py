@@ -757,8 +757,12 @@ def run_renormalization(
 #    natom = phonopy.primitive.get_number_of_atoms()
     correction_S, correction_SC = free_energy_correction(omega0,omega_TD,evec,[T]) # eV/atom
 
+    lambda_array = np.array([0,0.1,0.3,0.5,0.7,0.9,1])
+    correction_TI = renorm.thermodynamic_integration(lambda_array,param,fcs,TI_nconfig=3)
+
     renorm_data["free_energy_correction_S"] = correction_S[0]
     renorm_data["free_energy_correction_SC"] = correction_SC[0]
+    renorm_data["free_energy_correction_TI"] = correction_TI
     renorm_data["fcp"] = fcp
     renorm_data["fcs"] = fcs
     renorm_data["param"] = param
