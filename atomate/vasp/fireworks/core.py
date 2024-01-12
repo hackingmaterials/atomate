@@ -64,6 +64,10 @@ class OptimizeFW(Firework):
         db_file=DB_FILE,
         force_gamma=True,
         job_type="double_relaxation_run",
+<<<<<<< HEAD
+=======
+#        max_force_threshold=RELAX_MAX_FORCE,
+>>>>>>> c012f5fb (ARC AIMD)
         auto_npar=">>auto_npar<<",
         half_kpts_first_relax=HALF_KPOINTS_FIRST_RELAX,
         parents=None,
@@ -113,6 +117,10 @@ class OptimizeFW(Firework):
             RunVaspCustodian(
                 vasp_cmd=vasp_cmd,
                 job_type=job_type,
+<<<<<<< HEAD
+=======
+#                max_force_threshold=max_force_threshold,
+>>>>>>> c012f5fb (ARC AIMD)
                 ediffg=ediffg,
                 auto_npar=auto_npar,
                 half_kpts_first_relax=half_kpts_first_relax,

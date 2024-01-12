@@ -950,3 +950,85 @@ def wf_lattice_dynamics(
 
     return wf
 
+
+def wf_aimd(
+    structure: Structure,
+    c: Optional[dict] = None,
+    supercell_matrix_kwargs: Optional[dict] = None,
+    num_supercell_kwargs: Optional[dict] = None,
+    ensemble='NVT',
+    simulation_time=10000,
+    time_step=2,
+    **aimd_kwargs
+) -> Workflow:
+    """
+    Get a workflow to run AIMD on vasp, preceded by a structure optimization.
+
+    Args:
+        structure: The input structure.
+        c: Workflow common settings dict. Supports the keys: "VASP_CMD",
+            "DB_FILE", and "user_incar_settings", "ADD_WF_METADATA", and the
+            options supported by "add_common_powerups".
+        **aimd_kwargs: Keyword arguments to be passed directly to the AIMD base workflow.
+
+    Returns:
+        A workflow to perform AIMD.
+    """
+
+    # start with defining the relaxation workflow
+    optimize_uis = {
+        "LAECHG": False,
+        'ENCUT': 600,
+        'ADDGRID': True,
+        'EDIFF': 1e-8,
+        'EDIFFG': -5e-4,
+        'PREC': 'Accurate',
+        "LREAL": False,
+        'LASPH': True,
+        'ISPIN': 2,
+        'ISMEAR': 0,
+        'SIGMA': 0.1,
+        'LCHARG': False,
+        'LWAVE': False
+    }
+    c = c if c is not None else {}
+    if "USER_INCAR_SETTINGS" not in c:
+        c["USER_INCAR_SETTINGS"] = {}
+
+    # wf_structure_optimization expects user incar settings in capitals
+    c["USER_INCAR_SETTINGS"].update(optimize_uis)
+    c["USER_INCAR_SETTINGS"].update(c.get("user_incar_settings", {}))
+    wf = wf_structure_optimization(structure, c=c)
+
+    # don't store CHGCAR and other volumetric data in the VASP drone
+    for task in wf.fws[0].tasks:
+        if "VaspToDb" in str(task):
+            task.update(vasp_to_db_params)
+
+    # Define AIMD workflow
+    wf_aimd = get_aimd_wf(
+        structure,
+        common_settings=c,
+        ensemble=ensemble,
+        start_temp=start_temp,
+        end_temp=end_temp,
+        simulation_time=simulation_time,
+        time_step=time_step,
+        copy_vasp_outputs = True,
+        supercell_matrix_kwargs=supercell_matrix_kwargs,
+        **aimd_kwargs
+    )
+
+    # join the workflows
+    wf.append_wf(wf_aimd, wf.leaf_fw_ids)
+
+    formula = structure.composition.reduced_formula
+    wf_name = "{} AIMD - {} - {}K".format(formula,ensemble,end_temp)
+    wf.name = wf_name
+
+    wf = add_common_powerups(wf, c)
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
+
+    return wf
+
