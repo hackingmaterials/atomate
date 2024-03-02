@@ -26,7 +26,7 @@ from atomate.vasp.analysis.lattice_dynamics import (
     harmonic_properties,
     anharmonic_properties,
     run_renormalization,
-    setup_TE_iter,
+    setup_TE_renorm,
     get_cutoffs
 )
 
@@ -233,7 +233,7 @@ class RunHiPhiveRenorm(FiretaskBase):
         bulk_modulus (float): input bulk modulus - required for thermal expansion iterations
     """
 
-    optional_params = ["renorm_method","temperature","nconfig","conv_thresh","max_iter",
+    optional_params = ["renorm_method","temperature","nconfig",
                        "renorm_TE_iter","bulk_modulus","imaginary_tol"]
 
     @requires(hiphive, "hiphive is required for lattice dynamics workflow")
@@ -248,82 +248,88 @@ class RunHiPhiveRenorm(FiretaskBase):
 
         cutoffs = fitting_data["cutoffs"]
         fit_method = fitting_data["fit_method"]
-        imaginary_tol = fitting_data["imaginary_tol"]
 
         parent_structure = structure_data["structure"]
         supercell_structure = structure_data["supercell_structure"]
-        supercell_atoms = AseAtomsAdaptor.get_atoms(supercell_structure)
         supercell_matrix = np.array(structure_data["supercell_matrix"])
 
         temperature = self.get("temperature")
         renorm_method = self.get("renorm_method")
         nconfig = self.get("nconfig")
-        conv_thresh = self.get("conv_thresh")
-        max_iter = self.get("max_iter")
         renorm_TE_iter = self.get("renorm_TE_iter")
         bulk_modulus = self.get("bulk_modulus")
 
+        parent_atoms = AseAtomsAdaptor.get_atoms(parent_structure)
+        supercell_atoms = AseAtomsAdaptor.get_atoms(supercell_structure)
+
         # Renormalization with DFT lattice
-        renorm_data = run_renormalization(parent_structure, supercell_atoms, supercell_matrix, cs, fcs, param, temperature,
-                                          nconfig, max_iter, conv_thresh, renorm_method, fit_method, bulk_modulus, phonopy_orig)
+        TD_data = run_renormalization(parent_structure, supercell_structure, supercell_matrix,
+                                      cs, fcs, param, temperature, nconfig, renorm_method,
+                                      fit_method, bulk_modulus, phonopy_orig)
+        TD_structure_data = copy(structure_data)
+        TD_structure_data["structure"] = parent_structure
+        TD_structure_data["supercell_structure"] = supercell_structure
 
         # Additional renormalization with thermal expansion - optional - just single "iteration" for now
         if renorm_TE_iter:
             n_TE_iter = 1
             for i in range(n_TE_iter):
-                if renorm_data is None: # failed or incomplete 
+                if TD_data is None: # failed or incomplete
                     break
                 elif result["n_imaginary"] < 0: # still imaginary
                     break
                 else:
                     logger.info("Renormalizing with thermally expanded lattice - iteration {}".format(i))
+                dLfrac = TD_data["expansion_fraction"]
+                param_TD = TD_data["param"]
+                a, b, c, d, e, failed = setup_TE_renorm(
+                    cs,cutoffs,parent_atoms,supercell_atoms,param_TD,temperature,dLfrac
+                )
+                if not failed:
+                    parent_structure_TD, supercell_structure_TD, cs_TD, phonopy_TD, fcs_TD  = a, b, c, d, e
+                    TD_data = run_renormalization(parent_structure_TD, supercell_structure_TD, supercell_matrix,
+                                                  cs_TD, fcs, param, temperature, nconfig,
+                                                  renorm_method, fit_method, bulk_modulus,
+                                                  phonopy_TD, param_TD, fcs_TD
+                                                  )
+                    TD_structure_data["structure"] = parent_structure_TD
+                    TD_structure_data["supercell_structure"] = supercell_structure_TD
 
-                dLfrac = renorm_data["expansion_fraction"]  
-                param = renorm_data["param"]
+        # Thermodynamic integration for anharmonic free energy
+        TD_data = thermodynamic_integration_ifc(TD_data, # everything TD
+                                                    fcs, # original
+                                                    param, # original
+                                                    )
 
-                parent_structure_TE, supercell_atoms_TE, cs_TE, fcs_TE = setup_TE_iter(cs,cutoffs,parent_structure,param,temperature,dLfrac)
-                prim_TE_atoms = AseAtomsAdaptor.get_atoms(parent_structure_TE)
-                prim_TE_phonopy = PhonopyAtoms(symbols=prim_TE_atoms.get_chemical_symbols(), 
-                                               scaled_positions=prim_TE_atoms.get_scaled_positions(), cell=prim_TE_atoms.cell)
-                phonopy_TE = Phonopy(prim_phonopy_TE, supercell_matrix=scmat, primitive_matrix=None)
-                
-                renorm_data = run_renormalization(parent_structure_TE, supercell_atoms_TE, supercell_matrix, 
-                                                  cs_TE, fcs_TE, param, temperature, nconfig, max_iter,
-                                                  conv_thresh,  renorm_method, fit_method, bulk_modulus, phonopy_TE)
-            structure_data["structure"] = parent_structure_TE
-            structure_data["supercell_structure"] = AseAtomsAdaptor.get_structure(supercell_atoms_TE)
-                        
         # write results
         logger.info("Writing renormalized results")
-        renorm_thermal_data = dict()
-        fcs = renorm_data['fcs']
-        fcs.write("force_constants.fcs")
+        fcs_TD = TD_data['fcs']
+        fcs_TD.write("force_constants.fcs")
         thermal_keys = ["temperature","free_energy","entropy","heat_capacity",
                         "gruneisen","thermal_expansion","expansion_fraction",
                         "free_energy_correction_S","free_energy_correction_SC",
                         "free_energy_correction_TI"]
-        renorm_thermal_data = {key: [] for key in thermal_keys}
+        TD_thermal_data = {key: [] for key in thermal_keys}
         for key in thermal_keys:
-            renorm_thermal_data[key].append(renorm_data[key])
+            TD_thermal_data[key].append(TD_data[key])
         
-        logger.info("DEBUG: ",renorm_data)
-        if renorm_data["n_imaginary"] > 0:
-            logger.warning('Imaginary modes remain for {} K!'.format(temperature))
-            logger.warning('ShengBTE files not written')
-            logger.warning('No renormalization with thermal expansion')
+        logger.info("DEBUG: ",TD_data)
+        if TD_data["n_imaginary"] > 0:
+            logger.warning('Imaginary modes remain still exist')
+            logger.warning('ShengBTE FORCE_CONSTANTS_2ND not written')
         else:
-            logger.info("No imaginary modes! Writing ShengBTE files")
-            fcs.write_to_phonopy("FORCE_CONSTANTS_2ND".format(temperature), format="text")
+            logger.info("No imaginary modes! Writing ShengBTE FORCE_CONSTANTS_2ND...")
+            fcs_TD.write_to_phonopy("FORCE_CONSTANTS_2ND".format(temperature), format="text")
 
-        dumpfn(structure_data, "structure_data.json".format(temperature))
-        dumpfn(renorm_thermal_data, "renorm_thermal_data.json".format(temperature))
+        dumpfn(TD_structure_data, "structure_data.json")
+        dumpfn(TD_thermal_data, "thermal_data.json")
 
         
 @explicit_serialize
 class ForceConstantsToDb(FiretaskBase):
     """
     Add force constants, phonon band structure and density of states
-    to the database.
+    and thermal properties to the database.
 
     Assumes you are in a directory with the force constants, fitting
     data, and structure data written to files.
@@ -352,7 +358,6 @@ class ForceConstantsToDb(FiretaskBase):
         db_file = env_chk(self.get("db_file"), fw_spec)
         mmdb = VaspCalcDb.from_db_file(db_file, admin=True)
         renormalized = self.get("renormalized", False)
-        renorm_temperature = self.get("renorm_temperature", None)
         mesh_density = self.get("mesh_density", 100.0)
 
         structure_data = loadfn("structure_data.json")        
@@ -400,9 +405,9 @@ class ForceConstantsToDb(FiretaskBase):
             logger.info("Finished inserting force constants and phonon data")
 
         else:
-            renorm_thermal_data = loadfn("renorm_thermal_data.json")
+            TD_thermal_data = loadfn("thermal_data.json")
             fcs = ForceConstants.read("force_constants.fcs")
-            T = renorm_thermal_data["temperature"]
+            T = TD_thermal_data["temperature"]
 
             dos_fsid, uniform_bs_fsid, lm_bs_fsid, fc_fsid = _get_fc_fsid(
                 structure, supercell_matrix, fcs, mesh_density, mmdb
@@ -415,7 +420,7 @@ class ForceConstantsToDb(FiretaskBase):
                 "structure": structure.as_dict(),
                 "supercell_matrix": supercell_matrix,
                 "supercell_structure": supercell_structure.as_dict(),
-                "thermal_data": renorm_thermal_data,
+                "thermal_data": TD_thermal_data,
                 "force_constants_fs_id": fc_fsid,
                 "phonon_dos_fs_id": dos_fsid,
                 "phonon_bandstructure_uniform_fs_id": uniform_bs_fsid,

@@ -339,10 +339,10 @@ def get_perturbed_structure_wf(
         vasp_input_set = MPStaticSet(structure)
 
     # find the smallest nearest neighbor distance taking into account PBC
-    min_distance = np.min(
-        [n.nn_distance for d in structure.get_all_neighbors(10) for n in d]
-    )
-    scaled_min_distance = min_distance * min_nn_scale
+#    min_distance = np.min(
+#        [n.nn_distance for d in structure.get_all_neighbors(10) for n in d]
+#    )
+#    scaled_min_distance = min_distance * min_nn_scale
     all_rattle_stds = np.repeat(rattle_stds, n_configs_per_std)
 
     logger.debug("Using supercell_matrix of: {}".format(supercell_matrix))
