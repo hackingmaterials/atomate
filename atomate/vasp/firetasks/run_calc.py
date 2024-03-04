@@ -22,7 +22,7 @@ from custodian.vasp.handlers import (
     AliasingErrorHandler,
     MeshSymmetryErrorHandler,
     UnconvergedErrorHandler,
-    MaxForceErrorHandler,
+#    MaxForceErrorHandler,
     PotimErrorHandler,
     FrozenJobErrorHandler,
     NonConvergingErrorHandler,
