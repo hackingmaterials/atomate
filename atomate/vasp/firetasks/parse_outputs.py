@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-=======
-# coding: utf-8
-
->>>>>>> 7a7f01df (Remove old firetasks)
 import json
 import os
 import re
@@ -10,28 +5,11 @@ from collections import defaultdict
 from datetime import datetime
 
 import numpy as np
-<<<<<<< HEAD
-=======
-
-from monty.json import MontyEncoder, jsanitize
-from pydash.objects import has, get
-
-from atomate.vasp.config import DEFUSE_UNSUCCESSFUL
->>>>>>> 816883c7 (Cleaned up code (made functions for CSLD firetask, adhered to PEP guidelines, etc.))
 from fireworks import FiretaskBase, FWAction, explicit_serialize
 from fireworks.utilities.fw_serializers import DATETIME_HANDLER
-<<<<<<< HEAD
-<<<<<<< HEAD
 from monty.json import MontyEncoder, jsanitize
 from monty.os.path import zpath
 from pydash.objects import get, has
-=======
-from fireworks import Firework
-=======
->>>>>>> 7a7f01df (Remove old firetasks)
-
-from pymatgen import Structure
->>>>>>> 9a28c322 (Added dynamic fireworks for possible error handling (i.e. larger displacement values))
 from pymatgen.analysis.elasticity.elastic import ElasticTensor, ElasticTensorExpansion
 from pymatgen.analysis.elasticity.strain import Deformation, Strain
 from pymatgen.analysis.elasticity.stress import Stress
@@ -50,36 +28,12 @@ from pymatgen.core.structure import Structure
 from pymatgen.electronic_structure.boltztrap import BoltztrapAnalyzer
 from pymatgen.io.vasp.sets import get_vasprun_outcar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-<<<<<<< HEAD
-=======
-from pymatgen.analysis.ferroelectricity.polarization import Polarization, get_total_ionic_dipole, \
-    EnergyTrend
-from pymatgen.analysis.magnetism import CollinearMagneticStructureAnalyzer, Ordering, magnetic_deformation
-from pymatgen.command_line.bader_caller import bader_analysis_from_path
-<<<<<<< HEAD
-from pymatgen.io.vasp.sets import MPStaticSet
->>>>>>> 9a28c322 (Added dynamic fireworks for possible error handling (i.e. larger displacement values))
-=======
->>>>>>> 7a7f01df (Remove old firetasks)
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_logger, get_meta_from_structure
-from atomate.vasp.config import DEFUSE_UNSUCCESSFUL, STORE_VOLUMETRIC_DATA
+from atomate.vasp.config import DEFUSE_UNSUCCESSFUL, STORE_VOLUMETRIC_DATA, STORE_BADER
 from atomate.vasp.database import VaspCalcDb
-<<<<<<< HEAD
-<<<<<<< HEAD
 from atomate.vasp.drones import BADER_EXE_EXISTS, VaspDrone
-=======
-from atomate.vasp.drones import VaspDrone
-<<<<<<< HEAD
-from atomate.vasp.fireworks.core import StaticFW
->>>>>>> 9a28c322 (Added dynamic fireworks for possible error handling (i.e. larger displacement values))
-=======
->>>>>>> fd3cc888 (Added fw_spec updates to all dynamically added fireworks and wrote a ShengBTE firetask)
-=======
-from atomate.vasp.drones import VaspDrone, BADER_EXE_EXISTS
-from atomate.vasp.config import STORE_VOLUMETRIC_DATA, STORE_BADER
->>>>>>> 13ec960c (VASP runs successfully)
 
 __author__ = "Anubhav Jain, Kiran Mathew, Shyam Dwaraknath"
 __email__ = "ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov"
@@ -123,7 +77,6 @@ class VaspToDb(FiretaskBase):
             Format: {key : path} -> fw.spec[key] = task_doc[path]
             The path is a full mongo-style path so subdocuments can be referenced
             using dot notation and array keys can be referenced using the index.
-<<<<<<< HEAD
             E.g "calcs_reversed.0.output.outcar.run_stats"
     """
 
@@ -143,17 +96,6 @@ class VaspToDb(FiretaskBase):
         "parse_bader",
         "store_volumetric_data",
     ]
-=======
-            E.g "calcs_reversed.0.output.outar.run_stats"
-        vasp_drone_params (dict): Additional keyword arguments to pass to the
-            VaspDrone.
-    """
-    optional_params = ["calc_dir", "calc_loc", "parse_dos", "bandstructure_mode",
-                       "additional_fields", "db_file", "fw_spec_field", "defuse_unsuccessful",
-                       "task_fields_to_push", "parse_chgcar", "parse_aeccar",
-                       "parse_potcar_file",
-                       "store_volumetric_data", "vasp_drone_params"]
->>>>>>> cf160919 (Tweak VaspToDb params)
 
     def run_task(self, fw_spec):
         # get the directory that contains the VASP dir to parse
@@ -166,7 +108,6 @@ class VaspToDb(FiretaskBase):
         # parse the VASP directory
         logger.info(f"PARSING DIRECTORY: {calc_dir}")
 
-<<<<<<< HEAD
         drone = VaspDrone(
             additional_fields=self.get("additional_fields"),
             parse_dos=self.get("parse_dos", False),
@@ -179,16 +120,6 @@ class VaspToDb(FiretaskBase):
                 "store_volumetric_data", STORE_VOLUMETRIC_DATA
             ),
         )
-=======
-        drone = VaspDrone(additional_fields=self.get("additional_fields"),
-                          parse_dos=self.get("parse_dos", False),
-                          parse_potcar_file=self.get("parse_potcar_file", True),
-                          bandstructure_mode=self.get("bandstructure_mode", False),
-                          parse_chgcar=self.get("parse_chgcar", False),  # deprecated
-                          parse_aeccar=self.get("parse_aeccar", False),  # deprecated
-                          store_volumetric_data=self.get("store_volumetric_data", STORE_VOLUMETRIC_DATA),
-                          **self.get("vasp_drone_params", {}))
->>>>>>> cf160919 (Tweak VaspToDb params)
 
         # assimilate (i.e., parse)
         task_doc = drone.assimilate(calc_dir)
