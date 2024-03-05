@@ -10,14 +10,7 @@ import subprocess
 from custodian import Custodian
 from custodian.vasp.handlers import (
     AliasingErrorHandler,
-<<<<<<< HEAD
     DriftErrorHandler,
-=======
-    MeshSymmetryErrorHandler,
-    UnconvergedErrorHandler,
-#    MaxForceErrorHandler,
-    PotimErrorHandler,
->>>>>>> c012f5fb (ARC AIMD)
     FrozenJobErrorHandler,
     IncorrectSmearingHandler,
     LargeSigmaHandler,
