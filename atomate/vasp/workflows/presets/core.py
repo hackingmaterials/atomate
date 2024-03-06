@@ -1,23 +1,14 @@
-<<<<<<< HEAD
-from uuid import uuid4
-
-import numpy as np
-=======
-# coding: utf-8
 from typing import Optional
-
 from uuid import uuid4
-
 import numpy as np
 
 from atomate.vasp.workflows.base.lattice_dynamics import \
-    get_lattice_dynamics_wf, vasp_to_db_params
+    get_lattice_dynamics_wf, vasp_to_db_params 
+
 from fireworks import Workflow
 from pymatgen import Structure
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet, MPHSERelaxSet
->>>>>>> 7cb526cb (Rewrite preset workflow)
 from pymatgen.io.vasp.inputs import Kpoints
-from pymatgen.io.vasp.sets import MPHSERelaxSet, MPRelaxSet, MPStaticSet
 
 from atomate.vasp.config import (
     ADD_WF_METADATA,
@@ -33,11 +24,8 @@ from atomate.vasp.powerups import (
     add_stability_check,
     add_wf_metadata,
 )
-<<<<<<< HEAD
 from atomate.vasp.workflows.base.bulk_modulus import get_wf_bulk_modulus
-=======
 from atomate.vasp.analysis.lattice_dynamics import FIT_METHOD
->>>>>>> 0da85957 (small fix for cutoffs and fit_method)
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
 from atomate.vasp.workflows.base.gibbs import get_wf_gibbs_free_energy
@@ -337,7 +325,6 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
 
     uis_optimize = {"ENCUT": 700, "EDIFF": 1e-6, "LAECHG": False, "LREAL": False}
     if order > 2:
-<<<<<<< HEAD
         uis_optimize.update(
             {
                 "EDIFF": 1e-10,
@@ -347,10 +334,6 @@ def wf_elastic_constant(structure, c=None, order=2, sym_reduce=False):
                 "ISYM": 0,
             }
         )
-=======
-        uis_optimize.update({"EDIFF": 1e-8, "EDIFFG": -0.001,
-                             "ADDGRID": True, "LREAL": False, "ISYM": 0})
->>>>>>> 16220e12 (Tweak lattice dynamics settings)
         # This ensures a consistent k-point mesh across all calculations
         # We also turn off symmetry to prevent VASP from changing the
         # mesh internally
@@ -855,12 +838,6 @@ def wf_nudged_elastic_band(structures, parent, c=None):
 def wf_lattice_dynamics(
     structure: Structure,
     fit_method: str = FIT_METHOD,
-<<<<<<< HEAD
-=======
-    fit_method: str = False,
->>>>>>> 2e30eb4a (remove separate_fit)
-=======
->>>>>>> ac887694 (clean-up)
     disp_cut: float = None,
     bulk_modulus: float = None,
     c: Optional[dict] = None,
@@ -949,86 +926,3 @@ def wf_lattice_dynamics(
         wf = add_wf_metadata(wf, structure)
 
     return wf
-
-
-def wf_aimd(
-    structure: Structure,
-    c: Optional[dict] = None,
-    supercell_matrix_kwargs: Optional[dict] = None,
-    num_supercell_kwargs: Optional[dict] = None,
-    ensemble='NVT',
-    simulation_time=10000,
-    time_step=2,
-    **aimd_kwargs
-) -> Workflow:
-    """
-    Get a workflow to run AIMD on vasp, preceded by a structure optimization.
-
-    Args:
-        structure: The input structure.
-        c: Workflow common settings dict. Supports the keys: "VASP_CMD",
-            "DB_FILE", and "user_incar_settings", "ADD_WF_METADATA", and the
-            options supported by "add_common_powerups".
-        **aimd_kwargs: Keyword arguments to be passed directly to the AIMD base workflow.
-
-    Returns:
-        A workflow to perform AIMD.
-    """
-
-    # start with defining the relaxation workflow
-    optimize_uis = {
-        "LAECHG": False,
-        'ENCUT': 600,
-        'ADDGRID': True,
-        'EDIFF': 1e-8,
-        'EDIFFG': -5e-4,
-        'PREC': 'Accurate',
-        "LREAL": False,
-        'LASPH': True,
-        'ISPIN': 2,
-        'ISMEAR': 0,
-        'SIGMA': 0.1,
-        'LCHARG': False,
-        'LWAVE': False
-    }
-    c = c if c is not None else {}
-    if "USER_INCAR_SETTINGS" not in c:
-        c["USER_INCAR_SETTINGS"] = {}
-
-    # wf_structure_optimization expects user incar settings in capitals
-    c["USER_INCAR_SETTINGS"].update(optimize_uis)
-    c["USER_INCAR_SETTINGS"].update(c.get("user_incar_settings", {}))
-    wf = wf_structure_optimization(structure, c=c)
-
-    # don't store CHGCAR and other volumetric data in the VASP drone
-    for task in wf.fws[0].tasks:
-        if "VaspToDb" in str(task):
-            task.update(vasp_to_db_params)
-
-    # Define AIMD workflow
-    wf_aimd = get_aimd_wf(
-        structure,
-        common_settings=c,
-        ensemble=ensemble,
-        start_temp=start_temp,
-        end_temp=end_temp,
-        simulation_time=simulation_time,
-        time_step=time_step,
-        copy_vasp_outputs = True,
-        supercell_matrix_kwargs=supercell_matrix_kwargs,
-        **aimd_kwargs
-    )
-
-    # join the workflows
-    wf.append_wf(wf_aimd, wf.leaf_fw_ids)
-
-    formula = structure.composition.reduced_formula
-    wf_name = "{} AIMD - {} - {}K".format(formula,ensemble,end_temp)
-    wf.name = wf_name
-
-    wf = add_common_powerups(wf, c)
-    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
-        wf = add_wf_metadata(wf, structure)
-
-    return wf
-
