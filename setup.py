@@ -46,6 +46,7 @@ if __name__ == "__main__":
             "phonons": ["phonopy>=1.10.8"],
             "qchem": ["openbabel-wheel"],
             "defects": ["pymatgen-analysis-defects"],
+            "hiphive": ["hiphive","phono3py","ase>=3.19.0"]
             "complete": [
                 "matplotlib>=1.5.2",
                 "phonopy>=1.10.8",

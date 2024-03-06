@@ -404,7 +404,6 @@ def _run_cutoffs(
     except Exception:
         return None
 
-
 def get_structure_container(
         cs: ClusterSpace,
         structures: List["Atoms"],
