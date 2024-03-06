@@ -1,7 +1,7 @@
 
 from pathlib import Path
 
-from atomate.vasp.workflows import get_lattice_dynamics_wf
+from atomate.vasp.workflows.base.lattice_dynamics import get_lattice_dynamics_wf
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 

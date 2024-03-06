@@ -7,7 +7,7 @@ import gridfs
 from fireworks import FWorker
 from fireworks.core.rocket_launcher import rapidfire
 from monty.json import MontyDecoder
-from moto import mock_s3
+from moto import mock_aws
 from pymatgen.core import Structure
 from pymatgen.electronic_structure.bandstructure import BandStructure
 from pymatgen.electronic_structure.dos import CompleteDos
@@ -403,7 +403,7 @@ class TestVaspWorkflows(AtomateTest):
         # generate a doc from the test folder
         doc = {"a": 1, "b": 2}
 
-        with mock_s3():
+        with mock_aws():
             conn = boto3.client("s3")
             conn.create_bucket(Bucket="test_bucket")
             mmdb = VaspCalcDb.from_db_file(os.path.join(db_dir, "db_aws.json"))

@@ -6,7 +6,7 @@ from atomate.vasp.workflows.base.lattice_dynamics import \
     get_lattice_dynamics_wf, vasp_to_db_params 
 
 from fireworks import Workflow
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet, MPHSERelaxSet
 from pymatgen.io.vasp.inputs import Kpoints
 
