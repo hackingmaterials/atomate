@@ -1,5 +1,6 @@
 from itertools import product
-from typing import Dict, List, Tuple
+from joblib import Parallel, delayed
+from typing import Dict, List, Tuple, Optional
 
 import numpy as np
 import scipy as sp
@@ -8,20 +9,11 @@ import psutil
 from copy import copy
 
 from atomate.utils.utils import get_logger
-<<<<<<< HEAD
-<<<<<<< HEAD
-from pymatgen import Structure
-=======
-=======
 
 from hiphive import (ForceConstants, ForceConstantPotential,
                      enforce_rotational_sum_rules, ClusterSpace,
                      StructureContainer)
-<<<<<<< HEAD
->>>>>>> 1e75a82a (imports)
-=======
 from hiphive.force_constant_model import ForceConstantModel
->>>>>>> 0d613579 (revert to structure container for fitting)
 from hiphive.cutoffs import is_cutoff_allowed, estimate_maximum_cutoff
 from hiphive.fitting import Optimizer
 from hiphive.renormalization import Renormalization
@@ -30,7 +22,6 @@ from hiphive.run_tools import _clean_data, free_energy_correction, construct_fit
 
 from pymatgen.core.structure import Structure
 from pymatgen.io.ase import AseAtomsAdaptor
->>>>>>> 8f4f7e37 (gruneisen and CTE)
 from pymatgen.io.phonopy import get_phonopy_structure
 
 from ase.atoms import Atoms
@@ -40,8 +31,8 @@ from phonopy import Phonopy
 from phono3py.phonon3.gruneisen import Gruneisen
 
 
-__author__ = "Alex Ganose, Rees Chang, Junsoo Park"
-__email__ = "aganose@lbl.gov, rc564@cornell.edu, jsyony37@lbl.gov"
+__author__ = "Alex Ganose, Rees Chang, Junsoo Park, Zhuoying Zhu"
+__email__ = "aganose@lbl.gov, rc564@cornell.edu, jsyony37@lbl.gov, zyzhu@lbl.gov"
 
 logger = get_logger(__name__)
 
@@ -69,11 +60,7 @@ kB = sp.constants.Boltzmann # J/K
 
 def get_cutoffs(structure: Structure):
     """
-<<<<<<< HEAD
-    Get a list of trial cutoffs based on a structure.
-=======
     Get a list of trial cutoffs based on a supercell structure for grid search.
->>>>>>> b637d9a8 (update)
 
     An initial guess for the lower bound of the cutoffs is made based on the
     average period (row) of the elements in the structure, according to:
@@ -99,15 +86,9 @@ def get_cutoffs(structure: Structure):
     ====== ==== =====
     Cutoff Max  Step
     ====== ==== =====
-<<<<<<< HEAD
-    2ND    +3.0 0.5
-    3RD    +1.5 0.25
-    4TH    +1.0 0.25
-=======
     2ND    +2.0 1.0
     3RD    +1.5 0.75
     4TH    +0.6 0.6
->>>>>>> b637d9a8 (update)
     ====== ==== =====
 
     Args:
@@ -123,28 +104,11 @@ def get_cutoffs(structure: Structure):
         3: {1: 3.0, 2: 3.5, 3: 4.5, 4: 5.5, 5: 6.0, 6: 6.5, 7: 7.0},
         4: {1: 2.5, 2: 3.0, 3: 3.5, 4: 4.0, 5: 4.5, 6: 5.0, 7: 5.5},
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    inc = {2: 3, 3: 1.5, 4: 1}
-    steps = {2: 0.5, 3: 0.25, 4: 0.25}
-
-    row = min([s.row for s in structure.species])
-=======
-    inc = {2: 2, 3: 1, 4: 0.5}
-    steps = {2: 1, 3: 0.5, 4: 0.5}
-=======
-    inc = {2: 2, 3: 1.5, 4: 0.5}
-    steps = {2: 1, 3: 0.75, 4: 0.5}
->>>>>>> c69d0316 (fixed cutoff)
-=======
     inc = {2: 2, 3: 1.5, 4: 0.6}
     steps = {2: 1, 3: 0.75, 4: 0.6}
->>>>>>> b637d9a8 (update)
 
     row = int(np.around(np.array([s.row for s in supercell_structure.species]).mean(),0))
     factor = row/4
->>>>>>> cc7520c5 (separate fitting)
     mins = {
         2: min_cutoffs[2][row], 3: min_cutoffs[3][row], 4: min_cutoffs[4][row]
     }
@@ -153,9 +117,6 @@ def get_cutoffs(structure: Structure):
     range_three = np.arange(mins[3], mins[3] + factor*(inc[3]+steps[3]), factor*steps[3])
     range_four = np.arange(mins[4], mins[4] + factor*(inc[4]+steps[4]), factor*steps[4])
 
-<<<<<<< HEAD
-    return list(map(list, product(range_two, range_three, range_four)))
-=======
     cutoffs = np.array(list(map(list, product(range_two, range_three, range_four))))
     max_cutoff = estimate_maximum_cutoff(AseAtomsAdaptor.get_atoms(supercell_structure))
     cutoffs[cutoffs>max_cutoff] = max_cutoff-0.2
@@ -164,7 +125,6 @@ def get_cutoffs(structure: Structure):
     good_cutoffs = np.all(cutoffs < max_cutoff-0.1, axis=1)
     logger.info('GOOD CUTOFFS \n{}'.format(good_cutoffs))
     return cutoffs[good_cutoffs].tolist()
->>>>>>> c094a175 (cutoff vs cell_size)
 
 
 def fit_force_constants(
@@ -175,13 +135,9 @@ def fit_force_constants(
     disp_cut: float = 0.055,
     imaginary_tol: float = IMAGINARY_TOL,
     fit_method: str = FIT_METHOD,
-<<<<<<< HEAD
-) -> Tuple["SortedForceConstants", Dict]:
-=======
     n_jobs: int = -1,
     fit_kwargs: Optional[Dict] = None
 ) -> Tuple["SortedForceConstants", np.ndarray, ClusterSpace, Dict]:
->>>>>>> fddd9681 (get_cutoffs)
     """
     Fit force constants using hiphive and select the optimum cutoff values.
 
@@ -220,14 +176,7 @@ def fit_force_constants(
         ``SortedForceConstants`` object, array of parameters, cluster space,
         and a dictionary of information on the fitting results.
     """
-<<<<<<< HEAD
-    from hiphive.fitting import Optimizer
-    from hiphive import ForceConstantPotential, enforce_rotational_sum_rules
-
-    logger.info("Starting fitting force constants.")
-=======
     logger.info("Starting force constant fitting.")
->>>>>>> 8f4f7e37 (gruneisen and CTE)
 
     fitting_data = {
         "cutoffs": [],
@@ -242,20 +191,13 @@ def fit_force_constants(
 
     best_fit = {
         "n_imaginary": np.inf,
-<<<<<<< HEAD
-        "free_energy": np.inf,
-=======
         "rmse_test": np.inf,
         "cluster_space": None,
->>>>>>> cd00c732 (cluster_space to best_fit)
         "force_constants": None,
         "parameters":None,
         "cutoffs": None,
     }
     n_cutoffs = len(all_cutoffs)
-<<<<<<< HEAD
-    for i, cutoffs in enumerate(all_cutoffs):
-=======
 
     fit_kwargs = fit_kwargs if fit_kwargs else {}
     if fit_method == "rfe" and n_jobs == -1:
@@ -374,48 +316,15 @@ def _run_cutoffs(
     supercell_atoms = structures[0]
 
     if not is_cutoff_allowed(supercell_atoms, max(cutoffs)):
->>>>>>> 8f4f7e37 (gruneisen and CTE)
         logger.info(
-            "Testing cutoffs {} out of {}: {}".format(i, n_cutoffs, cutoffs)
+            "Skipping cutoff due as it is not commensurate with supercell size"
         )
-<<<<<<< HEAD
-        sc = get_structure_container(cutoffs, structures)
-<<<<<<< HEAD
-        opt = Optimizer(sc.get_fit_data(), fit_method)
-=======
-        logger.info('{}, {}: FINE UNTIL SC'.format(i,cutoffs))
-        opt = Optimizer(sc.get_fit_data(), fit_method, **fit_kwargs)
-        logger.info('{}, {}: FINE UNTIL OPT'.format(i,cutoffs))
->>>>>>> fddd9681 (get_cutoffs)
-=======
         return None
 
     cs = ClusterSpace(supercell_atoms, cutoffs, symprec=1e-3, acoustic_sum_rules=True)
     logger.debug(cs.__repr__())
     n2nd = cs.get_n_dofs_by_order(2)
     nall = cs.n_dofs
-<<<<<<< HEAD
-    
-    if separate_fit:
-        logger.info('Fitting harmonic force constants separately')
-#        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
-#                                disp_cut, ncut=n2nd, param2=None)
-        sc = get_structure_container(cs, structures, separate_fit, disp_cut,
-                                     ncut=n2nd, param2=None)
-        opt = Optimizer(sc.get_fit_data(),
-                        fit_method,
-                        [0,n2nd],
-                        **fit_kwargs)
-<<<<<<< HEAD
-        logger.info('Optimizer set up for cutoff: {}, {}'.format(i,cutoffs))
->>>>>>> 79348b89 (bulk_mod input)
-=======
->>>>>>> cc7520c5 (separate fitting)
-        opt.train()
-        param_harmonic = opt.parameters # harmonic force constant parameters
-        
-        logger.info('Fitting anharmonic force constants separately')
-=======
 
     logger.info('Fitting harmonic force constants separately')
     separate_fit = True
@@ -446,7 +355,6 @@ def _run_cutoffs(
 
     if imaginary:
         logger.info('Imaginary modes found! Fitting anharmonic force constants separately')
->>>>>>> 2e30eb4a (remove separate_fit)
 #        fit_data = get_fit_data(cs, supercell_atoms, structures, separate_fit,
 #                                disp_cut, ncut=n2nd, param2=param_harmonic)
         sc = get_structure_container(cs, structures, separate_fit, disp_cut,
@@ -457,75 +365,7 @@ def _run_cutoffs(
                         **fit_kwargs)
         opt.train()
         param_anharmonic = opt.parameters # anharmonic force constant parameters
-
-<<<<<<< HEAD
-        parameters = enforce_rotational_sum_rules(
-            sc.cluster_space, opt.parameters, ["Huang", "Born-Huang"]
-        )
-        fcp = ForceConstantPotential(sc.cluster_space, parameters)
-        fcs = fcp.get_force_constants(supercell_atoms)
-        logger.info('FCS generated for cutoff {}, {}'.format(i,cutoffs))
-        n_imaginary, min_freq, free_energy, entropy, Cv, grun, cte, dLfrac = evaluate_force_constants(
-            parent_structure, supercell_matrix, fcs, bulk_modulus, T_QHA, imaginary_tol
-        )
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-        fitting_data["cutoffs"].append(cutoffs)
-        fitting_data["rmse_test"].append(opt.rmse_test)
-        fitting_data["n_imaginary"].append(n_imaginary)
-        fitting_data["min_frequency"].append(min_freq)
-        fitting_data["300K_free_energy"].append(free_energy)
-
-        if (
-            min_freq > -np.abs(max_imaginary_freq)
-            and n_imaginary <= max_n_imaginary
-            and n_imaginary < best_fit["n_imaginary"]
-            and free_energy < best_fit["free_energy"]
-        ):
-            best_fit.update(
-                {
-                    "n_imaginary": n_imaginary,
-                    "free_energy": free_energy,
-                    "force_constants": fcs,
-                    "cutoffs": cutoffs,
-                }
-            )
-            fitting_data["best"] = cutoffs
-
-    logger.info("Finished fitting force constants.")
-
-    return best_fit["force_constants"], fitting_data
-=======
-=======
-        logger.info('evaluate_force_constants success!')
->>>>>>> fddd9681 (get_cutoffs)
-=======
-        logger.info('evaluate_force_constants success: {}, {}'.format(i,cutoffs))
->>>>>>> 79348b89 (bulk_mod input)
-        return {
-            "cutoffs": cutoffs,
-            "rmse_test": opt.rmse_test,
-            "n_imaginary": n_imaginary,
-            "min_frequency": min_freq,
-            "temperature": T_QHA,
-            "free_energy": free_energy,
-            "entropy": entropy,
-            "heat_capacity": Cv,
-            "thermal_expansion": cte,
-            "cluster_space": sc.cluster_space,
-            "parameters": parameters,
-            "force_constants": fcs
-        }
-    except Exception:
-        return None
->>>>>>> 8f4f7e37 (gruneisen and CTE)
-
-
-def get_structure_container(
-    cutoffs: List[float], structures: List["Atoms"]
-=======
+        
         parameters = np.concatenate((param_harmonic,param_anharmonic)) # combine 
         assert(nall==len(parameters))
         logger.info('Training complete for cutoff: {}, {}'.format(i,cutoffs))
@@ -572,7 +412,6 @@ def get_structure_container(
         disp_cut: float,
         ncut: int,
         param2: np.ndarray
->>>>>>> cc7520c5 (separate fitting)
 ) -> "StructureContainer":
     """
     Get a hiPhive StructureContainer from cutoffs and a list of atoms objects.
