@@ -46,12 +46,13 @@ if __name__ == "__main__":
             "phonons": ["phonopy>=1.10.8"],
             "qchem": ["openbabel-wheel"],
             "defects": ["pymatgen-analysis-defects"],
-            "hiphive": ["hiphive>=1.1","phono3py==2.3.2","ase>=3.19.0"],
+            "hiphive": ["hiphive>=1.1","phono3py==2.3.2","f90nml==1.3.1","ase>=3.19.0"],
             "complete": [
                 "matplotlib>=1.5.2",
                 "phonopy>=1.10.8",
                 "openbabel-wheel",
                 "hiphive>=1.1",
+                "f90nml==1.3.1",
                 "phono3py==2.3.2",
                 "cmake==3.22.4",
                 "spglib==1.16.5",
@@ -77,5 +78,5 @@ if __name__ == "__main__":
             "Topic :: Other/Nonlisted Topic",
             "Topic :: Scientific/Engineering",
         ],
-        scripts=[join("scripts", f) for f in os.listdir(join(module_dir, "scripts"))],
+        scripts=[join("scripts", f) for f in os.listdir(join(module_dir, "scripts"))]
     )
