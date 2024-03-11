@@ -3,7 +3,6 @@ Testing for the CalcDb metaclass
 """
 import os
 import unittest
-
 import boto3
 from maggma.stores import MemoryStore
 from moto import mock_aws
@@ -19,7 +18,14 @@ db_dir = os.path.join(MODULE_DIR, "..", "..", "common", "test_files")
 logger = get_logger(__name__)
 
 
+
+
 class TestToDb(CalcDb):
+    def setup_method(self,method):
+        self.reset()
+    
+    def teardown_method(self,method):
+
     def build_indexes(self, indexes=None, background=True):
         pass
 
