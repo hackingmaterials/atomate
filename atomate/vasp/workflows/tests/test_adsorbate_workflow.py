@@ -16,7 +16,6 @@ from atomate.vasp.workflows.base.adsorption import (
     get_slab_trans_params,
     get_wf_slab,
 )
-from phono3py.phonon3.gruneisen import Gruneisen
 
 __author__ = "Kiran Mathew, Joseph Montoya"
 __email__ = "montoyjh@lbl.gov"
