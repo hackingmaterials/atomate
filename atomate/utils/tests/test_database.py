@@ -25,7 +25,8 @@ class TestToDb(CalcDb):
         self.reset()
     
     def teardown_method(self,method):
-
+        pass
+        
     def build_indexes(self, indexes=None, background=True):
         pass
 
