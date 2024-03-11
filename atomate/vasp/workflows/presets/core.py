@@ -1,6 +1,8 @@
 from typing import Optional
 from uuid import uuid4
 import numpy as np
+import os
+import logging
 
 from atomate.vasp.workflows.base.lattice_dynamics import \
     get_lattice_dynamics_wf, vasp_to_db_params 
@@ -44,6 +46,8 @@ __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
 # TODO: @computron: Clarify the config dict -computron
 # TODO: @computron: Allow default config dict to be loaded from file -computron
 
+module_dir = os.path.dirname(os.path.abspath(__file__))
+logger = logging.getLogger(__name__)
 
 def wf_bandstructure(structure, c=None):
 
