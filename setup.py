@@ -52,7 +52,6 @@ if __name__ == "__main__":
                 "phonopy>=2.21.0",
                 "openbabel-wheel",
                 "h5py>=3.0",
-                "phono3py",
                 "hiphive @ git+https://gitlab.com/jsyony37/hiphive.git@personal#egg=hiphive",
                 "f90nml==1.4.4",
                 "spglib>=2.2.0",
