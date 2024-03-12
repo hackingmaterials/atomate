@@ -34,6 +34,10 @@ jobs:
           sudo apt-get install libopenbabel-dev
           # https://github.com/openbabel/openbabel/issues/2408#issuecomment-1014466193
           sudo ln -s /usr/include/openbabel3 /usr/local/include/openbabel3
+      
+      - name: Install phono3py
+        run: |
+          conda install -c conda-forge phono3py
 
       - name: Install dependencies
         run: |

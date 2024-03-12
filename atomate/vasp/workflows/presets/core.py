@@ -1,8 +1,16 @@
+from typing import Optional
 from uuid import uuid4
-
 import numpy as np
+import os
+import logging
+
+from atomate.vasp.workflows.base.lattice_dynamics import \
+    get_lattice_dynamics_wf, vasp_to_db_params 
+
+from fireworks import Workflow
+from pymatgen.core import Structure
+from pymatgen.io.vasp.sets import MPRelaxSet, MPStaticSet, MPHSERelaxSet
 from pymatgen.io.vasp.inputs import Kpoints
-from pymatgen.io.vasp.sets import MPHSERelaxSet, MPRelaxSet, MPStaticSet
 
 from atomate.vasp.config import (
     ADD_WF_METADATA,
@@ -19,6 +27,7 @@ from atomate.vasp.powerups import (
     add_wf_metadata,
 )
 from atomate.vasp.workflows.base.bulk_modulus import get_wf_bulk_modulus
+from atomate.vasp.analysis.lattice_dynamics import FIT_METHOD
 from atomate.vasp.workflows.base.core import get_wf
 from atomate.vasp.workflows.base.elastic import get_wf_elastic_constant
 from atomate.vasp.workflows.base.gibbs import get_wf_gibbs_free_energy
@@ -37,6 +46,8 @@ __email__ = "ajain@lbl.gov, kmathew@lbl.gov"
 # TODO: @computron: Clarify the config dict -computron
 # TODO: @computron: Allow default config dict to be loaded from file -computron
 
+module_dir = os.path.dirname(os.path.abspath(__file__))
+logger = logging.getLogger(__name__)
 
 def wf_bandstructure(structure, c=None):
 
@@ -824,5 +835,98 @@ def wf_nudged_elastic_band(structures, parent, c=None):
         wf = get_wf_neb_from_images(
             parent=parent, images=structures, additional_spec=spec, **kwargs
         )
+
+    return wf
+
+
+def wf_lattice_dynamics(
+    structure: Structure,
+    fit_method: str = FIT_METHOD,
+    disp_cut: float = None,
+    bulk_modulus: float = None,
+    c: Optional[dict] = None,
+    supercell_matrix_kwargs: Optional[dict] = None,
+    num_supercell_kwargs: Optional[dict] = None,
+    calculate_lattice_thermal_conductivity=True,
+    thermal_conductivity_temperature=None,
+    renormalize=False,
+    renormalize_temperature=None,        
+    renormalize_thermal_expansion_iter=False,
+    **ld_kwargs
+) -> Workflow:
+    """
+    Get a workflow to calculate lattice thermal conductivity, including a tight
+    structure optimization.
+
+    Args:
+        structure: The input structure.
+        c: Workflow common settings dict. Supports the keys: "VASP_CMD",
+            "DB_FILE", and "user_incar_settings", "ADD_WF_METADATA", and the
+            options supported by "add_common_powerups".
+        **ld_kwargs: Keyword arguments to be passed directly to the lattice
+            dynamics base workflow.
+
+    Returns:
+        A workflow to calculate lattice thermal conductivity.
+    """
+
+    # start with defining the relaxation workflow
+    optimize_uis = {
+        "LAECHG": False,
+        'ENCUT': 600,
+        'ADDGRID': True,
+        'EDIFF': 1e-8,
+        'EDIFFG': -5e-4,
+        'PREC': 'Accurate',
+        "LREAL": False,
+        'LASPH': True,
+        'ISPIN': 2,
+        'ISMEAR': 0,
+        'SIGMA': 0.1,
+        'LCHARG': False,
+        'LWAVE': False
+    }
+    c = c if c is not None else {}
+    if "USER_INCAR_SETTINGS" not in c:
+        c["USER_INCAR_SETTINGS"] = {}
+
+    # wf_structure_optimization expects user incar settings in capitals
+    c["USER_INCAR_SETTINGS"].update(optimize_uis)
+    c["USER_INCAR_SETTINGS"].update(c.get("user_incar_settings", {}))
+    wf = wf_structure_optimization(structure, c=c)
+
+    # don't store CHGCAR and other volumetric data in the VASP drone
+    for task in wf.fws[0].tasks:
+        if "VaspToDb" in str(task):
+            task.update(vasp_to_db_params)
+
+    # define lattice dynamics workflow
+    wf_ld = get_lattice_dynamics_wf(
+        structure,
+        fit_method=fit_method,
+        disp_cut=disp_cut,
+        bulk_modulus=bulk_modulus,
+        common_settings=c,
+        supercell_matrix_kwargs=supercell_matrix_kwargs,
+        num_supercell_kwargs=num_supercell_kwargs,
+        calculate_lattice_thermal_conductivity=calculate_lattice_thermal_conductivity,
+        thermal_conductivity_temperature=thermal_conductivity_temperature,
+        renormalize=renormalize,
+        renormalize_temperature=renormalize_temperature,
+        renormalize_thermal_expansion_iter=bool(renormalize_thermal_expansion_iter and bulk_modulus),
+        copy_vasp_outputs=True,
+        **ld_kwargs
+    )
+
+    # join the workflows
+    wf.append_wf(wf_ld, wf.leaf_fw_ids)
+
+    formula = structure.composition.reduced_formula
+    wf_name = "{} - lattice dynamics".format(formula)
+    wf.name = wf_name
+
+    wf = add_common_powerups(wf, c)
+    if c.get("ADD_WF_METADATA", ADD_WF_METADATA):
+        wf = add_wf_metadata(wf, structure)
 
     return wf

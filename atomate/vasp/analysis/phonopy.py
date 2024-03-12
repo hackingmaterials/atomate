@@ -1,7 +1,26 @@
-import numpy as np
+<<<<<<< HEAD
+=======
+# coding: utf-8
 
+>>>>>>> 728556b6 (Add methods for generating phonon band structure & DOS)
+import numpy as np
+from monty.dev import requires
+
+<<<<<<< HEAD
 __author__ = "Kiran Mathew"
 __email__ = "kmathew@lbl.gov"
+=======
+from pymatgen import Structure
+
+try:
+    import phonopy
+except ImportError:
+    phonopy = False
+
+__author__ = "Kiran Mathew, Alex Ganose"
+__email__ = "kmathew@lbl.gov, aganose@lbl.gov"
+>>>>>>> 728556b6 (Add methods for generating phonon band structure & DOS)
+
 
 # TODO: @matk86 - unit tests?
 
@@ -30,8 +49,9 @@ def get_phonopy_gibbs(
         t_step (float): temperature step
         t_max (float): max temperature
         mesh (list/tuple): reciprocal space density
-        eos (str): equation of state used for fitting the energies and the volumes.
-            options supported by phonopy: vinet, murnaghan, birch_murnaghan
+        eos (str): equation of state used for fitting the energies and the
+            volumes. options supported by phonopy: vinet, murnaghan,
+            birch_murnaghan
         pressure (float): in GPa, optional.
 
     Returns:
@@ -59,6 +79,10 @@ def get_phonopy_gibbs(
     return G, T
 
 
+<<<<<<< HEAD
+=======
+@requires(phonopy, "phonopy is required to calculate the QHA")
+>>>>>>> 728556b6 (Add methods for generating phonon band structure & DOS)
 def get_phonopy_qha(
     energies,
     volumes,
@@ -83,8 +107,9 @@ def get_phonopy_qha(
         t_step (float): temperature step
         t_max (float): max temperature
         mesh (list/tuple): reciprocal space density
-        eos (str): equation of state used for fitting the energies and the volumes.
-            options supported by phonopy: vinet, murnaghan, birch_murnaghan
+        eos (str): equation of state used for fitting the energies and the
+            volumes. options supported by phonopy: vinet, murnaghan,
+            birch_murnaghan
         pressure (float): in GPa, optional.
 
     Returns:
@@ -117,7 +142,10 @@ def get_phonopy_qha(
         cv.append(c)
 
     # add pressure contribution
-    energies = np.array(energies) + np.array(volumes) * pressure / EVAngstromToGPa
+    energies = (
+        np.array(energies) + np.array(volumes) * pressure / EVAngstromToGPa
+    )
+
     # quasi-harmonic approx
     return PhonopyQHA(
         volumes,
@@ -155,12 +183,14 @@ def get_phonopy_thermal_expansion(
         t_step (float): temperature step
         t_max (float): max temperature
         mesh (list/tuple): reciprocal space density
-        eos (str): equation of state used for fitting the energies and the volumes.
-            options supported by phonopy: vinet, murnaghan, birch_murnaghan
+        eos (str): equation of state used for fitting the energies and the
+            volumes. options supported by phonopy: vinet, murnaghan,
+            birch_murnaghan
         pressure (float): in GPa, optional.
 
     Returns:
-        (numpy.ndarray, numpy.ndarray): thermal expansion coefficient, Temperature
+        (numpy.ndarray, numpy.ndarray): thermal expansion coefficient,
+        Temperature
     """
 
     # quasi-harmonic approx

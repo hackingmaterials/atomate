@@ -11,6 +11,7 @@ STABILITY_CHECK = False
 VASP_CMD = ">>vasp_cmd<<"
 VDW_KERNEL_DIR = ">>vdw_kernel_dir<<"
 DB_FILE = ">>db_file<<"
+SHENGBTE_CMD = ">>shengbte_cmd<<"
 ADD_WF_METADATA = True
 LOBSTER_CMD = ">>lobster_cmd<<"
 

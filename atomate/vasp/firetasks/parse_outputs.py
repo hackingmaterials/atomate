@@ -31,7 +31,7 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from atomate.common.firetasks.glue_tasks import get_calc_loc
 from atomate.utils.utils import env_chk, get_logger, get_meta_from_structure
-from atomate.vasp.config import DEFUSE_UNSUCCESSFUL, STORE_VOLUMETRIC_DATA
+from atomate.vasp.config import DEFUSE_UNSUCCESSFUL, STORE_VOLUMETRIC_DATA, STORE_BADER
 from atomate.vasp.database import VaspCalcDb
 from atomate.vasp.drones import BADER_EXE_EXISTS, VaspDrone
 
@@ -40,6 +40,7 @@ __email__ = "ajain@lbl.gov, kmathew@lbl.gov, shyamd@lbl.gov"
 
 logger = get_logger(__name__)
 
+STORE_BADER = STORE_BADER and BADER_EXE_EXISTS
 
 @explicit_serialize
 class VaspToDb(FiretaskBase):
@@ -112,7 +113,7 @@ class VaspToDb(FiretaskBase):
             parse_dos=self.get("parse_dos", False),
             parse_potcar_file=self.get("parse_potcar_file", True),
             bandstructure_mode=self.get("bandstructure_mode", False),
-            parse_bader=self.get("parse_bader", BADER_EXE_EXISTS),
+            parse_bader=STORE_BADER, #self.get("parse_bader", BADER_EXE_EXISTS),
             parse_chgcar=self.get("parse_chgcar", False),  # deprecated
             parse_aeccar=self.get("parse_aeccar", False),  # deprecated
             store_volumetric_data=self.get(

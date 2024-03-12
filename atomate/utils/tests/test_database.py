@@ -3,10 +3,9 @@ Testing for the CalcDb metaclass
 """
 import os
 import unittest
-
 import boto3
 from maggma.stores import MemoryStore
-from moto import mock_s3
+from moto import mock_aws
 
 __author__ = "Jimmy Shen <jmmshn@gmail.com>"
 
@@ -19,7 +18,15 @@ db_dir = os.path.join(MODULE_DIR, "..", "..", "common", "test_files")
 logger = get_logger(__name__)
 
 
+
+
 class TestToDb(CalcDb):
+    def setup_method(self,method):
+        self.reset()
+    
+    def teardown_method(self,method):
+        pass
+        
     def build_indexes(self, indexes=None, background=True):
         pass
 
@@ -37,7 +44,7 @@ class DatabaseTests(unittest.TestCase):
         cls.testdb.connection.drop_database(cls.testdb.db_name)
 
     def test_s3_valid(self):
-        with mock_s3():
+        with mock_aws():
             conn = boto3.resource("s3", region_name="us-east-1")
             conn.create_bucket(Bucket="test_bucket")
             index_store = MemoryStore()
@@ -50,7 +57,7 @@ class DatabaseTests(unittest.TestCase):
             self.assertEqual(res["data"], "111111111110111111")
 
     def test_s3_not_valid(self):
-        with mock_s3():
+        with mock_aws():
             conn = boto3.resource("s3", region_name="us-east-1")
             conn.create_bucket(Bucket="test_bucket_2")
             index_store = MemoryStore()
@@ -61,7 +68,7 @@ class DatabaseTests(unittest.TestCase):
                 store.connect()
 
     def test_maggma_store_names(self):
-        with mock_s3():
+        with mock_aws():
             conn = boto3.resource("s3", region_name="us-east-1")
             conn.create_bucket(Bucket="test_bucket")
             index_store = MemoryStore()
@@ -84,7 +91,7 @@ class DatabaseTests(unittest.TestCase):
         calc_db.collection.insert_one({"task_id": "mp-1", "data": "12345"})
         self.assertEqual(calc_db.collection.find_one()["data"], "12345")
 
-        with mock_s3():
+        with mock_aws():
             conn = boto3.resource("s3", region_name="us-east-1")
             conn.create_bucket(Bucket="test_bucket")
             uri_db = TestToDb.from_db_file(db_dir + "/db_aws_uri.json")

@@ -14,7 +14,8 @@ db_dir = os.path.join(module_dir, "..", "..", "test_files")
 
 
 class TestDrone(AbstractDrone):
-    def __init__(self):
+    @classmethod
+    def setUpClass(cls):
         pass
 
     def assimilate(self, path):
