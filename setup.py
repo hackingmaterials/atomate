@@ -44,13 +44,13 @@ if __name__ == "__main__":
         extras_require={
             "plotting": ["matplotlib>=1.5.2"],
             "phonons": ["phonopy>=2.21.0"],
-            "qchem": ["openbabel-wheel"],
+            "qchem": ["openbabel>=3.2.0"],
             "defects": ["pymatgen-analysis-defects"],
             "hiphive": ["hiphive @ git+https://gitlab.com/jsyony37/hiphive.git@personal#egg=hiphive","f90nml==1.3.1","ase>=3.22.1"],
             "complete": [
                 "matplotlib>=1.5.2",
                 "phonopy>=2.21.0",
-                "openbabel-wheel",
+                "openbabel>=3.2.0",
                 "h5py>=3.0",
                 "hiphive @ git+https://gitlab.com/jsyony37/hiphive.git@personal#egg=hiphive",
                 "f90nml==1.4.4",
